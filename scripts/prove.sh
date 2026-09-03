@@ -24,6 +24,7 @@ fi
 grep -q "Not a product SKU" docs/IDENTITY.md
 grep -q "HELIOS" docs/IDENTITY.md
 grep -q "GA4GH certification" README.md
+grep -q "Helix tests behavior against the GA4GH spec, independent of implementation. Ferrum is used as a reference target, not a dependency." README.md
 grep -q "clinical pilot" docs/IDENTITY.md
 grep -q "Prompt B1" INVENTORY.md || grep -q "Coupling to Ferrum" INVENTORY.md
 grep -q "Synaptic Four builds the infrastructure. Helix proves it works." docs/HELIX_VISION.md

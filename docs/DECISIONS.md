@@ -1,6 +1,6 @@
 # Decisions (Helix)
 
-Recorded 2026-09-03. Not a calendar. Implementation of HelixTest decoupling (Stage 0) is the next code step; it is **not** done in this document set.
+Recorded 2026-09-03. HelixTest Stage 0 decoupling (generic vs Ferrum) is implemented in HelixTest: no WES-name auto-switch, in-tree mock DRS in CI (D2).
 
 ## D1 — Keep HelixTest as its own git root
 

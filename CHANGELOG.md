@@ -3,8 +3,9 @@
 ## Unreleased
 
 - Initial public repository: HelixTest inventory and Ferrum-ecosystem ambassador scaffolding. The runnable CLI remains HelixTest v0.1.3.
+- Stage 0 exited: HelixTest generic mode no longer infers Ferrum; in-tree mock DRS in HelixTest CI. Ferrum is a reference target, not a dependency.
 - `docs/HELIX_VISION.md` — VERIFY pillar, HELIOS split, audiences, 12-month non-goals; HelixTest stays a separate git root (D1).
-- `docs/HELIX_ROADMAP.md` — scope stages 0–5; Stage 0 started (docs), not exited (Ferrum decoupling).
+- `docs/HELIX_ROADMAP.md` — scope stages 0–5; Stage 0 started as docs, then exited (generic vs Ferrum decoupling).
 - `docs/HELIX_VS_HELIOS.md` — feature-decision table and rule of thumb; ISO 15189 / AI Act stay HELIOS orientation, not Helix.
 - `docs/DECISIONS.md` — HelixTest stays separate; Stage 0 fixture is in-tree HTTP, not unverified mock images.
 - `docs/CLI_CONTRACT.md` + `VERSIONS.lock` — pin HelixTest v0.1.3; `helix verify` wraps that JSON.

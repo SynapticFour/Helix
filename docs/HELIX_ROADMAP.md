@@ -4,7 +4,7 @@ Scope stages, not calendar dates. Capacity is single-steward; a stage is done wh
 
 **Synaptic Four builds the infrastructure. Helix proves it works.** Positioning: [HELIX_VISION.md](HELIX_VISION.md). What the suite actually runs today: [INVENTORY.md](../INVENTORY.md). HELIOS is not on this ladder.
 
-**Current position (2026-09-03):** Stage 0 is **started, not exited**. Vision, inventory, decisions, and this roadmap exist. HelixTest is not decoupled from Ferrum (auto-detect, `ferrum*` modes, `--start-ferrum`, Ferrum-only HTTP). HelixTest stays a **separate git root** ([DECISIONS.md](DECISIONS.md) D1 / [HELIX_VISION.md](HELIX_VISION.md) §7). Stages 0–1 do not require a merge.
+**Current position (2026-09-03):** Stage 0 is **exited**. Generic mode no longer infers Ferrum from WES `service-info`. DRS checks run against an in-tree mock DRS in HelixTest CI (`helixtest --all --mode generic --only drs --profile ga4gh-drs`). Ferrum remains an opt-in reference target (`--mode ferrum*`). HelixTest stays a **separate git root** ([DECISIONS.md](DECISIONS.md) D1 / [HELIX_VISION.md](HELIX_VISION.md) §7). Stages 0–1 do not require a merge. Stage 1 (`helix verify`) is next.
 
 Stages are sequential. Do not start *n+1* until *n* has exited. Skipping a stage to chase visibility (5) or a dashboard is out of order.
 
@@ -22,6 +22,8 @@ Stages are sequential. Do not start *n+1* until *n* has exited. Skipping a stage
 - A recorded run of HelixTest against a **non-Ferrum** HTTP target with `--mode generic` (or equivalent) producing a JSON report. Target: in-tree fixture in HelixTest CI ([DECISIONS.md](DECISIONS.md) D2). Do not use `ghcr.io/example/mock-*` until those images are proven.
 
 **Exit criterion:** HelixTest can run against a non-Ferrum endpoint. Evidence: one JSON report in-tree or in CI, command line + target described, no Ferrum image required for that job.
+
+**Status:** Exited 2026-09-03. Proof: HelixTest `make prove` runs `generic_drs_mock` / `generic_drs_independence` against an in-process wiremock DRS (`helixtest/testing/mock_ga4gh_drs.rs`). Command: `helixtest --all --mode generic --only drs --profile ga4gh-drs --report json` with `DRS_URL` pointing at that fixture. Same five DRS checks as against Ferrum DRS. `--start-compose` is the generic alias; `--start-ferrum` remains as the historical name and is unused on the generic CI path. Opt-in Ferrum HTTP (`crypt4gh_ferrum_http`, `africa`, `infra`, `ferrum_like` htsget) stays behind `--mode ferrum*`.
 
 **Not in this stage:**
 

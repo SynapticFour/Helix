@@ -15,7 +15,10 @@ Helix/HelixTest never start Ferrum for the customer path. Demo-open auth is not 
 
 ```bash
 cd ../Ferrum && make up
-helixtest --all --mode ferrum
+helixtest --all --mode ferrum --only drs   # same DRS checks as the mock
+
+# non-Ferrum DRS (HelixTest CI uses an in-process mock):
+DRS_URL=http://127.0.0.1:$PORT helixtest --all --mode generic --only drs --profile ga4gh-drs --report json
 ```
 
 Passports / ADS (co-deploy):

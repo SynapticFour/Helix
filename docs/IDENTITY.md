@@ -29,4 +29,4 @@ make prove
 helixtest --all --mode ferrum
 ```
 
-This repo: `make prove` checks docs. See [PROVE.md](PROVE.md), [INVENTORY.md](../INVENTORY.md), [HELIX_ROADMAP.md](HELIX_ROADMAP.md) (Stage 0 started, not exited).
+This repo: `make prove` checks docs. See [PROVE.md](PROVE.md), [INVENTORY.md](../INVENTORY.md), [HELIX_ROADMAP.md](HELIX_ROADMAP.md) (Stage 0 exited: generic vs Ferrum decoupling).

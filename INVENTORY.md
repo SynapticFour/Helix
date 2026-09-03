@@ -240,9 +240,9 @@ SF-TR-2026-001 and SF-TR-2026-002 cite HelixTest (`@helixtest2026` → `https://
 
 | Kind | Where | What |
 |------|--------|------|
-| Mode names | `cli/src/main.rs`, `framework/src/lib.rs` | `ferrum`, `ferrum-africa`, `ferrum+infra`. Generic mode **auto-switches to Ferrum** if WES `/service-info` `name` contains `"Ferrum"`. |
-| Profiles | `helixtest/profiles/ferrum*.toml` | Single-gateway `localhost:8080/ga4gh/...` layout; Ferrum feature flags. |
-| CLI flag | `--start-ferrum` | Name says Ferrum; implementation starts generic docker compose (often the mock file above). |
+| Mode names | `cli/src/main.rs`, `framework/src/lib.rs` | Opt-in: `ferrum`, `ferrum-africa`, `ferrum+infra`. **Generic does not auto-switch** (WES `service-info` `name` containing `"Ferrum"` is ignored). |
+| Profiles | `helixtest/profiles/ferrum*.toml`, `ga4gh-drs.toml` | Ferrum: single-gateway `localhost:8080/ga4gh/...`. `ga4gh-drs`: DRS-only, `strict_drs_checksums=true`, any DRS URL via `DRS_URL`. |
+| CLI flag | `--start-compose` (alias `--start-ferrum`) | Starts generic docker compose (often `helixtest/docker/docker-compose.yml`). Not used by generic CI. |
 | Ferrum-only HTTP | `crypt4gh_ferrum_http.rs` | Headers/paths for Ferrum Crypt4GH rewrap / `decrypt_plain`. |
 | Ferrum-only HTTP | `africa.rs` | `/api/v1/ingest/ont`, `/api/v1/references`, `/api/v1/outbreak/*`, `/api/v1/audit/residency/verify`; env `FERRUM_AFRICA_PEER_URL`. |
 | Ferrum-only HTTP | `infra.rs` | Broker/registry/mock-idp login; DRS with Passport; default gateway `http://localhost:18080` if DRS URL has no `/ga4gh/drs`. |
@@ -251,9 +251,7 @@ SF-TR-2026-001 and SF-TR-2026-002 cite HelixTest (`@helixtest2026` → `https://
 | Reverse pin | Ferrum / Lab Kit / ga4gh-infra | CI clones `SynapticFour/HelixTest` at a SHA. Ferrum demo compose sets `FERRUM_TES_HELIXTEST_STUB` / `FERRUM_WES_HELIXTEST_STUBS` / `HELIXTEST_SKIP_AUTH` (Ferrum side, not HelixTest imports). |
 | Docs | `helixtest/docs/ferrum.md` | Ferrum operator guide inside HelixTest. |
 
-HelixTest talks to **any** HTTP target; Ferrum is the first-class profile, not a library.
-
-**UNKLAR — bitte prüfen:** whether `--start-ferrum` is still used by any Ferrum script (`run-helixtest-local.sh` lives in Ferrum and starts Ferrum itself — not verified line-by-line in this pass).
+HelixTest talks to **any** HTTP target that implements the published GA4GH APIs. Ferrum is a reference target and opt-in profile, not a library. Proof: in-process mock DRS in HelixTest CI (`helixtest/crates/framework/tests/generic_drs_mock.rs`, `helixtest/crates/cli/tests/generic_drs_independence.rs`).
 
 ---
 
