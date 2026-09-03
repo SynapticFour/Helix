@@ -1,0 +1,4 @@
+# Gitleaks configuration (see https://github.com/gitleaks/gitleaks)
+
+[extend]
+useDefault = true
