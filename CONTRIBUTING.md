@@ -8,7 +8,7 @@ Thank you for your interest in contributing to this project.
 - Use focused branches and keep pull requests small and reviewable.
 - Add or update tests for behavior changes.
 - Ensure local linting, formatting, and tests pass before opening a PR.
-- Do not add HELIOS-style evidence/RO-Crate/signed-export features here.
+- Do not add HELIOS-style evidence/RO-Crate/signed-export features here. Gate: [docs/HELIX_VS_HELIOS.md](docs/HELIX_VS_HELIOS.md).
 - Do not claim Ferrum production or clinical pilot deployments.
 
 ## Pull request checklist

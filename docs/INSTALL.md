@@ -10,4 +10,4 @@ make prove
 helixtest --all --mode ferrum   # needs a running target
 ```
 
-This repo: `make prove` only checks documentation.
+This repo: `make prove` only checks documentation. `helix verify` is Stage 1 ([HELIX_ROADMAP.md](HELIX_ROADMAP.md)).

@@ -2,7 +2,7 @@
 
 Helix is the **independence** of [HelixTest](https://github.com/SynapticFour/HelixTest): a GA4GH conformance / security-behaviour / regression runner you point at a running target. **Apache-2.0. Not a product SKU. Not a server.**
 
-HelixTest already exists (public repo, CI, Ferrum pin, SF-TR-2026-001 / SF-TR-2026-002). Helix does not invent that suite.
+HelixTest already exists (public repo, CI, Ferrum pin, SF-TR-2026-001 / SF-TR-2026-002). Helix does not invent that suite. HelixTest stays a separate git root ([DECISIONS.md](DECISIONS.md) D1). Positioning: [HELIX_VISION.md](HELIX_VISION.md). Pin: [VERSIONS.lock](../VERSIONS.lock) **v0.1.3**.
 
 ## Audience
 
@@ -12,7 +12,7 @@ Anyone implementing or buying a GA4GH API — including Ferrum, including compet
 
 ## HELIOS boundary
 
-[HELIOS](https://github.com/SynapticFour/HELIOS) (`helios-audit`, Apache-2.0, Early Access) covers reproducibility, signed audit trails, RO-Crate/PDF export. Helix must not duplicate that surface.
+[HELIOS](https://github.com/SynapticFour/HELIOS) (`helios-audit`, Apache-2.0, Early Access) covers reproducibility, signed audit trails, RO-Crate/PDF export. Helix must not duplicate that surface. Gate: [HELIX_VS_HELIOS.md](HELIX_VS_HELIOS.md).
 
 ## Ferrum honesty
 
@@ -29,4 +29,4 @@ make prove
 helixtest --all --mode ferrum
 ```
 
-This repo: `make prove` checks docs. See [PROVE.md](PROVE.md) and [INVENTORY.md](../INVENTORY.md).
+This repo: `make prove` checks docs. See [PROVE.md](PROVE.md), [INVENTORY.md](../INVENTORY.md), [HELIX_ROADMAP.md](HELIX_ROADMAP.md) (Stage 0 started, not exited).

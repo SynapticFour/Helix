@@ -8,7 +8,7 @@
 | Cited in SF-TR-2026-001 / 002 | Yes (HelixTest, not this repo name) |
 | Official GA4GH certification | **No** |
 | Ferrum clinical pilot (DIZ / genomDE) | **No** |
-| Replaces HELIOS | **No** — HELIOS remains evidence/reproducibility |
+| Replaces HELIOS | **No** — HELIOS remains evidence/reproducibility ([HELIX_VS_HELIOS.md](HELIX_VS_HELIOS.md)) |
 | Production Ferrum deployments | **Do not claim** |
 
-Helix scope if/when code moves here: conformance, security behaviour, benchmark/regression only.
+Helix scope if/when a wrapper ships here: conformance, security behaviour, benchmark/regression only. HelixTest stays a **separate repo** ([HELIX_VISION.md](HELIX_VISION.md) §7, [DECISIONS.md](DECISIONS.md) D1).

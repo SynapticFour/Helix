@@ -1,0 +1,14 @@
+# Helix — pins (not a SKU join)
+
+# WHO UPDATES THIS FILE
+#   When HelixTest cuts a tag that Ferrum/Lab Kit/ga4gh-infra also take,
+#   or when Helix Stage 1 starts wrapping a binary.
+#
+# WHO READS THIS FILE
+#   Helix docs, future helix verify wrapper, humans. Ferrum still reads
+#   Ferrum/VERSIONS.lock HELIXTEST_* until Stage 2.
+
+# Runnable suite. Tag v0.1.3; crate Cargo.toml version may stay 0.1.0.
+HELIXTEST_REF=v0.1.3
+HELIXTEST_TAG=v0.1.3
+HELIXTEST_SHA=1832c043e1679ec283cb2113510ee33684317cce

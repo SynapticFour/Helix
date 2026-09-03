@@ -4,7 +4,7 @@ Four **products**, two free **ambassadors**, Ferrum **companions**, and **proof*
 
 **You are here:** [Helix](https://github.com/SynapticFour/Helix) — independence of HelixTest. Conformance / security-behaviour / regression. Not a product SKU. Not a server. Not HELIOS.
 
-The **running** CLI today is still [HelixTest](https://github.com/SynapticFour/HelixTest). This repo holds inventory and the future home of that suite.
+The **running** CLI today is still [HelixTest](https://github.com/SynapticFour/HelixTest). HelixTest stays a **separate git root** ([DECISIONS.md](DECISIONS.md) D1). This repo holds vision, inventory, VERIFY positioning, and a HelixTest pin ([VERSIONS.lock](../VERSIONS.lock)). HELIOS is not dissolved into Helix.
 
 ## Repositories
 
@@ -26,8 +26,8 @@ The **running** CLI today is still [HelixTest](https://github.com/SynapticFour/H
 | Data/compute | **Ferrum** | DRS, WES/TES, TRS, Beacon; built-in passports in standalone mode |
 | Deployment | **Ferrum-Lab-Kit** | Selective GA4GH surfaces for labs; does not fork Ferrum |
 | Demo/benchmark | **Ferrum-GA4GH-Demo** | Reproducible GIAB smoke; optional `--with-infra` |
-| Conformance / regression | **Helix** (future) / **HelixTest** (today) | Validates implementations; does not ship GA4GH services |
-| Reproducibility / evidence | **HELIOS** | Signed trails, RO-Crate/PDF — not Helix |
+| Conformance / regression | **Helix** (brand) / **HelixTest** (tagged CLI) | Validates implementations; does not ship GA4GH services. Git roots stay separate (D1). |
+| Reproducibility / evidence | **HELIOS** | Signed trails, RO-Crate/PDF — not Helix. Decision table: [HELIX_VS_HELIOS.md](HELIX_VS_HELIOS.md). |
 
 Helix/HelixTest **validate** implementations. Ferrum runs HelixTest in CI. Pin: Ferrum `VERSIONS.lock` HelixTest **v0.1.3**.
 
