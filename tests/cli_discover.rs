@@ -23,6 +23,6 @@ async fn helix_verify_json_reports_discovered_drs() {
         .assert()
         .failure()
         .code(1)
-        .stdout(predicate::str::contains("\"kind\": \"drs\""))
-        .stdout(predicate::str::contains(server.uri()));
+        .stdout(predicate::str::contains("\"service\": \"Drs\""))
+        .stdout(predicate::str::contains("\"status\": \"fail\""));
 }

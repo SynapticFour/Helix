@@ -48,16 +48,19 @@ async fn helix_verify_cli_passes_drs_on_b1_mock() {
     let report: Value = serde_json::from_str(stdout.trim()).unwrap_or_else(|e| {
         panic!("JSON parse failed: {e}; stdout={stdout}");
     });
-    let found = report
-        .get("discovery")
-        .and_then(|d| d.get("found"))
-        .and_then(|f| f.as_array())
-        .expect("discovery.found");
     assert!(
-        found
+        report.get("discovery").is_none(),
+        "JSON must be HelixTest OverallReport, not a discovery wrapper"
+    );
+    let skipped = report
+        .get("skipped_services")
+        .and_then(|s| s.as_array())
+        .expect("skipped_services");
+    assert!(
+        skipped
             .iter()
-            .any(|s| s.get("kind").and_then(|k| k.as_str()) == Some("drs")),
-        "expected discovered DRS: {found:?}"
+            .any(|s| s.get("service").and_then(|v| v.as_str()) == Some("Wes")),
+        "B1 mock exposes WES-shaped /service-info; skip must not count as pass: {skipped:?}"
     );
     let services = report
         .get("services")
@@ -96,4 +99,16 @@ async fn helix_verify_exits_1_when_drs_missing() {
         .failure()
         .code(1)
         .stdout(predicate::str::contains("DRS not discovered"));
+}
+
+#[tokio::test]
+async fn helix_verify_report_alias_is_json() {
+    let mock = start_mock_ga4gh_drs().await;
+    Command::cargo_bin("helix")
+        .unwrap()
+        .env("RUST_LOG", "error")
+        .args(["verify", &mock.drs_url(), "--report", "json"])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("\"service\": \"Drs\""));
 }

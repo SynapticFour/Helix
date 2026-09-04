@@ -16,7 +16,7 @@ Apache-2.0 — same licence as HelixTest. Not a Synaptic Four paid SKU.
 
 ### Current tree
 
-The running CLI is still **HelixTest** (tag **v0.1.3**, SHA `1832c043…` as pinned by Ferrum / Lab Kit / ga4gh-infra and this repo’s [VERSIONS.lock](VERSIONS.lock)). HelixTest stays a **separate git root** — [docs/DECISIONS.md](docs/DECISIONS.md) D1. This repo starts with:
+`helix verify <url>` lives in this repo and runs **HelixTest DRS checks** (HelixTest stays a **separate git root**, pin in [VERSIONS.lock](VERSIONS.lock)). Stage 1 is not exited until DRS **and WES** report against Ferrum local. This repo also has:
 
 - [INVENTORY.md](INVENTORY.md) — what HelixTest actually covers, how it is invoked, Ferrum coupling, licence, gaps
 - [docs/HELIX_VISION.md](docs/HELIX_VISION.md) — VERIFY pillar, HELIOS split, audiences, 12-month non-goals
@@ -26,10 +26,11 @@ The running CLI is still **HelixTest** (tag **v0.1.3**, SHA `1832c043…` as pin
 - Ecosystem docs matching sibling ambassadors (`docs/IDENTITY.md`, `ECOSYSTEM.md`, `DEPENDENCY.md`, `PROVE.md`)
 
 ```bash
-make prove   # docs integrity; no live stack
+make prove   # docs + cargo test (discovery + DRS vs B1 mock; no Ferrum)
+cargo run --bin helix -- verify http://127.0.0.1:8080 --format json
 ```
 
-Live suite (still HelixTest):
+Needs a sibling `../HelixTest` checkout ([docs/INSTALL.md](docs/INSTALL.md)). HelixTest remains usable directly:
 
 ```bash
 # any GA4GH DRS (example: in-process mock in HelixTest CI)

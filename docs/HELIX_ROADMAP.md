@@ -4,7 +4,7 @@ Scope stages, not calendar dates. Capacity is single-steward; a stage is done wh
 
 **Synaptic Four builds the infrastructure. Helix proves it works.** Positioning: [HELIX_VISION.md](HELIX_VISION.md). What the suite actually runs today: [INVENTORY.md](../INVENTORY.md). HELIOS is not on this ladder.
 
-**Current position (2026-09-03):** Stage 0 is **exited**. Generic mode no longer infers Ferrum from WES `service-info`. DRS checks run against an in-tree mock DRS in HelixTest CI (`helixtest --all --mode generic --only drs --profile ga4gh-drs`). Ferrum remains an opt-in reference target (`--mode ferrum*`). HelixTest stays a **separate git root** ([DECISIONS.md](DECISIONS.md) D1 / [HELIX_VISION.md](HELIX_VISION.md) §7). Stages 0–1 do not require a merge. Stage 1 (`helix verify`) is next.
+**Current position (2026-09-04):** Stage 0 is **exited**. Stage 1 is **in progress**: `helix verify <url>` discovers DRS → WES → TES → TRS → htsget and runs **HelixTest DRS checks** (generic, strict checksums) against the B1 mock. WES checks and the Ferrum-local DRS+WES exit are not done. HelixTest stays a **separate git root** ([DECISIONS.md](DECISIONS.md) D1). Stages 0–1 do not require a merge.
 
 Stages are sequential. Do not start *n+1* until *n* has exited. Skipping a stage to chase visibility (5) or a dashboard is out of order.
 
