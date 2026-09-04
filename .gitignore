@@ -9,3 +9,6 @@ dist/
 build/
 .pytest_cache/
 .ruff_cache/
+
+# Local-only (never GitHub). Drafts, notes, unsent outreach.
+local/
