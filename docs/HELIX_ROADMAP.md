@@ -4,7 +4,7 @@ Scope stages, not calendar dates. Capacity is single-steward; a stage is done wh
 
 **Synaptic Four builds the infrastructure. Helix proves it works.** Positioning: [HELIX_VISION.md](HELIX_VISION.md). What the suite actually runs today: [INVENTORY.md](../INVENTORY.md). HELIOS is not on this ladder.
 
-**Current position (2026-09-04):** Stage 0 is **exited**. Stage 1 is **in progress** (`helix verify` DRS). Stage 2 has started as a **pilot only**: [helix-action](https://github.com/SynapticFour/helix-action) (parallel to helixtest-action) plus Ferrum branch `ci/helix-verify-pilot`. Not on Ferrum `main`. Not a required check. Stage 3 is **started, not exited**. Stage 4 is **started** as a tiny scaffold (`helix bench`, 3 GETs, warn-only) — not exited. HelixTest stays a **separate git root** ([DECISIONS.md](DECISIONS.md) D1).
+**Current position (2026-09-04):** Stage 0 is **exited**. Stage 1 is **in progress** (`helix verify` DRS). Stage 2 has started as a **pilot only**: [helix-action](https://github.com/SynapticFour/helix-action) (parallel to helixtest-action) plus Ferrum branch `ci/helix-verify-pilot`. Not on Ferrum `main`. Not a required check. Stage 3 is **started, not exited**. Stage 4 is **started** as a repeatable engine (`helix bench`, `http.drs.smoke.v1`, warn-only) — not exited. HelixTest stays a **separate git root** ([DECISIONS.md](DECISIONS.md) D1).
 
 Stages are sequential. Do not start *n+1* until *n* has exited. Skipping a stage to chase visibility (5) or a dashboard is out of order.
 
@@ -28,7 +28,7 @@ Stages are sequential. Do not start *n+1* until *n* has exited. Skipping a stage
 **Not in this stage:**
 
 - `helix verify` binary (Stage 1)
-- Changing Ferrum PR CI or posting scores (Stage 2)
+- Changing Ferrum PR CI or posting verification comments (Stage 2)
 - New Passport/OIDC/Crypt4GH cases (Stage 3)
 - Absorbing HelixTest into this repo (D1: keep separate)
 - Using unverified `ghcr.io/example/mock-*` as the Stage 0 proof (D2)
@@ -61,14 +61,14 @@ Stages are sequential. Do not start *n+1* until *n* has exited. Skipping a stage
 
 ## Stage 2 — CI visibility
 
-**Goal:** A GitHub Action that Ferrum PRs can run, posting a PR comment with before/after Helix (or HelixTest) scores.
+**Goal:** A GitHub Action that Ferrum PRs can run, posting a PR comment with verification **regressions at stable Helix id** (not an X/Y score).
 
-Ferrum **already** clones HelixTest on every PR (`conformance.yml`, NON-PILOT, `HELIXTEST_SKIP_AUTH=true`, TES noop + stubs). This stage is **score comments + fewer false alarms**, not “HelixTest appears in Ferrum CI for the first time.”
+Ferrum **already** clones HelixTest on every PR (`conformance.yml`, NON-PILOT, `HELIXTEST_SKIP_AUTH=true`, TES noop + stubs). This stage is **id-level comments + fewer false alarms**, not “HelixTest appears in Ferrum CI for the first time.”
 
 **Concrete result:**
 
 - Reusable action: sibling repo [`helix-action`](https://github.com/SynapticFour/helix-action) (composite; parallel to `helixtest-action`). Ferrum pilot: branch `ci/helix-verify-pilot` only — not `main`.
-- PR comment: `Helix Verification — Previous: X/Y | Current: X/Y | DRS: …` (HelixTest JSON; skips are not passes). Job fails only on PASS → FAIL vs last successful run of that workflow.
+- PR comment leads with **new regressions**, then **fixed failures**, then **existing failures** (`VerificationRun` / `helix compare`; skips are not passes). Job fails only on `NEW_FAIL` (PASS → FAIL/ERROR at stable id) vs last successful run of that workflow, or on explicit runtime errors. Known failures, skips, bench warnings, and identified infra do not fail the job.
 - Do not make Helix a required Ferrum check on `main` until false-alarm rate is known. Stage 2 is **not exited**.
 
 **Exit criterion:** Runs reliably in Ferrum’s own CI with **no false alarms** — meaning: no red X caused by Helix infra flakes, skip-as-green, or scoring stubs as real compute. A week of PR runs (or equivalent dispatch sample) without a known-bad comment is enough evidence; not a statistical SLA.
@@ -100,7 +100,7 @@ HelixTest already has HMAC JWT fixtures, `--mode ferrum+infra` Passport-on-DRS, 
 
 **Exit criterion:** Those five documented cases run reproducibly (command + fixture + expected HTTP class). Not a pentest, not a GA4GH Passport certification, not Solum consent.
 
-**Status:** Started 2026-09-04 in Helix (`helix security <url>`). Five HTTP cases + Crypt4GH header structure run in CI against an in-process mock and dummy HMAC in `test-fixtures/` (NICHT FÜR PRODUKTION). Live Ferrum `make up-pilot-local` / HMAC-on path is documented, not the CI default. Stage 3 is **not exited**.
+**Status:** Started 2026-09-04 in Helix (`helix security <url>`). Security Behavior Profile: five documented HTTP invariants (`HLX-AUTH-010`–`014`). Crypt4GH protocol layout after those cases (`HLX-AUTH-050` / `053` / `054`; [CRYPT4GH.md](CRYPT4GH.md)). CI uses an in-process mock and dummy HMAC in `test-fixtures/` (NICHT FÜR PRODUKTION), including **negative** mocks that violate one HTTP invariant each, and negative Crypt4GH envelopes. Live Ferrum `make up-pilot-local` / HMAC-on path is documented, not the CI default. Stage 3 is **not exited**. Not a pentest, not a security audit, not certification. Crypt4GH pass is not “secure”.
 
 **Not in this stage:**
 
@@ -122,7 +122,7 @@ HelixTest already has HMAC JWT fixtures, `--mode ferrum+infra` Passport-on-DRS, 
 
 **Exit criterion:** Two consecutive Ferrum versions can be compared objectively (runtime, resources) from stored artefacts. Same machine class, same Demo pins otherwise. Not clinical throughput, not “production proven.”
 
-**Status:** Started 2026-09-04 in Helix (`helix bench --baseline <url> --candidate <url>`). Fixed workload is three small GETs (`/health`, DRS `service-info`, `objects/test-object-1`) — same *count* as Demo DRS micro `n=3`, not Demo hap.py / GIAB. Metrics: client wall time, optional Linux VmRSS of the Helix process (not Ferrum), error rate. Diff is percent change; default **>10% worse = warning**. The CLI and helix-action comment **do not fail the job** on that warning. Stage 4 is **not exited** (no two Ferrum versions on the same runner class yet).
+**Status:** Started 2026-09-04 in Helix (`helix bench --baseline <url> --candidate <url>`). Repeatable engine plus distribution analysis ([BENCHMARKS.md](BENCHMARKS.md)): warmup + measured runs; compare median / p95 where available / error-rate / optional RSS — not a single wall-clock sample. Measurement, warning, and regression are separate. A warning is human inspection, not “incorrect” and not a verification failure. Fixed workload **`http.drs.smoke.v1`**. Default **>10% worse = warning**. Different OS/arch/runtime is marked incomparable. The CLI and helix-action comment **do not fail the job** on that warning. Stage 4 is **not exited**. Sample percentiles are not a significance test.
 
 **Not in this stage:**
 

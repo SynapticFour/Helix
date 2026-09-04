@@ -1,5 +1,16 @@
 // SPDX-License-Identifier: Apache-2.0
-//! Client RSS if the OS exposes it. Linux: VmRSS of this process (not Ferrum).
+//! Optional client RSS if the OS exposes it. Linux: VmRSS of this process (not Ferrum).
+
+pub fn rss_source() -> &'static str {
+    #[cfg(target_os = "linux")]
+    {
+        "linux_proc_self_vmrss"
+    }
+    #[cfg(not(target_os = "linux"))]
+    {
+        "unavailable"
+    }
+}
 
 pub fn rss_kb() -> Option<u64> {
     #[cfg(target_os = "linux")]

@@ -35,6 +35,8 @@ jobs:
           components: rustfmt, clippy
       - name: Prove
         run: make prove
+      - name: Verify fixture
+        run: make verify-fixture
       - name: Clippy
         run: cargo clippy --all-targets -- -D warnings
       - name: Fmt

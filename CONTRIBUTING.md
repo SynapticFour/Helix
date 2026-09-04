@@ -4,11 +4,11 @@ Thank you for your interest in contributing to this project.
 
 ## How to contribute
 
-- [Open an issue](https://github.com/SynapticFour/Helix/issues). A question about a `helix verify` run is enough; you do not need a patch first. [Discussions](https://github.com/SynapticFour/Helix/discussions) are the same bar once that tab is enabled.
+- [Open an issue](https://github.com/SynapticFour/Helix/issues). Include command, Helix commit, HelixTest SHA, and stdout/stderr. You do not need a patch first.
 - Open an issue to discuss significant changes before starting implementation.
 - Use focused branches and keep pull requests small and reviewable.
 - Add or update tests for behavior changes.
-- Ensure local linting, formatting, and tests pass before opening a PR. Same gates as GitHub CI: `pre-commit install` (fmt + clippy `-D warnings` + `make prove`). Needs a sibling `HelixTest` checkout, like CI.
+- Ensure local linting, formatting, and tests pass before opening a PR. Same gates as GitHub CI: `pre-commit install` (fmt + clippy `-D warnings` + `make prove`). Needs a sibling `HelixTest` checkout, like CI. `make prove` uses in-process fixtures ([docs/FIXTURES.md](docs/FIXTURES.md)); it does not need Ferrum. Do not `#[ignore]` those tests. Live verify against a stack you started is `make test-live`, not prove.
 - Do not add HELIOS-style evidence/RO-Crate/signed-export features here. Gate: [docs/HELIX_VS_HELIOS.md](docs/HELIX_VS_HELIOS.md).
 - Do not claim Ferrum production or clinical pilot deployments.
 

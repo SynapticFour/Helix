@@ -1091,6 +1091,7 @@ dependencies = [
  "helixtest-common",
  "helixtest-framework",
  "hmac",
+ "jsonschema",
  "predicates",
  "reqwest",
  "serde",

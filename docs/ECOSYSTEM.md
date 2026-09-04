@@ -50,15 +50,15 @@ Same as HelixTest / Ferrum `docs/ECOSYSTEM.md`:
 Repos that run a local Docker stack share `up` / `down` / `destroy`. Helix does **not** start servers (same as HelixTest).
 
 ```bash
-# Target (example)
-cd ../Ferrum && make up
+# No stack: in-process DRS fixture
+cd ../Helix && make prove && make verify-fixture
 
-# Suite (tagged pin)
+# Target you started (example)
+cd ../Ferrum && make up
 helixtest --all --mode ferrum
-# This repo
-cargo run --bin helix -- verify http://127.0.0.1:8080
+cd ../Helix && make test-live HELIX_LIVE_URL=http://127.0.0.1:8080
 ```
 
 ## CI
 
-GitHub Actions check out HelixTest at [VERSIONS.lock](../VERSIONS.lock) SHA `1832c043…`, then `make prove`, clippy `-D warnings`, rustfmt. Ferrum **`main`** still runs **HelixTest**, not helix-action. helix-action is only on Ferrum `ci/helix-verify-pilot`. Dependabot/Renovate off — [DEPENDENCY.md](DEPENDENCY.md).
+GitHub Actions check out HelixTest at [VERSIONS.lock](../VERSIONS.lock) SHA `1832c043…`, then `make prove`, `make verify-fixture`, clippy `-D warnings`, rustfmt. Ferrum **`main`** still runs **HelixTest**, not helix-action. helix-action is only on Ferrum `ci/helix-verify-pilot`. Dependabot/Renovate off — [DEPENDENCY.md](DEPENDENCY.md).

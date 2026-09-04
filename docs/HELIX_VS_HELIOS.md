@@ -26,7 +26,7 @@ If a row is “No” for Helix, implementing it here is in scope-error, even as 
 
 ## 2. Rule of thumb
 
-**Testet es, OB etwas korrekt/sicher/performant funktioniert? → Helix.**  
+**Testet es, OB etwas korrekt/sicher/performant funktioniert? → Helix.**
 **Belegt es, WAS gelaufen ist und WIE es reproduziert werden kann? → HELIOS.**
 
 English: Helix answers *whether* a running system behaves. HELIOS answers *what* ran and *how* to reproduce it.
@@ -35,7 +35,25 @@ Still unsure → default **neither**, or two artefacts that stay file-compatible
 
 ---
 
-## 3. Cross-link, keep separate
+## 3. Helix run identity is not HELIOS evidence
+
+Helix records a **lightweight verification-run identity** so two `helix verify` JSON files can be compared (`helix compare`). Fields: Helix version, HelixTest version, profile, test ids, target URL, fixture version, schema version, timestamp, and (for `helix bench` only) workload id/version. Spec: [RUN_IDENTITY.md](RUN_IDENTITY.md).
+
+That identity answers: *are these two technical signals the same kind of measurement?* It does **not** answer: *what pipeline ran, who signed it, or how to reproduce it.*
+
+| | Helix run identity | HELIOS |
+|--|--------------------|--------|
+| Purpose | Pair two verification results | Attest what ran and how to reproduce it |
+| Signing | **No** | Yes (signed evidence chain) |
+| RO-Crate / PDF | **No** | Yes |
+| Scientific reproducibility | **No** | Yes (pipeline envelope) |
+| Compare by check `id` | Yes (`NEW_FAIL`) | No |
+
+Do not grow Helix identity into an evidence pack. Do not put HELIOS signatures on `VerificationRun`. A timestamp is a wall clock, not a signature.
+
+---
+
+## 4. Cross-link, keep separate
 
 Both tools **must** point at each other in READMEs and identity docs so users are not sold the wrong question.
 

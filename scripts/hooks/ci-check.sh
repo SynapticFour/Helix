@@ -22,4 +22,7 @@ cargo clippy --all-targets -- -D warnings
 echo "ci-check: prove (docs + cargo test)"
 make prove
 
+echo "ci-check: verify-fixture (helix verify vs in-process DRS mock)"
+make verify-fixture
+
 echo "ci-check: OK"

@@ -16,11 +16,11 @@ Recorded 2026-09-03. HelixTest Stage 0 decoupling (generic vs Ferrum) is impleme
 
 ### D1 revisit — 2026-09-04 (Stage 3 security module)
 
-**Still keep separate.** Helix now owns a named `helix security` surface (black-box HTTP + Crypt4GH header structure, dummy fixtures in `test-fixtures/`). HelixTest still owns the tagged HMAC suite (`framework/src/auth.rs`) and `--mode ferrum+infra` Passport checks. This is the HELIX_VISION §7 case (“security-behaviour may live in Helix as an extra module”) — it is **not** a reason to merge git histories or to drop Ferrum’s `HELIXTEST_REF`.
+**Still keep separate.** Helix now owns a named Security Behavior Profile (`helix security`, [SECURITY_PROFILE.md](SECURITY_PROFILE.md): five HTTP invariants) and Crypt4GH protocol layout after those cases ([CRYPT4GH.md](CRYPT4GH.md); dummy fixtures in `test-fixtures/`). HelixTest still owns the tagged HMAC suite (`framework/src/auth.rs`), `--mode ferrum+infra` Passport checks, and env-gated Crypt4GH HTTP (secret key). This is the HELIX_VISION §7 case (“security-behaviour may live in Helix as an extra module”) — it is **not** a reason to merge git histories or to drop Ferrum’s `HELIXTEST_REF`. It is not a security audit. Crypt4GH pass is not “secure”.
 
 ### D1 revisit — 2026-09-04 (Stage 4 bench)
 
-**Still keep separate.** `helix bench` is Helix-owned (tiny HTTP workload + percent diff). It does not run HelixTest checks and does not replace Demo’s hap.py smoke. HelixTest remains the tagged conformance suite Ferrum pins. Absorbing HelixTest would not make a 3-GET timing scaffold more correct.
+**Still keep separate.** `helix bench` is Helix-owned (repeatable HTTP measurement of `http.drs.smoke.v1` + percent diff of medians). It does not run HelixTest checks and does not replace Demo’s hap.py smoke. HelixTest remains the tagged conformance suite Ferrum pins. Absorbing HelixTest would not make a 3-GET timing series more correct. See [BENCHMARKS.md](BENCHMARKS.md).
 
 ## D2 — Non-Ferrum Stage 0 target
 
@@ -30,7 +30,11 @@ Recorded 2026-09-03. HelixTest Stage 0 decoupling (generic vs Ferrum) is impleme
 
 ## D3 — Report contract
 
-**Decision:** `helix verify` and `helix security` JSON is HelixTest JSON. Skips are not passes. No HELIOS fields (signatures, RO-Crate, PDF). See [CLI_CONTRACT.md](CLI_CONTRACT.md). `helix bench` is an exception: timing diff JSON (`BenchOutcome`), not `OverallReport`.
+**Decision:** `helix verify` JSON is Helix `VerificationRun` (DRS and WES rows). `helix security` JSON is HelixTest `OverallReport`. Skips are not passes. Discovery is not a pass. No HELIOS fields (signatures, RO-Crate, PDF). See [CLI_CONTRACT.md](CLI_CONTRACT.md). `helix bench` stays timing-diff JSON (`BenchOutcome`).
+
+### D3 revisit — 2026-09-04 (DRS profile)
+
+**Verify JSON is now Helix-owned.** Operators need target, Helix/HelixTest versions, which DRS checks ran or were skipped, stable ids, and failure codes. HelixTest names are preserved on each row (`helixtest_name`) and still implemented in the sibling repo. `helix security` is unchanged (OverallReport). helix-action compares `VerificationRun` at stable Helix `id` via `helix compare` (fallback: `compare_reports.py` mirroring `src/compare.rs`). The PR comment leads with new regressions / fixed failures / existing failures, not an X/Y score. Not a required Ferrum check.
 
 ## D4 — HELIOS
 

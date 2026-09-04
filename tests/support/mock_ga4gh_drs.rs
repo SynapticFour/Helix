@@ -1,7 +1,14 @@
 // SPDX-License-Identifier: Apache-2.0
 //! Same in-process DRS fixture as HelixTest B1 (`HelixTest/helixtest/testing/mock_ga4gh_drs.rs`).
 //! Duplicated here so Helix CI compiles against a published HelixTest pin without that file.
-//! Not Ferrum. Fixture id `test-object-1`; blob 4096 × `'A'`; checksum type `sha256`.
+//! Not Ferrum. Catalog: [docs/FIXTURES.md](../../docs/FIXTURES.md).
+//!
+//! Valid object: id `test-object-1`; blob 4096 × `'A'`; checksum type `sha256`.
+//! Invalid object: `{ "id": "test-object-1" }` only (DETECTED, checks fail).
+//!
+//! Unlike HelixTest B1, this copy does **not** mount a WES-shaped `/service-info`.
+//! HelixTest uses that path as a Ferrum-name trap; Helix adapter already uses
+//! `Mode::Generic`. Helix discovery would treat that JSON as WES DETECTED+TESTABLE.
 
 use common::util::sha256_bytes;
 use serde_json::json;
@@ -57,9 +64,15 @@ impl wiremock::Respond for BytesWithOptionalRange {
 }
 
 pub async fn start_mock_ga4gh_drs() -> MockGa4ghDrs {
+    let server = MockServer::start().await;
+    mount_ga4gh_drs(&server).await;
+    MockGa4ghDrs { server }
+}
+
+/// DRS object/bytes routes only. No `/service-info` (that is the WES split probe).
+pub async fn mount_ga4gh_drs(server: &MockServer) {
     let blob = vec![b'A'; BLOB_LEN];
     let sha256 = sha256_bytes(&blob);
-    let server = MockServer::start().await;
     let access_url = format!("{}/bytes/{TEST_OBJECT_ID}", server.uri());
     let object = json!({
         "id": TEST_OBJECT_ID,
@@ -77,31 +90,34 @@ pub async fn start_mock_ga4gh_drs() -> MockGa4ghDrs {
     Mock::given(method("GET"))
         .and(path(format!("/objects/{TEST_OBJECT_ID}")))
         .respond_with(ResponseTemplate::new(200).set_body_json(object))
-        .mount(&server)
+        .mount(server)
         .await;
 
     Mock::given(method("GET"))
         .and(path(format!("/objects/{UNKNOWN_OBJECT_ID}")))
         .respond_with(ResponseTemplate::new(404).set_body_string("not found"))
-        .mount(&server)
+        .mount(server)
         .await;
 
     Mock::given(method("GET"))
         .and(path(format!("/bytes/{TEST_OBJECT_ID}")))
         .respond_with(BytesWithOptionalRange { body: blob })
-        .mount(&server)
+        .mount(server)
         .await;
+}
 
-    // Same WES-shaped trap as B1: generic HelixTest must not infer Ferrum from this name.
+/// Intentionally invalid DRS: object JSON is `{ "id": "test-object-1" }` only.
+/// Discovery DETECTED + TESTABLE; HelixTest schema/checksum/range/bytes fail.
+pub async fn start_mock_invalid_drs_object() -> MockServer {
+    let server = MockServer::start().await;
+    mount_invalid_drs_object(&server).await;
+    server
+}
+
+pub async fn mount_invalid_drs_object(server: &MockServer) {
     Mock::given(method("GET"))
-        .and(path("/service-info"))
-        .respond_with(ResponseTemplate::new(200).set_body_json(json!({
-            "id": "org.example.mock-wes",
-            "name": "Ferrum Gateway",
-            "type": { "group": "org.ga4gh", "artifact": "wes", "version": "1.1.0" }
-        })))
-        .mount(&server)
+        .and(path(format!("/objects/{TEST_OBJECT_ID}")))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({ "id": TEST_OBJECT_ID })))
+        .mount(server)
         .await;
-
-    MockGa4ghDrs { server }
 }

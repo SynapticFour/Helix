@@ -1,0 +1,206 @@
+{
+  "schema_version": "helix-verification-v1",
+  "helix_version": "0.1.0",
+  "helixtest_version": "v0.1.3",
+  "helixtest_sha": "1832c043e1679ec283cb2113510ee33684317cce",
+  "profile": "generic",
+  "fixture_version": "helix-fixtures-v1",
+  "timestamp": "2026-09-04T12:00:00Z",
+  "target": {
+    "url": "http://127.0.0.1:9"
+  },
+  "discovery": [
+    {
+      "service": "drs",
+      "present": true,
+      "testable": true,
+      "base_url": "http://127.0.0.1:9"
+    },
+    {
+      "service": "wes",
+      "present": false,
+      "testable": false,
+      "not_testable_reason": "not detected; nothing to test"
+    },
+    {
+      "service": "tes",
+      "present": false,
+      "testable": false,
+      "not_testable_reason": "not detected; nothing to test"
+    },
+    {
+      "service": "trs",
+      "present": false,
+      "testable": false,
+      "not_testable_reason": "not detected; nothing to test"
+    },
+    {
+      "service": "htsget",
+      "present": false,
+      "testable": false,
+      "not_testable_reason": "not detected; nothing to test"
+    }
+  ],
+  "executed": [
+    {
+      "id": "drs.object.reachable",
+      "code": "HLX-DRS-001",
+      "name": "DRS object endpoint is reachable",
+      "helixtest_name": "DRS object endpoint reachable",
+      "service": "drs",
+      "category": "robustness",
+      "profile": "generic",
+      "status": "pass",
+      "severity": "info"
+    },
+    {
+      "id": "drs.object.schema",
+      "code": "HLX-DRS-002",
+      "name": "DRS object matches OpenAPI and has access methods",
+      "helixtest_name": "DRS DrsObject OpenAPI + access_methods",
+      "service": "drs",
+      "category": "schema",
+      "profile": "generic",
+      "status": "pass",
+      "severity": "info"
+    },
+    {
+      "id": "drs.object.checksum",
+      "code": "HLX-DRS-003",
+      "name": "DRS object checksum is correct",
+      "helixtest_name": "DRS checksum correctness",
+      "service": "drs",
+      "category": "checksum",
+      "profile": "generic",
+      "status": "pass",
+      "severity": "info"
+    },
+    {
+      "id": "drs.object.range",
+      "code": "HLX-DRS-004",
+      "name": "DRS object supports HTTP Range",
+      "helixtest_name": "DRS HTTP Range support",
+      "service": "drs",
+      "category": "robustness",
+      "profile": "generic",
+      "status": "pass",
+      "severity": "info"
+    },
+    {
+      "id": "drs.object.not_found",
+      "code": "HLX-DRS-005",
+      "name": "Unknown DRS object returns 404",
+      "helixtest_name": "DRS invalid object id returns 404",
+      "service": "drs",
+      "category": "robustness",
+      "profile": "generic",
+      "status": "pass",
+      "severity": "info"
+    }
+  ],
+  "skipped": [
+    {
+      "id": "wes.service_info.reachable",
+      "code": "HLX-WES-001",
+      "name": "WES service-info is reachable",
+      "helixtest_name": "WES service-info reachable",
+      "service": "wes",
+      "category": "robustness",
+      "profile": "generic",
+      "status": "skip",
+      "severity": "info",
+      "message": "WES not detected; WES checks not executed (not a pass)"
+    },
+    {
+      "id": "wes.service_info.schema",
+      "code": "HLX-WES-002",
+      "name": "WES service-info matches GA4GH schema",
+      "helixtest_name": "WES service-info schema (GA4GH official)",
+      "service": "wes",
+      "category": "schema",
+      "profile": "generic",
+      "status": "skip",
+      "severity": "info",
+      "message": "WES not detected; WES checks not executed (not a pass)"
+    },
+    {
+      "id": "wes.run.lifecycle_success",
+      "code": "HLX-WES-003",
+      "name": "WES echo workflow reaches success",
+      "helixtest_name": "WES lifecycle success echo (API may show QUEUED/INITIALIZING/RUNNING before COMPLETE)",
+      "service": "wes",
+      "category": "lifecycle",
+      "profile": "generic",
+      "status": "skip",
+      "severity": "info",
+      "message": "WES not detected; WES checks not executed (not a pass)"
+    },
+    {
+      "id": "wes.run.failure_state",
+      "code": "HLX-WES-004",
+      "name": "WES reports failure for a bad workflow",
+      "helixtest_name": "WES failure state for bad workflow",
+      "service": "wes",
+      "category": "lifecycle",
+      "profile": "generic",
+      "status": "skip",
+      "severity": "info",
+      "message": "WES not detected; WES checks not executed (not a pass)"
+    },
+    {
+      "id": "wes.run.missing_inputs",
+      "code": "HLX-WES-005",
+      "name": "WES errors when inputs are missing",
+      "helixtest_name": "WES missing inputs leads to error state",
+      "service": "wes",
+      "category": "lifecycle",
+      "profile": "generic",
+      "status": "skip",
+      "severity": "info",
+      "message": "WES not detected; WES checks not executed (not a pass)"
+    },
+    {
+      "id": "wes.run.incompatible_type",
+      "code": "HLX-WES-006",
+      "name": "WES errors on incompatible workflow_type",
+      "helixtest_name": "WES incompatible workflow_type leads to error state",
+      "service": "wes",
+      "category": "lifecycle",
+      "profile": "generic",
+      "status": "skip",
+      "severity": "info",
+      "message": "WES not detected; WES checks not executed (not a pass)"
+    },
+    {
+      "id": "wes.run.invalid_workflow",
+      "code": "HLX-WES-007",
+      "name": "WES errors on an invalid workflow",
+      "helixtest_name": "WES invalid workflow leads to error state",
+      "service": "wes",
+      "category": "lifecycle",
+      "profile": "generic",
+      "status": "skip",
+      "severity": "info",
+      "message": "WES not detected; WES checks not executed (not a pass)"
+    },
+    {
+      "id": "wes.run.scatter_gather",
+      "code": "HLX-WES-008",
+      "name": "WES scatter/gather workflow",
+      "helixtest_name": "WES scatter/gather workflow",
+      "service": "wes",
+      "category": "lifecycle",
+      "profile": "generic",
+      "status": "skip",
+      "severity": "info",
+      "message": "WES not detected; WES checks not executed (not a pass)"
+    }
+  ],
+  "summary": {
+    "passed": 5,
+    "failed": 0,
+    "skipped": 8,
+    "errors": 0,
+    "total": 13
+  }
+}
