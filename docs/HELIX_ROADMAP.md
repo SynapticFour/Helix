@@ -4,7 +4,7 @@ Scope stages, not calendar dates. Capacity is single-steward; a stage is done wh
 
 **Synaptic Four builds the infrastructure. Helix proves it works.** Positioning: [HELIX_VISION.md](HELIX_VISION.md). What the suite actually runs today: [INVENTORY.md](../INVENTORY.md). HELIOS is not on this ladder.
 
-**Current position (2026-09-04):** Stage 0 is **exited**. Stage 1 is **in progress**: `helix verify <url>` discovers DRS → WES → TES → TRS → htsget and runs **HelixTest DRS checks** (generic, strict checksums) against the B1 mock. WES checks and the Ferrum-local DRS+WES exit are not done. HelixTest stays a **separate git root** ([DECISIONS.md](DECISIONS.md) D1). Stages 0–1 do not require a merge.
+**Current position (2026-09-04):** Stage 0 is **exited**. Stage 1 is **in progress** (`helix verify` DRS). Stage 2 has started as a **pilot only**: [helix-action](https://github.com/SynapticFour/helix-action) (parallel to helixtest-action) plus Ferrum branch `ci/helix-verify-pilot`. Not on Ferrum `main`. Not a required check. HelixTest stays a **separate git root** ([DECISIONS.md](DECISIONS.md) D1).
 
 Stages are sequential. Do not start *n+1* until *n* has exited. Skipping a stage to chase visibility (5) or a dashboard is out of order.
 
@@ -67,9 +67,9 @@ Ferrum **already** clones HelixTest on every PR (`conformance.yml`, NON-PILOT, `
 
 **Concrete result:**
 
-- Reusable action (this repo or `helixtest-action` successor) that Ferrum calls with a pin.
-- PR comment: previous SHA vs this SHA, overall/service scores, fail-level, explicit skip list. Skips must not look like passes (HelixTest `TestStatus` already distinguishes them).
-- Default: comment-only. Do not make Helix a required Ferrum check until false-alarm rate is known.
+- Reusable action: sibling repo [`helix-action`](https://github.com/SynapticFour/helix-action) (composite; parallel to `helixtest-action`). Ferrum pilot: branch `ci/helix-verify-pilot` only — not `main`.
+- PR comment: `Helix Verification — Previous: X/Y | Current: X/Y | DRS: …` (HelixTest JSON; skips are not passes). Job fails only on PASS → FAIL vs last successful run of that workflow.
+- Do not make Helix a required Ferrum check on `main` until false-alarm rate is known. Stage 2 is **not exited**.
 
 **Exit criterion:** Runs reliably in Ferrum’s own CI with **no false alarms** — meaning: no red X caused by Helix infra flakes, skip-as-green, or scoring stubs as real compute. A week of PR runs (or equivalent dispatch sample) without a known-bad comment is enough evidence; not a statistical SLA.
 
