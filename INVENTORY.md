@@ -283,7 +283,7 @@ Documented or encoded gaps:
 | `crypt4gh.rs` | HTTP Crypt4GH skipped unless feature env set. |
 | `africa.rs` | Federation skipped without `FERRUM_AFRICA_PEER_URL`. Outbreak activate can skip if endpoint down/auth required. |
 | `lib.rs` | `HELIXTEST_SKIP_AUTH` in Ferrum mode (used by Ferrum PR CI). |
-| Ferrum `docs/HELIXTEST-INTEGRATION.md` | Claims **`/api/v1/ingest/*` is not in HelixTest today**. **Contradiction:** `africa.rs` **does** `POST /api/v1/ingest/ont` in `--mode ferrum-africa`. Default `--mode ferrum` does not. |
+| Ferrum `docs/HELIXTEST-INTEGRATION.md` | **Resolved 2026-09-04.** The old line “`/api/v1/ingest/*` is not in HelixTest today” was true for default `--mode ferrum` and misleading for `--mode ferrum-africa` (`POST /api/v1/ingest/ont` in `africa.rs`). Ferrum `main` `737c79163f61d9afd82d27607a97130c79e026e3` distinguishes the two and links here (§1 Africa). |
 | HelixTest `docs/IDENTITY.md` | Still says product pin **v0.1.1** / `helixtest-action` v0.1.1. Ferrum/Lab Kit/ga4gh-infra lock **v0.1.3** (`1832c043`). Crate `version` in `helixtest-cli/Cargo.toml` is **0.1.0**. Operators are told to pin the **git tag**. |
 | `helixtest/docker/docker-compose.yml` | Images `ghcr.io/example/mock-*` — **UNKLAR — bitte prüfen** if runnable. |
 | Ferrum workflows | `helixtest-ferrum-infra.yml` and `helixtest-pilot-auth.yml` scheduled crons are **commented out**; only `workflow_dispatch`. |
