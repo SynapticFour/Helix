@@ -8,7 +8,7 @@ Thank you for your interest in contributing to this project.
 - Open an issue to discuss significant changes before starting implementation.
 - Use focused branches and keep pull requests small and reviewable.
 - Add or update tests for behavior changes.
-- Ensure local linting, formatting, and tests pass before opening a PR.
+- Ensure local linting, formatting, and tests pass before opening a PR. Same gates as GitHub CI: `pre-commit install` (fmt + clippy `-D warnings` + `make prove`). Needs a sibling `HelixTest` checkout, like CI.
 - Do not add HELIOS-style evidence/RO-Crate/signed-export features here. Gate: [docs/HELIX_VS_HELIOS.md](docs/HELIX_VS_HELIOS.md).
 - Do not claim Ferrum production or clinical pilot deployments.
 
