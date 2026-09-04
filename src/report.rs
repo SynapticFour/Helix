@@ -7,6 +7,7 @@ use std::io::{self, IsTerminal};
 use common::report::{OverallReport, ServiceKind, SkippedService, TestStatus};
 
 use crate::discover::{Ga4ghService, VERIFY_ORDER};
+use crate::security::SecurityOutcome;
 use crate::verify::VerifyOutcome;
 
 const RESET: &str = "\x1b[0m";
@@ -80,7 +81,38 @@ pub fn print_text(outcome: &VerifyOutcome) {
     print_discovery_text(&outcome.discovery);
     println!();
     println!("DRS (HelixTest checks; not certification)");
-    for t in &outcome.drs.tests {
+    print_tests(&outcome.drs.tests, color);
+}
+
+pub fn print_security_json(outcome: &SecurityOutcome) -> anyhow::Result<()> {
+    let mut report = OverallReport {
+        services: vec![outcome.auth.clone(), outcome.crypt4gh.clone()],
+        enabled_services: vec![ServiceKind::Auth, ServiceKind::Crypt4gh],
+        skipped_services: Vec::new(),
+        executed_test_modules: vec![ServiceKind::Auth, ServiceKind::Crypt4gh],
+        diagnostics: None,
+    };
+    report.sort_services_canonical();
+    println!("{}", serde_json::to_string_pretty(&report)?);
+    Ok(())
+}
+
+pub fn print_security_text(outcome: &SecurityOutcome) {
+    let color = color_enabled();
+    println!("Helix security — GA4GH auth behaviour (not certification, not HELIOS)");
+    println!("Helix tests behavior against the GA4GH spec, independent of implementation.");
+    println!("Ferrum is used as a reference target, not a dependency.");
+    println!("Tokens from test-fixtures/ only. NICHT FÜR PRODUKTION.");
+    println!();
+    println!("Auth (black-box HTTP)");
+    print_tests(&outcome.auth.tests, color);
+    println!();
+    println!("Crypt4GH (header structure only; no keys in output)");
+    print_tests(&outcome.crypt4gh.tests, color);
+}
+
+fn print_tests(tests: &[common::report::TestCaseResult], color: bool) {
+    for t in tests {
         let mark = status_mark(t.status, color);
         match &t.error {
             Some(err) if t.status != TestStatus::Pass => {

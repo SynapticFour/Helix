@@ -14,7 +14,9 @@ Recorded 2026-09-03. HelixTest Stage 0 decoupling (generic vs Ferrum) is impleme
 
 **Still keep separate.** Ferrum, Lab Kit, and ga4gh-infra still pin HelixTest **v0.1.3**. SF-TR-2026-001/002 still cite HelixTest. `helixtest-action` still downloads HelixTest release binaries. Merging HelixTest into Helix now would be a lockfile and citation blast radius, and would not make `helix verify` any more correct — the Action already builds Helix against a sibling HelixTest checkout.
 
-Revisit when Helix publishes its own release binaries (then helix-action can look like helixtest-action: one asset, no sibling clone) **or** when Ferrum can bump a single pin away from `HELIXTEST_REF`. Until then Helix **depends on** HelixTest. It does not vendor it.
+### D1 revisit — 2026-09-04 (Stage 3 security module)
+
+**Still keep separate.** Helix now owns a named `helix security` surface (black-box HTTP + Crypt4GH header structure, dummy fixtures in `test-fixtures/`). HelixTest still owns the tagged HMAC suite (`framework/src/auth.rs`) and `--mode ferrum+infra` Passport checks. This is the HELIX_VISION §7 case (“security-behaviour may live in Helix as an extra module”) — it is **not** a reason to merge git histories or to drop Ferrum’s `HELIXTEST_REF`.
 
 
 ## D2 — Non-Ferrum Stage 0 target

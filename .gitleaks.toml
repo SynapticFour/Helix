@@ -2,3 +2,7 @@
 
 [extend]
 useDefault = true
+
+[[allowlists]]
+description = "Helix Stage 3 dummy fixtures (NICHT FÜR PRODUKTION), not live secrets"
+paths = ['''test-fixtures/''']

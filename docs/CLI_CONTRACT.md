@@ -17,10 +17,11 @@ Helix does not invent a second report language. This is the contract for `helix 
 ```text
 helix verify <url>
 helix verify <url> --format json
-helix verify <url> --report json
+helix security <url>
+helix security <url> --format json --hmac-secret-file test-fixtures/hmac/shared-secret.txt
 ```
 
-`<url>` is a gateway-style base (e.g. `http://127.0.0.1:8080`). Discovery order: DRS → WES → TES → TRS → htsget. **Checks wired today: DRS only** (existing HelixTest `run_drs_checks`, generic mode, `strict_drs_checksums`). WES/TES/TRS/htsget checks are not run yet; if those APIs are discovered they are recorded as **skipped**, not passed.
+Checks wired today: **DRS** on `verify`; **Stage 3 auth behaviour** on `helix security` (dummy HMAC fixtures, not production keys). WES/TES/TRS/htsget checks are not run yet on `verify`.
 
 Ferrum local (`make up`) is the Stage 1 proof target, not a clinical site.
 

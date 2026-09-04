@@ -1,0 +1,5 @@
+# Helix Stage 3 Crypt4GH placeholder. NICHT FÜR PRODUKTION / NOT FOR PRODUCTION.
+# Not a real X25519 key. Header-structure tests do not load this file and never print secrets.
+# algorithm: dummy-placeholder
+# public: 0000000000000000000000000000000000000000000000000000000000000000
+# secret: DO-NOT-USE-all-zeros-helix-test-placeholder

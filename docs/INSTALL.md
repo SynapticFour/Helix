@@ -8,6 +8,8 @@ git clone https://github.com/SynapticFour/HelixTest.git
 cd Helix
 make prove
 cargo run --bin helix -- verify http://127.0.0.1:8080 --format json
+# Stage 3 (dummy HMAC only — test-fixtures/, NICHT FÜR PRODUKTION)
+cargo run --bin helix -- security http://127.0.0.1:8080 --hmac-secret-file test-fixtures/hmac/shared-secret.txt
 ```
 
 `helix verify` discovers GA4GH HTTP APIs under the URL and runs **HelixTest DRS checks** when DRS answers. That is not GA4GH certification. WES checks are not wired yet (Stage 1 exit still needs DRS and WES against Ferrum local).

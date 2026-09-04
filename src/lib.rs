@@ -4,4 +4,5 @@
 
 pub mod discover;
 pub mod report;
+pub mod security;
 pub mod verify;

@@ -40,5 +40,7 @@ grep -q "HELIXTEST_SHA=1832c043e1679ec283cb2113510ee33684317cce" VERSIONS.lock
 grep -q "fn discover" src/discover.rs
 grep -q "run_drs_checks" src/verify.rs
 grep -q "fn overall_report" src/report.rs
+grep -q "fn run_security" src/security/mod.rs
+grep -q "NICHT FÜR PRODUKTION" test-fixtures/README.md
 
 echo "prove: docs OK"

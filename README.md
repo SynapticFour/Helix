@@ -26,8 +26,9 @@ Apache-2.0 — same licence as HelixTest. Not a Synaptic Four paid SKU.
 - Ecosystem docs matching sibling ambassadors (`docs/IDENTITY.md`, `ECOSYSTEM.md`, `DEPENDENCY.md`, `PROVE.md`)
 
 ```bash
-make prove   # docs + cargo test (discovery + DRS vs B1 mock; no Ferrum)
+make prove   # docs + cargo test (DRS mock + Stage 3 security mock; no Ferrum)
 cargo run --bin helix -- verify http://127.0.0.1:8080 --format json
+cargo run --bin helix -- security http://127.0.0.1:8080 --hmac-secret-file test-fixtures/hmac/shared-secret.txt
 ```
 
 Needs a sibling `../HelixTest` checkout ([docs/INSTALL.md](docs/INSTALL.md)). HelixTest remains usable directly:

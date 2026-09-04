@@ -100,6 +100,8 @@ HelixTest already has HMAC JWT fixtures, `--mode ferrum+infra` Passport-on-DRS, 
 
 **Exit criterion:** Those five documented cases run reproducibly (command + fixture + expected HTTP class). Not a pentest, not a GA4GH Passport certification, not Solum consent.
 
+**Status:** Started 2026-09-04 in Helix (`helix security <url>`). Five HTTP cases + Crypt4GH header structure run in CI against an in-process mock and dummy HMAC in `test-fixtures/` (NICHT FÜR PRODUKTION). Live Ferrum `make up-pilot-local` / HMAC-on path is documented, not the CI default. Stage 3 is **not exited**.
+
 **Not in this stage:**
 
 - Signed audit trails or RO-Crate of the auth dance (HELIOS)
