@@ -1,7 +1,11 @@
 // SPDX-License-Identifier: Apache-2.0
 use anyhow::Result;
 use clap::{Parser, Subcommand, ValueEnum};
-use helix::report::{print_json, print_security_json, print_security_text, print_text};
+use helix::bench::{run_bench, DEFAULT_THRESHOLD_PCT};
+use helix::report::{
+    print_bench_json, print_bench_text, print_json, print_security_json, print_security_text,
+    print_text,
+};
 use helix::security::{load_hmac_secret, run_security};
 use helix::verify::verify;
 use std::path::PathBuf;
@@ -23,6 +27,8 @@ enum Commands {
     Verify(VerifyArgs),
     /// Stage 3: black-box auth behaviour + Crypt4GH header structure (dummy fixtures only).
     Security(SecurityArgs),
+    /// Stage 4: 3 small GETs vs two endpoints; warn on >threshold% worse, never fail CI.
+    Bench(BenchArgs),
 }
 
 #[derive(Parser, Debug)]
@@ -52,6 +58,30 @@ struct SecurityArgs {
     crypt4gh_file: Option<PathBuf>,
 }
 
+#[derive(Parser, Debug)]
+struct BenchArgs {
+    /// Baseline gateway origin (e.g. Ferrum vX or Demo).
+    #[arg(long)]
+    baseline: String,
+
+    /// Candidate gateway origin (e.g. Ferrum vY).
+    #[arg(long)]
+    candidate: String,
+
+    #[arg(long, default_value = "baseline")]
+    baseline_label: String,
+
+    #[arg(long, default_value = "candidate")]
+    candidate_label: String,
+
+    /// Warn if a metric is this many percent worse. Does not fail the process.
+    #[arg(long, default_value_t = DEFAULT_THRESHOLD_PCT)]
+    threshold: f64,
+
+    #[arg(long, visible_alias = "report", value_enum, default_value_t = OutputFormat::Text)]
+    format: OutputFormat,
+}
+
 #[derive(ValueEnum, Debug, Clone, Copy, Default)]
 enum OutputFormat {
     #[default]
@@ -65,6 +95,7 @@ async fn main() -> Result<()> {
     match cli.command {
         Commands::Verify(args) => verify_cmd(args).await,
         Commands::Security(args) => security_cmd(args).await,
+        Commands::Bench(args) => bench_cmd(args).await,
     }
 }
 
@@ -106,5 +137,22 @@ async fn security_cmd(args: SecurityArgs) -> Result<()> {
     if outcome.has_failures() {
         std::process::exit(1);
     }
+    Ok(())
+}
+
+async fn bench_cmd(args: BenchArgs) -> Result<()> {
+    let outcome = run_bench(
+        &args.baseline,
+        &args.candidate,
+        &args.baseline_label,
+        &args.candidate_label,
+        args.threshold,
+    )
+    .await?;
+    match args.format {
+        OutputFormat::Json => print_bench_json(&outcome)?,
+        OutputFormat::Text => print_bench_text(&outcome),
+    }
+    // Warnings are for humans / helix-action comments. Never fail the build.
     Ok(())
 }

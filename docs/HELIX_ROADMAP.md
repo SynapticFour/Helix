@@ -4,7 +4,7 @@ Scope stages, not calendar dates. Capacity is single-steward; a stage is done wh
 
 **Synaptic Four builds the infrastructure. Helix proves it works.** Positioning: [HELIX_VISION.md](HELIX_VISION.md). What the suite actually runs today: [INVENTORY.md](../INVENTORY.md). HELIOS is not on this ladder.
 
-**Current position (2026-09-04):** Stage 0 is **exited**. Stage 1 is **in progress** (`helix verify` DRS). Stage 2 has started as a **pilot only**: [helix-action](https://github.com/SynapticFour/helix-action) (parallel to helixtest-action) plus Ferrum branch `ci/helix-verify-pilot`. Not on Ferrum `main`. Not a required check. HelixTest stays a **separate git root** ([DECISIONS.md](DECISIONS.md) D1).
+**Current position (2026-09-04):** Stage 0 is **exited**. Stage 1 is **in progress** (`helix verify` DRS). Stage 2 has started as a **pilot only**: [helix-action](https://github.com/SynapticFour/helix-action) (parallel to helixtest-action) plus Ferrum branch `ci/helix-verify-pilot`. Not on Ferrum `main`. Not a required check. Stage 3 is **started, not exited**. Stage 4 is **started** as a tiny scaffold (`helix bench`, 3 GETs, warn-only) — not exited. HelixTest stays a **separate git root** ([DECISIONS.md](DECISIONS.md) D1).
 
 Stages are sequential. Do not start *n+1* until *n* has exited. Skipping a stage to chase visibility (5) or a dashboard is out of order.
 
@@ -121,6 +121,8 @@ HelixTest already has HMAC JWT fixtures, `--mode ferrum+infra` Passport-on-DRS, 
 - Comparison of **two Ferrum git tags/SHAs** on the same runner class, output as a small table (not a marketing chart).
 
 **Exit criterion:** Two consecutive Ferrum versions can be compared objectively (runtime, resources) from stored artefacts. Same machine class, same Demo pins otherwise. Not clinical throughput, not “production proven.”
+
+**Status:** Started 2026-09-04 in Helix (`helix bench --baseline <url> --candidate <url>`). Fixed workload is three small GETs (`/health`, DRS `service-info`, `objects/test-object-1`) — same *count* as Demo DRS micro `n=3`, not Demo hap.py / GIAB. Metrics: client wall time, optional Linux VmRSS of the Helix process (not Ferrum), error rate. Diff is percent change; default **>10% worse = warning**. The CLI and helix-action comment **do not fail the job** on that warning. Stage 4 is **not exited** (no two Ferrum versions on the same runner class yet).
 
 **Not in this stage:**
 

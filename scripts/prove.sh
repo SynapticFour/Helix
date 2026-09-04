@@ -41,6 +41,8 @@ grep -q "fn discover" src/discover.rs
 grep -q "run_drs_checks" src/verify.rs
 grep -q "fn overall_report" src/report.rs
 grep -q "fn run_security" src/security/mod.rs
+grep -q "fn run_bench" src/bench/mod.rs
+grep -q "helix bench" docs/CLI_CONTRACT.md
 grep -q "NICHT FÜR PRODUKTION" test-fixtures/README.md
 
 echo "prove: docs OK"

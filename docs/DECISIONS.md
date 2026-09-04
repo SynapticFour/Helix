@@ -18,6 +18,9 @@ Recorded 2026-09-03. HelixTest Stage 0 decoupling (generic vs Ferrum) is impleme
 
 **Still keep separate.** Helix now owns a named `helix security` surface (black-box HTTP + Crypt4GH header structure, dummy fixtures in `test-fixtures/`). HelixTest still owns the tagged HMAC suite (`framework/src/auth.rs`) and `--mode ferrum+infra` Passport checks. This is the HELIX_VISION §7 case (“security-behaviour may live in Helix as an extra module”) — it is **not** a reason to merge git histories or to drop Ferrum’s `HELIXTEST_REF`.
 
+### D1 revisit — 2026-09-04 (Stage 4 bench)
+
+**Still keep separate.** `helix bench` is Helix-owned (tiny HTTP workload + percent diff). It does not run HelixTest checks and does not replace Demo’s hap.py smoke. HelixTest remains the tagged conformance suite Ferrum pins. Absorbing HelixTest would not make a 3-GET timing scaffold more correct.
 
 ## D2 — Non-Ferrum Stage 0 target
 
@@ -27,7 +30,7 @@ Recorded 2026-09-03. HelixTest Stage 0 decoupling (generic vs Ferrum) is impleme
 
 ## D3 — Report contract
 
-**Decision:** Helix JSON is HelixTest JSON. Skips are not passes. No HELIOS fields (signatures, RO-Crate, PDF). See [CLI_CONTRACT.md](CLI_CONTRACT.md).
+**Decision:** `helix verify` and `helix security` JSON is HelixTest JSON. Skips are not passes. No HELIOS fields (signatures, RO-Crate, PDF). See [CLI_CONTRACT.md](CLI_CONTRACT.md). `helix bench` is an exception: timing diff JSON (`BenchOutcome`), not `OverallReport`.
 
 ## D4 — HELIOS
 

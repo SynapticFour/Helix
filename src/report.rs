@@ -1,11 +1,15 @@
 // SPDX-License-Identifier: Apache-2.0
-//! Human and JSON reporting for `helix verify`. JSON is HelixTest `OverallReport` (D3).
+//! Human and JSON reporting.
+//!
+//! `helix verify` / `helix security` JSON is HelixTest `OverallReport` (D3).
+//! `helix bench` JSON is Helix-owned (`BenchOutcome`), not that shape.
 //! Skips are not passes. Not HELIOS (no RO-Crate / PDF / signatures).
 
 use std::io::{self, IsTerminal};
 
 use common::report::{OverallReport, ServiceKind, SkippedService, TestStatus};
 
+use crate::bench::BenchOutcome;
 use crate::discover::{Ga4ghService, VERIFY_ORDER};
 use crate::security::SecurityOutcome;
 use crate::verify::VerifyOutcome;
@@ -109,6 +113,74 @@ pub fn print_security_text(outcome: &SecurityOutcome) {
     println!();
     println!("Crypt4GH (header structure only; no keys in output)");
     print_tests(&outcome.crypt4gh.tests, color);
+}
+
+pub fn print_bench_json(outcome: &BenchOutcome) -> anyhow::Result<()> {
+    println!("{}", serde_json::to_string_pretty(outcome)?);
+    Ok(())
+}
+
+pub fn print_bench_text(outcome: &BenchOutcome) {
+    let color = color_enabled();
+    println!("Helix bench — 3 small GETs (not Demo hap.py, not GIAB, not HELIOS)");
+    println!("Helix tests behavior against the GA4GH spec, independent of implementation.");
+    println!("Ferrum is used as a reference target, not a dependency. Not certification.");
+    println!("Warnings are for humans; this command does not fail the build.");
+    println!();
+    println!("workload: {}", outcome.workload.join(", "));
+    println!(
+        "baseline  {}  wall_ms={:.1}  rss_kb={}  error_rate={:.2} ({}/{})",
+        outcome.baseline.label,
+        outcome.baseline.wall_ms,
+        outcome
+            .baseline
+            .rss_kb
+            .map(|v| v.to_string())
+            .unwrap_or_else(|| "n/a".into()),
+        outcome.baseline.error_rate,
+        outcome.baseline.errors,
+        outcome.baseline.requests
+    );
+    println!(
+        "candidate {}  wall_ms={:.1}  rss_kb={}  error_rate={:.2} ({}/{})",
+        outcome.candidate.label,
+        outcome.candidate.wall_ms,
+        outcome
+            .candidate
+            .rss_kb
+            .map(|v| v.to_string())
+            .unwrap_or_else(|| "n/a".into()),
+        outcome.candidate.error_rate,
+        outcome.candidate.errors,
+        outcome.candidate.requests
+    );
+    println!();
+    for d in &outcome.diff {
+        let pct = d
+            .pct
+            .map(|p| format!("{p:+.1}%"))
+            .unwrap_or_else(|| "n/a (baseline 0)".into());
+        let mark = if d.worse {
+            if color {
+                "\x1b[33mWARN\x1b[0m"
+            } else {
+                "WARN"
+            }
+        } else {
+            "ok"
+        };
+        println!("  {mark}  {} {pct}", d.name);
+    }
+    if outcome.warning {
+        println!();
+        println!(
+            "threshold {:+}% — human review, not a red X:",
+            outcome.threshold_pct
+        );
+        for w in &outcome.warnings {
+            println!("  - {w}");
+        }
+    }
 }
 
 fn print_tests(tests: &[common::report::TestCaseResult], color: bool) {

@@ -16,7 +16,7 @@ Apache-2.0 — same licence as HelixTest. Not a Synaptic Four paid SKU.
 
 ### Current tree
 
-`helix verify <url>` lives in this repo and runs **HelixTest DRS checks** (HelixTest stays a **separate git root**, pin in [VERSIONS.lock](VERSIONS.lock)). Stage 1 is not exited until DRS **and WES** report against Ferrum local. This repo also has:
+`helix verify <url>` lives in this repo and runs **HelixTest DRS checks** (HelixTest stays a **separate git root**, pin in [VERSIONS.lock](VERSIONS.lock)). `helix bench` is a tiny two-endpoint timing scaffold (warn-only). Stage 1 is not exited until DRS **and WES** report against Ferrum local. This repo also has:
 
 - [INVENTORY.md](INVENTORY.md) — what HelixTest actually covers, how it is invoked, Ferrum coupling, licence, gaps
 - [docs/HELIX_VISION.md](docs/HELIX_VISION.md) — VERIFY pillar, HELIOS split, audiences, 12-month non-goals
@@ -26,9 +26,10 @@ Apache-2.0 — same licence as HelixTest. Not a Synaptic Four paid SKU.
 - Ecosystem docs matching sibling ambassadors (`docs/IDENTITY.md`, `ECOSYSTEM.md`, `DEPENDENCY.md`, `PROVE.md`)
 
 ```bash
-make prove   # docs + cargo test (DRS mock + Stage 3 security mock; no Ferrum)
+make prove   # docs + cargo test (DRS + security + bench mocks; no Ferrum)
 cargo run --bin helix -- verify http://127.0.0.1:8080 --format json
 cargo run --bin helix -- security http://127.0.0.1:8080 --hmac-secret-file test-fixtures/hmac/shared-secret.txt
+cargo run --bin helix -- bench --baseline http://127.0.0.1:8080 --candidate http://127.0.0.1:8080 --format json
 ```
 
 Needs a sibling `../HelixTest` checkout ([docs/INSTALL.md](docs/INSTALL.md)). HelixTest remains usable directly:

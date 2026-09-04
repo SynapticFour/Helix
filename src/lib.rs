@@ -2,6 +2,7 @@
 //! Helix VERIFY CLI library. HelixTest already runs; this productizes discovery + `helix verify`.
 //! Not HELIOS (no signed evidence / RO-Crate / PDF).
 
+pub mod bench;
 pub mod discover;
 pub mod report;
 pub mod security;
