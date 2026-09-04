@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- GitHub CI clippy (`-D warnings`, rustc 1.91.1) failed on `clippy::single_match` in `helix bench`; local `make prove` did not run clippy. Fixed with `if let`.
 - Local build verification 2026-09-04 (this machine): HelixTest `cargo check --workspace --locked` exit 0; `make prove` exit 0 (53 tests passed, 1 ignored, live-stack crates excluded). Helix `cargo check --locked` exit 0; `make prove` exit 0 (30 tests passed). Compiler actually used: Homebrew **rustc 1.97.1**, not `rust-toolchain.toml` **1.91.1** (Homebrew `cargo` is first on PATH). Sibling HelixTest was local HEAD `29472d2c…` plus uncommitted files, not the VERSIONS.lock pin `1832c043…`. Full command log: `local/BUILD_VERIFICATION.md` (gitignored). This is a compile signal, not certification.
 - Initial public repository: HelixTest inventory and Ferrum-ecosystem ambassador scaffolding. The runnable CLI remains HelixTest v0.1.3.
 - Stage 1 started: `helix verify <url>` discovers DRS → WES → TES → TRS → htsget under a gateway-style origin (no HelixTest checks yet).

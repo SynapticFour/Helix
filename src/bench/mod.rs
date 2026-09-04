@@ -70,16 +70,15 @@ pub fn compare(baseline: Sample, candidate: Sample, threshold_pct: f64) -> Bench
         candidate.wall_ms,
         threshold_pct,
     );
-    match (baseline.rss_kb, candidate.rss_kb) {
-        (Some(b), Some(c)) => push_diff(
+    if let (Some(b), Some(c)) = (baseline.rss_kb, candidate.rss_kb) {
+        push_diff(
             &mut diff,
             &mut warnings,
             "rss_kb",
             b as f64,
             c as f64,
             threshold_pct,
-        ),
-        _ => {}
+        );
     }
     push_diff(
         &mut diff,

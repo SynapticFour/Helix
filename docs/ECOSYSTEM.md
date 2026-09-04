@@ -1,16 +1,16 @@
 # Synaptic Four — this repo in the portfolio
 
-Four **products**, two free **ambassadors**, Ferrum **companions**, and **proof** repos. Glue is GA4GH; Solum extends into clinical data. **Not a bundle SKU.** Canonical public map: [Ferrum PORTFOLIO.md](https://github.com/SynapticFour/Ferrum/blob/main/docs/PORTFOLIO.md).
+Four **products**, two ambassador lines (**Helix / HelixTest**, **HELIOS**), Ferrum **companions**, and **proof** repos. Glue is GA4GH; Solum extends into clinical data. **Not a bundle SKU.** Canonical public map: [Ferrum PORTFOLIO.md](https://github.com/SynapticFour/Ferrum/blob/main/docs/PORTFOLIO.md).
 
 **You are here:** [Helix](https://github.com/SynapticFour/Helix) — independence of HelixTest. Conformance / security-behaviour / regression. Not a product SKU. Not a server. Not HELIOS.
 
-The **running** CLI today is still [HelixTest](https://github.com/SynapticFour/HelixTest). HelixTest stays a **separate git root** ([DECISIONS.md](DECISIONS.md) D1). This repo holds vision, inventory, VERIFY positioning, and a HelixTest pin ([VERSIONS.lock](../VERSIONS.lock)). HELIOS is not dissolved into Helix.
+The **tagged** CLI Ferrum pins is still [HelixTest](https://github.com/SynapticFour/HelixTest) **v0.1.3**. This repo’s `helix` binary wraps HelixTest DRS checks and adds security/bench (early). HelixTest stays a **separate git root** ([DECISIONS.md](DECISIONS.md) D1). HELIOS is not dissolved into Helix.
 
 ## Repositories
 
 | Kind | Repository | Role | License |
 |------|------------|------|---------|
-| Ambassador (this) | **Helix** | Independence of HelixTest | Apache-2.0 |
+| Ambassador (this) | **Helix** | VERIFY brand around HelixTest (`helix verify`) | Apache-2.0 |
 | Ambassador | [HelixTest](https://github.com/SynapticFour/HelixTest) | Conformance CLI (`helixtest`) | Apache-2.0 |
 | Ambassador | [HELIOS](https://github.com/SynapticFour/HELIOS) | Pipeline audit evidence | Apache-2.0 |
 | Product | [Ferrum](https://github.com/SynapticFour/Ferrum) | GA4GH data/compute | BUSL-1.1 |
@@ -26,7 +26,7 @@ The **running** CLI today is still [HelixTest](https://github.com/SynapticFour/H
 | Data/compute | **Ferrum** | DRS, WES/TES, TRS, Beacon; built-in passports in standalone mode |
 | Deployment | **Ferrum-Lab-Kit** | Selective GA4GH surfaces for labs; does not fork Ferrum |
 | Demo/benchmark | **Ferrum-GA4GH-Demo** | Reproducible GIAB smoke; optional `--with-infra` |
-| Conformance / regression | **Helix** (brand) / **HelixTest** (tagged CLI) | Validates implementations; does not ship GA4GH services. Git roots stay separate (D1). |
+| Conformance / regression | **Helix** (`helix verify`) / **HelixTest** (tagged `helixtest` v0.1.3) | Validates implementations; does not ship GA4GH services. Git roots stay separate (D1). |
 | Reproducibility / evidence | **HELIOS** | Signed trails, RO-Crate/PDF — not Helix. Decision table: [HELIX_VS_HELIOS.md](HELIX_VS_HELIOS.md). |
 
 Helix/HelixTest **validate** implementations. Ferrum runs HelixTest in CI. Pin: Ferrum `VERSIONS.lock` HelixTest **v0.1.3**.
@@ -53,11 +53,12 @@ Repos that run a local Docker stack share `up` / `down` / `destroy`. Helix does 
 # Target (example)
 cd ../Ferrum && make up
 
-# Suite (today)
+# Suite (tagged pin)
 helixtest --all --mode ferrum
-helixtest --all --mode ferrum+infra --profile ferrum-infra
+# This repo
+cargo run --bin helix -- verify http://127.0.0.1:8080
 ```
 
 ## CI
 
-GitHub Actions on this repo run `make prove` (docs) plus secret-scan. Live Ferrum proof stays in HelixTest and Ferrum workflows until the CLI lives here. Dependabot/Renovate off — [DEPENDENCY.md](DEPENDENCY.md).
+GitHub Actions check out HelixTest at [VERSIONS.lock](../VERSIONS.lock) SHA `1832c043…`, then `make prove`, clippy `-D warnings`, rustfmt. Ferrum **`main`** still runs **HelixTest**, not helix-action. helix-action is only on Ferrum `ci/helix-verify-pilot`. Dependabot/Renovate off — [DEPENDENCY.md](DEPENDENCY.md).

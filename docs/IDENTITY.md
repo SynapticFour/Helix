@@ -20,13 +20,18 @@ Ferrum is BUSL-1.1, on-premise, Rust, tested. It has **no** real clinical pilot 
 
 ## Standalone (today)
 
-The CLI binary is still built from HelixTest:
+Ferrum CI still clones the tagged HelixTest CLI (**v0.1.3**). This repo’s `helix` binary wraps those DRS checks (`helix verify`) and adds early `helix security` / `helix bench`. HelixTest stays its own git root. `make prove` here is docs greps plus `cargo test`. GitHub CI also runs clippy `-D warnings` on **1.91.1**.
 
 ```bash
+# Tagged runner (what Ferrum VERSIONS.lock clones)
 git clone https://github.com/SynapticFour/HelixTest.git && cd HelixTest
+git checkout v0.1.3
 make prove
-# Against a stack you started:
 helixtest --all --mode ferrum
+
+# This repo (sibling HelixTest checkout required — see docs/INSTALL.md)
+cd Helix && make prove
+cargo run --bin helix -- verify http://127.0.0.1:8080
 ```
 
-This repo: `make prove` checks docs. See [PROVE.md](PROVE.md), [INVENTORY.md](../INVENTORY.md), [HELIX_ROADMAP.md](HELIX_ROADMAP.md) (Stage 0 exited: generic vs Ferrum decoupling).
+See [PROVE.md](PROVE.md), [INVENTORY.md](../INVENTORY.md), [HELIX_ROADMAP.md](HELIX_ROADMAP.md) (Stage 0 exited: generic vs Ferrum decoupling).

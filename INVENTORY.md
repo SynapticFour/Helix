@@ -284,8 +284,8 @@ Documented or encoded gaps:
 | `africa.rs` | Federation skipped without `FERRUM_AFRICA_PEER_URL`. Outbreak activate can skip if endpoint down/auth required. |
 | `lib.rs` | `HELIXTEST_SKIP_AUTH` in Ferrum mode (used by Ferrum PR CI). |
 | Ferrum `docs/HELIXTEST-INTEGRATION.md` | **Resolved 2026-09-04.** The old line “`/api/v1/ingest/*` is not in HelixTest today” was true for default `--mode ferrum` and misleading for `--mode ferrum-africa` (`POST /api/v1/ingest/ont` in `africa.rs`). Ferrum `main` `737c79163f61d9afd82d27607a97130c79e026e3` distinguishes the two and links here (§1 Africa). |
-| HelixTest `docs/IDENTITY.md` | Still says product pin **v0.1.1** / `helixtest-action` v0.1.1. Ferrum/Lab Kit/ga4gh-infra lock **v0.1.3** (`1832c043`). Crate `version` in `helixtest-cli/Cargo.toml` is **0.1.0**. Operators are told to pin the **git tag**. |
-| `helixtest/docker/docker-compose.yml` | Images `ghcr.io/example/mock-*` — **UNKLAR — bitte prüfen** if runnable. |
+| HelixTest `docs/IDENTITY.md` | **Resolved 2026-09-04.** Operator pin in IDENTITY is git tag **v0.1.3** (`1832c043…`), matching Ferrum / Lab Kit / ga4gh-infra / Helix `VERSIONS.lock`. Crate `version` in `helixtest-cli/Cargo.toml` remains **0.1.0**. [helixtest-action](https://github.com/SynapticFour/helixtest-action) still ships **v0.1.2** binaries — do not treat the action default as the suite pin. |
+| `helixtest/docker/docker-compose.yml` | **Confirmed 2026-09-04** (Docker 29.7.2): `ghcr.io/example/mock-{wes,tes,drs,trs,beacon,oidc}:latest` → `manifest unknown`. Not a working mock stack. HelixTest main documents this; Stage 0 non-Ferrum proof remains in-process wiremock DRS. |
 | Ferrum workflows | `helixtest-ferrum-infra.yml` and `helixtest-pilot-auth.yml` scheduled crons are **commented out**; only `workflow_dispatch`. |
 | HELIOS | No overlap in HelixTest for RO-Crate, signed audit PDF, Nextflow/Snakemake wrap. Do not add those to Helix. |
 
