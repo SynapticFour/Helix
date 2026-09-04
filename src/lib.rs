@@ -3,3 +3,4 @@
 //! Not HELIOS (no signed evidence / RO-Crate / PDF).
 
 pub mod discover;
+pub mod verify;

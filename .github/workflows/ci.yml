@@ -1,4 +1,4 @@
-# Helix — CI (docs prove + helix verify unit tests). HelixTest stays a sibling checkout for DRS checks.
+# Helix — CI (docs prove + helix verify). HelixTest is a sibling checkout (D1).
 
 name: CI
 
@@ -16,8 +16,18 @@ concurrency:
 jobs:
   prove:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: Helix
     steps:
       - uses: actions/checkout@v6
+        with:
+          path: Helix
+      - uses: actions/checkout@v6
+        with:
+          repository: SynapticFour/HelixTest
+          path: HelixTest
+          ref: 1832c043e1679ec283cb2113510ee33684317cce
       - name: Install Rust
         uses: dtolnay/rust-toolchain@master
         with:

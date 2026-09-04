@@ -26,7 +26,7 @@ Until `helix` exists, the equivalent is:
 helixtest --all --mode generic --only drs --report json
 ```
 
-Stage 1 in this repo starts with **discovery**: `helix verify <url>` probes public GA4GH HTTP paths (DRS first). HelixTest checks are added next, DRS then WES.
+Stage 1 in this repo: `helix verify <url>` discovers public GA4GH HTTP paths (DRS first) and runs **HelixTest DRS checks** when DRS is found. WES/TES/TRS/htsget checks are not wired yet.
 
 ## Reports
 

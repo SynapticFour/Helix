@@ -15,11 +15,14 @@ async fn helix_verify_json_reports_discovered_drs() {
         .mount(&server)
         .await;
 
+    // Stub object is enough for discovery; HelixTest DRS schema/range checks FAIL → exit 1.
     Command::cargo_bin("helix")
         .unwrap()
+        .env("RUST_LOG", "error")
         .args(["verify", &server.uri(), "--format", "json"])
         .assert()
-        .success()
+        .failure()
+        .code(1)
         .stdout(predicate::str::contains("\"kind\": \"drs\""))
         .stdout(predicate::str::contains(server.uri()));
 }

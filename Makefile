@@ -5,7 +5,7 @@
 help:
 	@echo "Helix — independence of HelixTest (Synaptic Four GA4GH stack)"
 	@echo ""
-	@echo "  make prove     Zero-risk proof: docs + cargo test (discovery; no Ferrum)"
+	@echo "  make prove     Zero-risk proof: docs + cargo test (discovery + DRS vs mock; no Ferrum)"
 	@echo "  make test      cargo test"
 	@echo ""
 	@echo "Live target you started:"

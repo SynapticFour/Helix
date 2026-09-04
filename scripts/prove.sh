@@ -38,5 +38,6 @@ grep -q "Keep HelixTest as its own git root" docs/DECISIONS.md
 grep -q "helix verify" docs/CLI_CONTRACT.md
 grep -q "HELIXTEST_SHA=1832c043e1679ec283cb2113510ee33684317cce" VERSIONS.lock
 grep -q "fn discover" src/discover.rs
+grep -q "run_drs_checks" src/verify.rs
 
 echo "prove: docs OK"
