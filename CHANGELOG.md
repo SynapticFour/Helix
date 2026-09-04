@@ -9,6 +9,7 @@
 - Stage 2 pilot: sibling repo `helix-action` (PR comment + fail only on PASS → FAIL). Ferrum `main` is unchanged; test branch is `ci/helix-verify-pilot`. HelixTest stays a separate git root (D1).
 - Stage 3 started: `helix security <url>` — five black-box auth cases + Crypt4GH header check. Dummy secrets only (`test-fixtures/`, NICHT FÜR PRODUKTION). Not HELIOS.
 - Stage 4 started: `helix bench --baseline <url> --candidate <url>` — 3 small GETs, wall time / optional RSS / error rate, percent diff. Default >10% worse is a warning; the process still exits 0. Not Demo hap.py, not GIAB, not HELIOS.
+- README rewritten for a first-time GitHub visitor: one-sentence scope, early-stage DRS coverage (WES not executed yet), `helix verify` sample, HELIOS split, Issues/Discussions.
 - `docs/HELIX_VISION.md` — VERIFY pillar, HELIOS split, audiences, 12-month non-goals; HelixTest stays a separate git root (D1).
 - `docs/HELIX_ROADMAP.md` — scope stages 0–5; Stage 0 started as docs, then exited (generic vs Ferrum decoupling).
 - `docs/HELIX_VS_HELIOS.md` — feature-decision table and rule of thumb; ISO 15189 / AI Act stay HELIOS orientation, not Helix.

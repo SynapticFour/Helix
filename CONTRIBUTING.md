@@ -4,6 +4,7 @@ Thank you for your interest in contributing to this project.
 
 ## How to contribute
 
+- [Open an issue](https://github.com/SynapticFour/Helix/issues). A question about a `helix verify` run is enough; you do not need a patch first. [Discussions](https://github.com/SynapticFour/Helix/discussions) are the same bar once that tab is enabled.
 - Open an issue to discuss significant changes before starting implementation.
 - Use focused branches and keep pull requests small and reviewable.
 - Add or update tests for behavior changes.
