@@ -23,10 +23,10 @@ helix verify <url>
 Until `helix` exists, the equivalent is:
 
 ```text
-helixtest --all --mode ferrum --only drs --only wes --report json --fail-level 1
+helixtest --all --mode generic --only drs --report json
 ```
 
-(`--mode generic` is the Stage 0 path once decoupling has exited; do not claim it yet.)
+Stage 1 in this repo starts with **discovery**: `helix verify <url>` probes public GA4GH HTTP paths (DRS first). HelixTest checks are added next, DRS then WES.
 
 ## Reports
 

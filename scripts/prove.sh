@@ -37,5 +37,6 @@ grep -q "helios-audit" docs/HELIX_VS_HELIOS.md
 grep -q "Keep HelixTest as its own git root" docs/DECISIONS.md
 grep -q "helix verify" docs/CLI_CONTRACT.md
 grep -q "HELIXTEST_SHA=1832c043e1679ec283cb2113510ee33684317cce" VERSIONS.lock
+grep -q "fn discover" src/discover.rs
 
 echo "prove: docs OK"

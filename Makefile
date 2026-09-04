@@ -1,19 +1,22 @@
-# Helix — docs and (later) conformance runner (no local stack)
+# Helix — docs and VERIFY CLI (no local stack)
 
-.PHONY: help prove
+.PHONY: help prove test
 
 help:
 	@echo "Helix — independence of HelixTest (Synaptic Four GA4GH stack)"
 	@echo ""
-	@echo "  make prove     Zero-risk proof: required docs + honesty strings"
+	@echo "  make prove     Zero-risk proof: docs + cargo test (discovery; no Ferrum)"
+	@echo "  make test      cargo test"
 	@echo ""
-	@echo "Helix does not deploy servers. Live suite is still HelixTest:"
-	@echo "  cd ../HelixTest && make prove"
-	@echo "  cd ../Ferrum && make up"
-	@echo "  helixtest --all --mode ferrum"
+	@echo "Live target you started:"
+	@echo "  cargo run --bin helix -- verify http://127.0.0.1:8080"
 
 # Zero-risk customer path. Live Ferrum proof: docs/PROVE.md
 prove:
 	chmod +x scripts/prove.sh
 	./scripts/prove.sh
+	$(MAKE) test
 	@echo "Helix prove OK."
+
+test:
+	cargo test

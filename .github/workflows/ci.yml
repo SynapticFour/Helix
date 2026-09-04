@@ -1,4 +1,4 @@
-# Helix — CI (docs prove). Live suite remains HelixTest until the CLI moves here.
+# Helix — CI (docs prove + helix verify unit tests). HelixTest stays a sibling checkout for DRS checks.
 
 name: CI
 
@@ -18,5 +18,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - name: Prove (docs)
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: 1.91.1
+          components: rustfmt, clippy
+      - name: Prove
         run: make prove
+      - name: Clippy
+        run: cargo clippy --all-targets -- -D warnings
+      - name: Fmt
+        run: cargo fmt --all -- --check
