@@ -2,7 +2,9 @@
 
 Helix tests whether a running GA4GH HTTP stack behaves: API conformance, security behaviour, and performance regression. It does not attest reproducibility or produce signed evidence — that is [HELIOS](https://github.com/SynapticFour/HELIOS).
 
-Helix tests behavior against the GA4GH spec, independent of implementation. Ferrum is used as a reference target, not a dependency.
+Helix is HelixTest becoming a standalone VERIFY CLI. The binary is `helix`. Not HELIOS. Not GA4GH certification. Ferrum is a reference target, not a dependency.
+
+Freeze status (2026-09): [docs/STATUS.md](docs/STATUS.md).
 
 **Maturity: Early stage.** Built alongside Ferrum. `helix verify` currently runs **DRS** checks (the five HelixTest DRS names in [INVENTORY.md](INVENTORY.md)). WES, TES, TRS, and htsget are discovered when they answer; those checks are **not** executed yet. `helix security` and `helix bench` are started scaffolds, not stage exits. One maintainer. Results are not GA4GH certification.
 
