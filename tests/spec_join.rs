@@ -83,6 +83,7 @@ fn explicit_drs_140(
         registry: Some(registry),
         vendor_root,
         declared_target: helix::target::DeclaredTarget::default(),
+        ..Default::default()
     }
 }
 
@@ -346,7 +347,11 @@ fn test12_and_14_supported_metadata_does_not_set_verified_or_verified_claim() {
 
 #[test]
 fn test6_bundled_path_still_exists_for_unversioned() {
-    assert!(include_str!("../src/adapter/mod.rs").contains("run_drs_checks("));
+    let adapter = include_str!("../src/adapter/mod.rs");
+    assert!(
+        adapter.contains("run_drs_checks_with_fixture"),
+        "unversioned adapter must still invoke the bundled DRS path (fixture-aware)"
+    );
 }
 
 mod support;

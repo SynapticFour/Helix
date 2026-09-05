@@ -4,10 +4,12 @@
 
 pub mod adapter;
 pub mod bench;
+pub mod checker;
 pub mod claims;
 pub mod compare;
 pub mod diagnostics;
 pub mod discover;
+pub mod fixture;
 pub mod guardrails;
 pub mod http_safety;
 pub mod identity;

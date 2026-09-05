@@ -55,9 +55,9 @@ Presence: **2xx, 401, or 403**. Network error, 404, **3xx (redirects are not fol
 
 | Service | Method id | Probe |
 |---------|-----------|--------|
-| DRS | `ga4gh_drs_object` | `{origin}/ga4gh/drs/v1/objects/test-object-1` |
+| DRS | `ga4gh_drs_object` | `{origin}/ga4gh/drs/v1/objects/{drs_object_id}` |
 | DRS | `ga4gh_drs_service_info` | `{origin}/ga4gh/drs/v1/service-info` |
-| DRS | `split_drs_object` | `{origin}/objects/test-object-1` |
+| DRS | `split_drs_object` | `{origin}/objects/{drs_object_id}` |
 | WES | `ga4gh_wes_service_info` | `{origin}/ga4gh/wes/v1/service-info` |
 | WES | `split_wes_service_info` | `{origin}/service-info` |
 | TES | `ga4gh_tes_service_info` | `{origin}/ga4gh/tes/v1/service-info` |
@@ -65,6 +65,8 @@ Presence: **2xx, 401, or 403**. Network error, 404, **3xx (redirects are not fol
 | TRS | `ga4gh_trs_service_info` | `{origin}/ga4gh/trs/v2/service-info` |
 | TRS | `ga4gh_trs_tools` | `{origin}/ga4gh/trs/v2/tools` |
 | htsget | `ga4gh_htsget_reads_service_info` | `{origin}/ga4gh/htsget/v1/reads/service-info` |
+
+`{drs_object_id}` is the configured DRS test fixture (`--drs-object-id`, default catalog `test-object-1`). It is test input, not a GA4GH MUST. A **404** on that object probe is **not** DETECTED (presence requires 2xx/401/403). A target that only answers DRS `service-info` can still be DETECTED; executed GetObject checks then skip `fixture_unavailable` if the configured object is absent. Helix does not enumerate a target's object store.
 
 Split DRS does **not** treat `{origin}/service-info` as DRS service-info (that path is the WES split probe).
 

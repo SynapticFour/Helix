@@ -276,6 +276,28 @@ pub fn format_verify_text(run: &VerificationRun, color: bool) -> String {
             ));
         }
     }
+    if let Some(fx) = &run.drs_fixture {
+        out.push('\n');
+        out.push_str("DRS fixture (test input, not a GA4GH requirement):\n");
+        out.push_str(&format!("  object_id: {}\n", fx.object_id));
+        out.push_str(&format!("  unknown_object_id: {}\n", fx.unknown_object_id));
+        out.push_str(&format!("  source: {}\n", fx.source.as_str()));
+        if let Some(h) = fx.expected_sha256.as_deref() {
+            out.push_str(&format!("  expected_sha256: {h}\n"));
+        }
+        out.push_str(&format!(
+            "  checksum_mode: {} ({})\n",
+            fx.checksum_mode.as_str(),
+            match fx.checksum_mode {
+                crate::fixture::ChecksumMode::OperatorDigest => {
+                    "operator digest vs downloaded bytes; advertised GetObject sha256 cannot manufacture a PASS"
+                }
+                crate::fixture::ChecksumMode::AdvertisedConsistency => {
+                    "advertised GetObject sha256 vs downloaded bytes; not an independent blob-integrity oracle"
+                }
+            }
+        ));
+    }
     out.push('\n');
     out.push_str("Helix:\n");
     out.push_str(&format!("  {}\n", run.helix_version));
@@ -291,7 +313,14 @@ pub fn format_verify_text(run: &VerificationRun, color: bool) -> String {
         run.helixtest_version.as_deref(),
         run.helixtest_sha.as_deref(),
     ) {
-        (Some(tag), Some(sha)) => out.push_str(&format!("  HelixTest {tag} ({sha})\n")),
+        (Some(tag), Some(sha)) => {
+            out.push_str(&format!("  HelixTest tag {tag}\n"));
+            out.push_str(&format!(
+                "  git checkout pin: {}\n",
+                crate::model::HELIXTEST_SHA
+            ));
+            out.push_str(&format!("  executed checker: helixtest-drs:{sha}\n"));
+        }
         (Some(tag), None) => out.push_str(&format!("  HelixTest {tag}\n")),
         _ => out.push_str("  HelixTest pin not recorded on this run\n"),
     }
@@ -935,7 +964,7 @@ mod tests {
 
     #[test]
     fn verify_text_answers_operator_questions_from_the_same_run() {
-        use crate::model::{DiscoveredService, Target, HELIXTEST_PIN, HELIXTEST_SHA};
+        use crate::model::{DiscoveredService, Target, HELIXTEST_PIN};
 
         let mut run = VerificationRun::new(Target::new("http://127.0.0.1:8080"));
         run.timestamp = "2026-09-04T12:00:00Z".into();
@@ -977,7 +1006,15 @@ mod tests {
         assert!(text.contains("schema helix-verification-v1"));
         assert!(text.contains("profile generic"));
         assert!(text.contains("fixtures helix-fixtures-v1"));
-        assert!(text.contains(&format!("HelixTest {HELIXTEST_PIN} ({HELIXTEST_SHA})")));
+        assert!(text.contains(&format!("HelixTest tag {HELIXTEST_PIN}")));
+        assert!(text.contains(&format!(
+            "git checkout pin: {}",
+            crate::model::HELIXTEST_SHA
+        )));
+        assert!(text.contains(&format!(
+            "executed checker: helixtest-drs:{}",
+            crate::checker::executed_checker_source_sha256()
+        )));
         assert!(text.contains("Standards:"));
         assert!(text.contains("unversioned") || text.contains("did not select"));
         assert!(text.contains("DRS      DETECTED     TESTABLE"));

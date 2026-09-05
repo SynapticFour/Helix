@@ -27,7 +27,7 @@ The operator questions use “services” and “checks”. v1 **does not** use 
 |---------|---------|--------|
 | Schema version | `schema_version` | const `helix-verification-v1` |
 | Helix version | `helix_version` | crate version |
-| HelixTest pin | `helixtest_version` / `helixtest_sha` | optional |
+| HelixTest pin | `helixtest_version` (git tag) / `helixtest_sha` (executed checker source digest, not git SHA) | optional; [CHECKER_PROVENANCE.md](CHECKER_PROVENANCE.md) |
 | Profile | `profile` | `generic` or `ferrum` |
 | Fixture catalog | `fixture_version` | `helix-fixtures-v1`; compare identity only ([RUN_IDENTITY.md](RUN_IDENTITY.md)). Not HELIOS |
 | Target | `target.url` plus optional `target.identity` | origin; identity is B4 ([TARGETS.md](TARGETS.md)). Optional on old files |
@@ -92,6 +92,8 @@ This v1 schema sets `additionalProperties: false` so CI rejects accidental HELIO
 
 **Exception (claims):** run-level `claims` is optional on this same v1 file. `schema_version` stays `helix-verification-v1`. Producers always emit six items computed from the rest of the document. Human VERIFIED text is generated only from this array. Missing on old files is not a silent pass. Not a score. Not HELIOS. [CLAIMS.md](CLAIMS.md).
 
+**Exception (DRS test fixture):** run-level `drs_fixture` (`object_id`, `unknown_object_id`, `source`, optional `expected_sha256`) is optional on this same v1 file. `schema_version` stays `helix-verification-v1`. Producers always emit it. Missing on old files deserializes as empty. The object id is test input, not a GA4GH MUST. Not HELIOS. [TARGETS.md](TARGETS.md) §11.
+
 **Helix producers:**
 
 - Must emit `schema_version: helix-verification-v1` while this file is current
@@ -100,6 +102,7 @@ This v1 schema sets `additionalProperties: false` so CI rejects accidental HELIO
 - Must emit `traceability` on every check row (`category` / `check_kind` is not `normative` in the shipped catalog; `claim_scope` is never `ga4gh_requirement`)
 - Must emit `layer` and `layer_summary` (no percentage)
 - Must emit `claims` (six kinds; `not_verified` unless every predicate holds)
+- Must emit `drs_fixture` on DRS verify runs (`source` is `default_catalog` or `operator_declared`)
 - Must not emit `services`, `checks`, `passed`, `signature`, `ro_crate`
 
 Identical inputs (same binary, target, HelixTest pin, fixture catalog) produce identical JSON after replacing `timestamp`. Two comparable runs may also differ in Helix/HelixTest version; that is recorded identity, not a schema break ([RUN_IDENTITY.md](RUN_IDENTITY.md)).

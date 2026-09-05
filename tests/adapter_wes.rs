@@ -4,7 +4,7 @@
 
 use helix::adapter::{ConformanceAdapter, HelixTestAdapter, WES_CHECK_NAMES};
 use helix::identity::{spec_by_helixtest_name, WES_VERIFY_IDS};
-use helix::model::{VerificationStatus, HELIXTEST_PIN, HELIXTEST_SHA};
+use helix::model::{VerificationStatus, HELIXTEST_PIN};
 
 mod support;
 
@@ -16,7 +16,7 @@ async fn adapter_runs_helixtest_wes_against_in_process_generic_fixture() {
     let adapter = HelixTestAdapter::pinned();
     let pin = adapter.pin();
     assert_eq!(pin.tag, HELIXTEST_PIN);
-    assert_eq!(pin.sha, HELIXTEST_SHA);
+    assert_eq!(pin.sha, helix::checker::executed_checker_source_sha256());
     assert_eq!(pin.tag, "v0.1.3");
 
     let out = adapter
@@ -25,7 +25,10 @@ async fn adapter_runs_helixtest_wes_against_in_process_generic_fixture() {
         .expect("adapter run_wes");
 
     assert_eq!(out.pin.tag, "v0.1.3");
-    assert_eq!(out.pin.sha, HELIXTEST_SHA);
+    assert_eq!(
+        out.pin.sha,
+        helix::checker::executed_checker_source_sha256()
+    );
     assert_eq!(out.results.len(), 8, "eight HelixTest WES checks");
     assert_eq!(out.service_report.tests.len(), 8);
 

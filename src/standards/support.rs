@@ -9,12 +9,11 @@ use std::path::Path;
 
 use crate::identity::spec_by_id;
 use crate::layer::CheckLayer;
-use crate::model::{HELIXTEST_PIN, HELIXTEST_SHA};
 use crate::standards::model::{
     BindingKind, ClaimScope, CoverageLevel, LocatorType, PackCoverage, ReleaseClass,
     StandardVersion, SupportStatus, TestBinding, VersionCitation,
 };
-use crate::standards::pack::{checker_id, load_pack};
+use crate::standards::pack::load_pack;
 use common::spec_source::sha256_hex;
 
 pub const DRS_140_PACK_ID: &str = "ga4gh.drs.1.4.0";
@@ -230,7 +229,7 @@ pub fn catalog_id(contract: &SupportContract) -> String {
 }
 
 pub fn declared_checker_id() -> String {
-    checker_id(HELIXTEST_PIN, HELIXTEST_SHA)
+    crate::checker::executed_checker_id()
 }
 
 pub fn binding_id(

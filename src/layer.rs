@@ -159,23 +159,23 @@ const LAYERS: &[LayerRow] = &[
     LayerRow {
         id: "drs.object.reachable",
         layer: CheckLayer::Interoperability,
-        request: Some("GET {drs}/objects/test-object-1"),
+        request: Some("GET {drs}/objects/{object_id}"),
     },
     LayerRow {
         id: "drs.object.schema",
         layer: CheckLayer::Schema,
-        request: Some("GET {drs}/objects/test-object-1"),
+        request: Some("GET {drs}/objects/{object_id}"),
     },
     LayerRow {
         id: "drs.object.schema.openapi",
         layer: CheckLayer::Schema,
-        request: Some("GET {drs}/objects/test-object-1"),
+        request: Some("GET {drs}/objects/{object_id}"),
     },
     LayerRow {
         id: "drs.object.checksum",
         layer: CheckLayer::Behavior,
         request: Some(
-            "GET {drs}/objects/test-object-1 then GET access_methods[0].access_url.url (no Range)",
+            "GET {drs}/objects/{object_id} then GET access_methods[0].access_url.url (no Range)",
         ),
     },
     LayerRow {
@@ -186,7 +186,7 @@ const LAYERS: &[LayerRow] = &[
     LayerRow {
         id: "drs.object.not_found",
         layer: CheckLayer::Behavior,
-        request: Some("GET {drs}/objects/nonexistent-object-id-for-conformance"),
+        request: Some("GET {drs}/objects/{derived helix.unknown.* id}"),
     },
     LayerRow {
         id: "wes.service_info.reachable",
@@ -458,7 +458,7 @@ const LAYERS: &[LayerRow] = &[
     LayerRow {
         id: "bench.get.drs_object",
         layer: CheckLayer::Benchmark,
-        request: Some("GET /ga4gh/drs/v1/objects/test-object-1 (timed)"),
+        request: Some("GET /ga4gh/drs/v1/objects/{object_id} (timed)"),
     },
     LayerRow {
         id: "bench.metric.wall_ms",

@@ -23,11 +23,15 @@ jobs:
       - uses: actions/checkout@v6
         with:
           path: Helix
+      - name: Read HelixTest git pin
+        id: helixtest_pin
+        run: echo "sha=$(grep '^HELIXTEST_SHA=' VERSIONS.lock | cut -d= -f2)" >> "$GITHUB_OUTPUT"
+        working-directory: Helix
       - uses: actions/checkout@v6
         with:
           repository: SynapticFour/HelixTest
           path: HelixTest
-          ref: 1832c043e1679ec283cb2113510ee33684317cce
+          ref: ${{ steps.helixtest_pin.outputs.sha }}
       - name: Install Rust
         uses: dtolnay/rust-toolchain@master
         with:

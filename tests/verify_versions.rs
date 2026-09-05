@@ -418,6 +418,7 @@ async fn detected_1_2_0_is_not_implied_as_requested_1_5_0() {
             registry: None,
             vendor_root: None,
             declared_target: helix::target::DeclaredTarget::default(),
+            ..Default::default()
         },
     )
     .await
@@ -460,6 +461,7 @@ async fn supported_1_4_0_runs_and_does_not_label_1_5_0() {
             registry: Some(registry_with_drs_140_supported()),
             vendor_root: None,
             declared_target: helix::target::DeclaredTarget::default(),
+            ..Default::default()
         },
     )
     .await
@@ -522,6 +524,7 @@ async fn requested_1_5_0_does_not_run_when_only_1_4_0_is_supported() {
             registry: Some(registry_with_drs_140_supported()),
             vendor_root: None,
             declared_target: helix::target::DeclaredTarget::default(),
+            ..Default::default()
         },
     )
     .await
@@ -550,6 +553,7 @@ async fn all_supported_with_one_supported_pack_does_not_also_run_1_5_0() {
             registry: Some(registry_with_drs_140_supported()),
             vendor_root: None,
             declared_target: helix::target::DeclaredTarget::default(),
+            ..Default::default()
         },
     )
     .await

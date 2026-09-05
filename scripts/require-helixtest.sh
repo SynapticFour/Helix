@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Sibling HelixTest must exist (Cargo path dep). Warn if HEAD ≠ VERSIONS.lock pin.
+# Sibling HelixTest must exist (Cargo path dep). Fail if HEAD ≠ VERSIONS.lock git pin.
+# Executed checker identity is HELIXTEST_CHECKER_SOURCE_SHA256, not HELIXTEST_SHA.
 set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SIBLING="$ROOT/../HelixTest/helixtest/crates/common/Cargo.toml"
@@ -16,6 +17,8 @@ fi
 WANT="$(grep '^HELIXTEST_SHA=' "$ROOT/VERSIONS.lock" | cut -d= -f2 || true)"
 HAVE="$(git -C "$ROOT/../HelixTest" rev-parse HEAD 2>/dev/null || true)"
 if [[ -n "$WANT" && -n "$HAVE" && "$HAVE" != "$WANT" ]]; then
-  echo "warning: HelixTest HEAD is ${HAVE}; VERSIONS.lock pin is ${WANT} (tag v0.1.3)." >&2
-  echo "CI uses the pin. Checkout: git -C ../HelixTest checkout ${WANT}" >&2
+  echo "error: HelixTest HEAD is ${HAVE}; VERSIONS.lock pin is ${WANT}." >&2
+  echo "CI clones HELIXTEST_SHA. Checkout: git -C ../HelixTest checkout ${WANT}" >&2
+  echo "Executed checker identity is HELIXTEST_CHECKER_SOURCE_SHA256, not this git SHA." >&2
+  exit 1
 fi

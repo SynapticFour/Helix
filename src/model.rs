@@ -17,12 +17,13 @@ pub fn helix_version() -> &'static str {
     env!("CARGO_PKG_VERSION")
 }
 
-/// Published HelixTest pin this repo builds against ([VERSIONS.lock](../../VERSIONS.lock)).
-/// Tag, not crate `0.1.0`. Update with the lockfile; do not invent a later tag.
+/// Published HelixTest **tag** this repo documents ([VERSIONS.lock](../../VERSIONS.lock)).
+/// Not the executed checker identity.
 pub const HELIXTEST_PIN: &str = "v0.1.3";
 
-/// Git SHA for [`HELIXTEST_PIN`]. Same line as `HELIXTEST_SHA` in VERSIONS.lock.
-pub const HELIXTEST_SHA: &str = "1832c043e1679ec283cb2113510ee33684317cce";
+/// Git commit CI should check out ([VERSIONS.lock](../../VERSIONS.lock) `HELIXTEST_SHA`).
+/// Not the executed checker. Executed identity is `crate::checker::executed_checker_id()`.
+pub const HELIXTEST_SHA: &str = "58958fd9f8afd3e72367ead46f96fc3e0fb636dc";
 
 /// Frozen machine-readable document id for `helix verify --format json`.
 /// File: `schemas/helix-verification-v1.json`. Not a HELIOS evidence schema.
@@ -581,6 +582,9 @@ pub struct VerificationRun {
     pub fixture_version: String,
     pub timestamp: String,
     pub target: Target,
+    /// Target-scoped DRS test input. Distinct from pack identity and from target identity.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub drs_fixture: Option<crate::fixture::DrsVerifyFixture>,
     /// Pack selection for this run. Optional on files produced before this field.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub standard_selection: Option<StandardSelection>,
@@ -602,11 +606,12 @@ impl VerificationRun {
             schema_version: SCHEMA_VERSION.to_string(),
             helix_version: helix_version().to_string(),
             helixtest_version: Some(HELIXTEST_PIN.to_string()),
-            helixtest_sha: Some(HELIXTEST_SHA.to_string()),
+            helixtest_sha: Some(crate::checker::executed_checker_source_sha256().to_string()),
             profile: None,
             fixture_version: FIXTURE_VERSION.to_string(),
             timestamp: Utc::now().to_rfc3339_opts(SecondsFormat::Secs, true),
             target,
+            drs_fixture: Some(crate::fixture::DrsVerifyFixture::default_catalog()),
             standard_selection: None,
             discovery: Vec::new(),
             executed: Vec::new(),
@@ -695,20 +700,26 @@ impl VerificationRun {
 
     /// Run-level status. All-skip (or empty) is Skip, never Pass.
     /// ERROR wins over FAIL regardless of list order.
+    /// A pass on `drs.object.not_found` alone is not a DRS object verification pass:
+    /// that check does not require the configured fixture. Skip is never pass.
     pub fn overall_status(&self) -> VerificationStatus {
         let mut saw_fail = false;
-        let mut saw_pass = false;
+        let mut saw_object_pass = false;
         for r in self.executed.iter().chain(self.skipped.iter()) {
             match r.status {
                 VerificationStatus::Error => return VerificationStatus::Error,
                 VerificationStatus::Fail => saw_fail = true,
-                VerificationStatus::Pass => saw_pass = true,
+                VerificationStatus::Pass => {
+                    if r.id != "drs.object.not_found" {
+                        saw_object_pass = true;
+                    }
+                }
                 VerificationStatus::Skip => {}
             }
         }
         if saw_fail {
             VerificationStatus::Fail
-        } else if saw_pass {
+        } else if saw_object_pass {
             VerificationStatus::Pass
         } else {
             VerificationStatus::Skip
@@ -820,6 +831,19 @@ mod tests {
         assert!(!run.overall_status().is_pass());
         assert_eq!(run.summary.passed, 0);
         assert_eq!(run.summary.skipped, 1);
+    }
+
+    #[test]
+    fn unknown_id_pass_alone_is_not_overall_pass() {
+        let mut run = VerificationRun::new(Target::new("http://127.0.0.1:9"));
+        run.push_executed(VerificationResult::pass(not_found_check()));
+        run.push_skipped(VerificationResult::skip(
+            VerificationCheck::from_spec(crate::identity::spec("drs.object.reachable")),
+            "fixture_unavailable: object missing",
+        ));
+        assert_eq!(run.summary.passed, 1);
+        assert_eq!(run.overall_status(), VerificationStatus::Skip);
+        assert!(!run.overall_status().is_pass());
     }
 
     #[test]

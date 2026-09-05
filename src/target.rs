@@ -194,7 +194,11 @@ impl DrsTarget for HttpDrsTarget {
 
 /// Spec-join `execution_id` stays pack/checker only (B2/B3). This identity
 /// additionally binds the target so Target A cannot reuse Target B's run.
-pub fn target_execution_id(identity: &TargetIdentity, sel: &StandardSelection) -> String {
+pub fn target_execution_id(
+    identity: &TargetIdentity,
+    sel: &StandardSelection,
+    fixture: Option<&crate::fixture::DrsVerifyFixture>,
+) -> String {
     let canonical = format!(
         "target_id={}\n\
          target_kind={}\n\
@@ -206,7 +210,9 @@ pub fn target_execution_id(identity: &TargetIdentity, sel: &StandardSelection) -
          binding_id={}\n\
          catalog_id={}\n\
          selected_version={}\n\
-         spec_execution_id={}\n",
+         spec_execution_id={}\n\
+         drs_object_id={}\n\
+         drs_expected_sha256={}\n",
         identity.target_id,
         identity.target_kind.as_str(),
         identity.endpoint,
@@ -218,14 +224,22 @@ pub fn target_execution_id(identity: &TargetIdentity, sel: &StandardSelection) -
         sel.catalog_id.as_deref().unwrap_or(""),
         sel.selected_version.as_deref().unwrap_or(""),
         sel.execution_id.as_deref().unwrap_or(""),
+        fixture.map(|f| f.object_id.as_str()).unwrap_or(""),
+        fixture
+            .and_then(|f| f.expected_sha256.as_deref())
+            .unwrap_or(""),
     );
     sha256_hex(canonical.as_bytes())
 }
 
 /// Helix does not cache verification results. If a cache is added, it MUST use
 /// this key so Target A cannot satisfy Target B.
-pub fn verification_cache_key(identity: &TargetIdentity, sel: &StandardSelection) -> String {
-    target_execution_id(identity, sel)
+pub fn verification_cache_key(
+    identity: &TargetIdentity,
+    sel: &StandardSelection,
+    fixture: Option<&crate::fixture::DrsVerifyFixture>,
+) -> String {
+    target_execution_id(identity, sel, fixture)
 }
 
 /// Did the target violate the tested condition, or did Helix fail to test?
@@ -258,7 +272,14 @@ impl FailureAttribution {
     pub fn from_result(result: &VerificationResult) -> Option<Self> {
         match result.status {
             VerificationStatus::Pass => None,
-            VerificationStatus::Skip => Some(Self::UnsupportedTest),
+            VerificationStatus::Skip => {
+                let msg = result.message.as_deref().unwrap_or("");
+                if msg.contains(framework::drs::FIXTURE_UNAVAILABLE) {
+                    Some(Self::TargetConfigurationFailure)
+                } else {
+                    Some(Self::UnsupportedTest)
+                }
+            }
             VerificationStatus::Error => Some(Self::HelixExecutionFailure),
             VerificationStatus::Fail => Some(fail_attribution(result)),
         }
@@ -486,14 +507,71 @@ mod tests {
                 ..DeclaredTarget::default()
             },
         );
-        let ea = target_execution_id(&a, &sel);
-        let eb = target_execution_id(&b, &sel);
+        let ea = target_execution_id(&a, &sel, None);
+        let eb = target_execution_id(&b, &sel, None);
         assert_ne!(ea, eb);
         assert_eq!(ea.len(), 64);
-        assert_eq!(verification_cache_key(&a, &sel), ea);
+        assert_eq!(verification_cache_key(&a, &sel, None), ea);
         assert_ne!(
-            verification_cache_key(&a, &sel),
-            verification_cache_key(&b, &sel)
+            verification_cache_key(&a, &sel, None),
+            verification_cache_key(&b, &sel, None)
+        );
+    }
+
+    #[test]
+    fn fixture_changes_target_execution_id_not_spec_join() {
+        let mut sel = StandardSelection::unversioned();
+        let exec = "e".repeat(64);
+        sel.execution_id = Some(exec.clone());
+        sel.standards_registry_entry = Some("ga4gh.drs.1.4.0".into());
+        let identity = TargetIdentity::from_declared(
+            "http://127.0.0.1:1",
+            &DeclaredTarget {
+                target_id: Some("same".into()),
+                kind: TargetKind::Mock,
+                ..DeclaredTarget::default()
+            },
+        );
+        let a = crate::fixture::DrsVerifyFixture::default_catalog();
+        let b = crate::fixture::DrsVerifyFixture::operator_declared("other-object".into(), None)
+            .unwrap();
+        assert_ne!(
+            target_execution_id(&identity, &sel, Some(&a)),
+            target_execution_id(&identity, &sel, Some(&b))
+        );
+        assert_eq!(sel.execution_id.as_deref(), Some(exec.as_str()));
+    }
+
+    #[test]
+    fn expected_sha256_changes_target_execution_id() {
+        let mut sel = StandardSelection::unversioned();
+        sel.execution_id = Some("e".repeat(64));
+        let identity = TargetIdentity::from_declared(
+            "http://127.0.0.1:1",
+            &DeclaredTarget {
+                target_id: Some("same".into()),
+                kind: TargetKind::Mock,
+                ..DeclaredTarget::default()
+            },
+        );
+        let a = crate::fixture::DrsVerifyFixture::operator_declared("obj".into(), None).unwrap();
+        let b = crate::fixture::DrsVerifyFixture::operator_declared(
+            "obj".into(),
+            Some("ab".repeat(32)),
+        )
+        .unwrap();
+        assert_eq!(a.object_id, b.object_id);
+        assert_ne!(
+            target_execution_id(&identity, &sel, Some(&a)),
+            target_execution_id(&identity, &sel, Some(&b))
+        );
+        assert_eq!(
+            a.checksum_mode,
+            crate::fixture::ChecksumMode::AdvertisedConsistency
+        );
+        assert_eq!(
+            b.checksum_mode,
+            crate::fixture::ChecksumMode::OperatorDigest
         );
     }
 

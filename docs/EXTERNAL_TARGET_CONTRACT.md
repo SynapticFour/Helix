@@ -49,8 +49,8 @@ Helix looks for published GA4GH HTTP under the origin. First probe that returns 
 
 | Service | Layout | Probe |
 |---------|--------|--------|
-| DRS | Prefixed | `GET {url}/ga4gh/drs/v1/objects/test-object-1` then `GET {url}/ga4gh/drs/v1/service-info` |
-| DRS | Split (base = origin) | `GET {url}/objects/test-object-1` |
+| DRS | Prefixed | `GET {url}/ga4gh/drs/v1/objects/{drs_object_id}` then `GET {url}/ga4gh/drs/v1/service-info` |
+| DRS | Split (base = origin) | `GET {url}/objects/{drs_object_id}` |
 | WES | Prefixed | `GET {url}/ga4gh/wes/v1/service-info` |
 | WES | Split (base = origin) | `GET {url}/service-info` |
 
@@ -86,18 +86,18 @@ Bulk endpoints, Passport, compact identifiers, and cloud-signed URLs are out of 
 
 ### Fixture requirements
 
-These identifiers are **not** in the DRS spec. They are the documented test objects Helix GETs. Mount them on the origin (or on a dedicated test origin). Catalog: [FIXTURES.md](FIXTURES.md) §1.
+These identifiers are **not** in the DRS spec. They are test input Helix GETs. The default catalog uses `test-object-1`. An external origin that already has a different object must pass **`--drs-object-id`** (optional `--drs-object-sha256`). Helix does not enumerate objects. Catalog: [FIXTURES.md](FIXTURES.md) §1, [TARGETS.md](TARGETS.md) §11.
 
 | Fixture | Request | Response |
 |---------|---------|----------|
-| Known object | `GET {drs_base}/objects/test-object-1` | **200** `DrsObject` with `id` = `test-object-1`. Blob bytes reachable from an access method. |
-| Known blob | Whatever URL is in that object’s access method | Body = **4096** bytes, each `0x41` (`A`). |
-| Checksum of that blob | `checksums` on the object | Include type **`sha256`** whose `checksum` is the SHA-256 hex of that blob (so the checksum check can compare download vs metadata). Other types may exist. |
-| Unknown object | `GET {drs_base}/objects/nonexistent-object-id-for-conformance` | **404** |
+| Known object | `GET {drs_base}/objects/{drs_object_id}` | **200** `DrsObject` whose `id` equals the configured id. Default catalog: `test-object-1`. |
+| Known blob | Whatever URL is in that object’s access method | Default catalog: **4096** bytes, each `0x41` (`A`). Operator-declared fixtures must supply independently known bytes/digest if checksum is to be tested. |
+| Checksum | `checksums` on the object, or `--drs-object-sha256` | Default: advertised sha256 vs download. With `--drs-object-sha256`, expected digest is the operator value (not taken from the GetObject JSON under test). |
+| Unknown object | `GET {drs_base}/objects/{derived helix.unknown.…}` | **404**. The unknown id is derived from `{drs_object_id}`; it is not a global hard-coded string. |
 
 The access URL path is not specified. Any http(s) URL that returns those bytes is valid. Do not implement a Synaptic Four-only bytes route unless you want to; the in-tree mock happens to use `/bytes/test-object-1`.
 
-Discovery’s DRS object probe uses the same known id `test-object-1`. If you only advertise DRS via `…/ga4gh/drs/v1/service-info`, you can still be DETECTED without that object; checks will then fail until the fixture is mounted.
+Discovery’s DRS object probe uses the same configured id. If you only advertise DRS via `…/ga4gh/drs/v1/service-info`, you can still be DETECTED without that object; existing-object checks then **skip** `fixture_unavailable` rather than being recorded as DRS non-conformance.
 
 ### Optional capabilities
 

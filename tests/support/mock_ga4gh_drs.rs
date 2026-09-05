@@ -16,7 +16,10 @@ use wiremock::matchers::{method, path};
 use wiremock::{Mock, MockServer, Request, ResponseTemplate};
 
 pub const TEST_OBJECT_ID: &str = "test-object-1";
-pub const UNKNOWN_OBJECT_ID: &str = "nonexistent-object-id-for-conformance";
+/// Derived unknown id for the default catalog object. Not a global hard-coded string.
+pub fn unknown_object_id() -> String {
+    framework::drs::unknown_object_id_for(TEST_OBJECT_ID)
+}
 pub const BLOB_LEN: usize = 4096;
 
 pub struct MockGa4ghDrs {
@@ -69,6 +72,21 @@ pub async fn start_mock_ga4gh_drs() -> MockGa4ghDrs {
     MockGa4ghDrs { server }
 }
 
+/// Gateway-prefixed DRS service-info so discovery can DETECT DRS without the
+/// configured object existing. Not a WES `/service-info`. Not certification.
+pub async fn mount_ga4gh_drs_service_info(server: &MockServer) {
+    Mock::given(method("GET"))
+        .and(path("/ga4gh/drs/v1/service-info"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+            "id": "org.ga4gh.drs",
+            "name": "Mock DRS",
+            "version": "0.0.0",
+            "type": { "group": "org.ga4gh", "artifact": "drs", "version": "1.4.0" }
+        })))
+        .mount(server)
+        .await;
+}
+
 /// DRS object/bytes routes only. No `/service-info` (that is the WES split probe).
 pub async fn mount_ga4gh_drs(server: &MockServer) {
     let blob = vec![b'A'; BLOB_LEN];
@@ -94,7 +112,7 @@ pub async fn mount_ga4gh_drs(server: &MockServer) {
         .await;
 
     Mock::given(method("GET"))
-        .and(path(format!("/objects/{UNKNOWN_OBJECT_ID}")))
+        .and(path(format!("/objects/{}", unknown_object_id())))
         .respond_with(ResponseTemplate::new(404).set_body_string("not found"))
         .mount(server)
         .await;
@@ -163,7 +181,7 @@ pub async fn start_mock_schema_ok_checksum_wrong() -> MockGa4ghDrs {
         .await;
 
     Mock::given(method("GET"))
-        .and(path(format!("/objects/{UNKNOWN_OBJECT_ID}")))
+        .and(path(format!("/objects/{}", unknown_object_id())))
         .respond_with(ResponseTemplate::new(404).set_body_string("not found"))
         .mount(&server)
         .await;
@@ -184,10 +202,11 @@ pub async fn start_mock_schema_ok_unknown_id_200() -> MockGa4ghDrs {
     let blob = vec![b'A'; BLOB_LEN];
     let sha256 = sha256_bytes(&blob);
     let object = drs_object_json(&server.uri(), &sha256);
+    let unknown_id = unknown_object_id();
     let unknown = json!({
-        "id": UNKNOWN_OBJECT_ID,
-        "name": UNKNOWN_OBJECT_ID,
-        "self_uri": format!("drs://example.invalid/{UNKNOWN_OBJECT_ID}"),
+        "id": unknown_id,
+        "name": unknown_id,
+        "self_uri": format!("drs://example.invalid/{unknown_id}"),
         "size": BLOB_LEN,
         "created_time": "2020-01-01T00:00:00Z",
         "checksums": [{ "type": "sha256", "checksum": sha256 }],
@@ -204,7 +223,7 @@ pub async fn start_mock_schema_ok_unknown_id_200() -> MockGa4ghDrs {
         .await;
 
     Mock::given(method("GET"))
-        .and(path(format!("/objects/{UNKNOWN_OBJECT_ID}")))
+        .and(path(format!("/objects/{}", unknown_object_id())))
         .respond_with(ResponseTemplate::new(200).set_body_json(unknown))
         .mount(&server)
         .await;

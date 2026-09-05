@@ -4,6 +4,10 @@
 
 **Current facts (2026-09-05).** Prefer [README.md](README.md) and [docs/TRUST.md](docs/TRUST.md) over older bullets in this section if they disagree.
 
+- Executed DRS checker identity ([docs/CHECKER_PROVENANCE.md](docs/CHECKER_PROVENANCE.md)): `checker_id` is `helixtest-drs:` plus SHA-256 of the HelixTest sources Cargo compiles (`drs.rs`, `ga4gh_schemas.rs`, `spec_source.rs`). `VERSIONS.lock` `HELIXTEST_SHA` is the git checkout pin, not proof of the executed checker. Stale lock digest fails closed. Live Starter Kit evidence is reproduced, not stored in `/tmp` ([docs/EXTERNAL_EVIDENCE.md](docs/EXTERNAL_EVIDENCE.md)). Not HELIOS. Not certification.
+
+- Target-scoped DRS fixture contract ([docs/TARGETS.md](docs/TARGETS.md) §11): `--drs-object-id` / `--drs-object-sha256`. Default catalog remains `test-object-1`. A 404 on the configured object is `fixture_unavailable`, not DRS non-conformance. Spec-join `execution_id` unchanged. Not automatic object discovery. Not HELIOS. Not certification.
+
 - `helix verify` executes **DRS and WES**. TES/TRS/htsget are discovery-only.
 - DRS 1.4.0 is **SUPPORTED** for technical verification within declared coverage. YAML `support_status` is not sufficient. Exactly one shipped check is `normative`. Default verify is **unversioned**. `verified_version` stays empty. Not GA4GH certification.
 - DRS 1.5.0 and WES remain AVAILABLE / non-executable as supported packs.

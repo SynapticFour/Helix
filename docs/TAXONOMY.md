@@ -74,9 +74,9 @@ Conservative rule used: if a check mixes a schema/surface probe with HelixTest e
 | `check_id` | taxonomy | authority | why |
 |------------|----------|-----------|-----|
 | `drs.object.schema.openapi` | normative | ga4gh | Versioned SpecSource only: pinned DRS 1.4.0 DrsObject schema, no HelixTest extras. SCHEMA PASS is not behavior coverage. |
-| `drs.object.reachable` | fixture | helixtest | Probe uses fixture object id `test-object-1` |
-| `drs.object.schema` | fixture | helixtest | HelixTest-vendored schema **plus** extras (`id=test-object-1`, `self_uri`, `name`, non-empty `access_methods`). Mixed → fixture, not interoperability |
-| `drs.object.checksum` | fixture | helixtest | Checksum of fixture object bytes |
+| `drs.object.reachable` | fixture | helixtest | Probe uses the configured target fixture object id (default catalog `test-object-1`) |
+| `drs.object.schema` | fixture | helixtest | HelixTest-vendored schema **plus** extras (`id` equals configured fixture, `self_uri`, `name`, non-empty `access_methods`). Mixed → fixture, not interoperability |
+| `drs.object.checksum` | fixture | helixtest | Configured fixture object bytes. `operator_digest`: downloaded bytes vs `--drs-object-sha256`. `advertised_consistency`: advertised GetObject sha256 vs download (not an independent integrity oracle) |
 | `drs.object.range` | fixture | helixtest | HTTP Range probe; not located in the pinned DRS entry YAML |
 | `drs.object.not_found` | fixture | helixtest | Helix unknown-id fixture |
 

@@ -14,11 +14,13 @@ use anyhow::Result;
 use common::config::{AuthChecksConfig, ServiceConfig, SubsetConfig, TestConfig};
 use common::http::HttpClient;
 use common::report::ServiceReport;
-use framework::drs::{run_drs_checks, run_drs_checks_with_spec};
+use framework::drs::{
+    run_drs_checks_with_fixture, run_drs_checks_with_spec_and_fixture, DrsTestFixture,
+};
 use framework::wes::run_wes_checks;
 use framework::{Features, Mode};
 
-use crate::model::{Target, VerificationResult, VerificationRun, HELIXTEST_PIN, HELIXTEST_SHA};
+use crate::model::{Target, VerificationResult, VerificationRun, HELIXTEST_PIN};
 use crate::profile::Capabilities;
 use std::time::Duration;
 use tokio::time::timeout;
@@ -75,7 +77,9 @@ fn features_from(caps: Capabilities) -> Features {
     }
 }
 
-/// Published HelixTest pin this adapter invokes ([VERSIONS.lock](../../VERSIONS.lock)).
+/// Published HelixTest pin this adapter invokes. `sha` is the **executed**
+/// DRS checker source digest (`framework::drs::executed_checker_source_sha256`),
+/// not VERSIONS.lock `HELIXTEST_SHA`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct HelixTestPin {
     pub tag: &'static str,
@@ -86,7 +90,7 @@ impl HelixTestPin {
     pub fn from_lockfile() -> Self {
         Self {
             tag: HELIXTEST_PIN,
-            sha: HELIXTEST_SHA,
+            sha: crate::checker::executed_checker_source_sha256(),
         }
     }
 }
@@ -122,6 +126,7 @@ pub trait ConformanceAdapter: Send + Sync {
     fn run_drs(
         &self,
         base_url: &str,
+        fixture: &DrsTestFixture,
     ) -> impl std::future::Future<Output = Result<AdapterOutcome>> + Send;
 
     fn run_wes(
@@ -157,6 +162,7 @@ impl HelixTestAdapter {
         &self,
         base_url: &str,
         spec: &common::spec_source::SpecSource,
+        fixture: &DrsTestFixture,
     ) -> Result<(AdapterOutcome, common::spec_source::SpecCompileResult)> {
         let mut services = empty_services();
         services.drs_url = base_url.trim_end_matches('/').to_string();
@@ -167,12 +173,13 @@ impl HelixTestAdapter {
         };
         let (service_report, compile) = with_wall_timeout(
             DRS_ADAPTER_WALL_SECS,
-            run_drs_checks_with_spec(
+            run_drs_checks_with_spec_and_fixture(
                 Mode::Generic,
                 &features_from(self.capabilities),
                 &cfg,
                 &HttpClient::new(),
                 spec,
+                fixture,
             ),
         )
         .await?;
@@ -193,7 +200,7 @@ impl ConformanceAdapter for HelixTestAdapter {
         self.pin
     }
 
-    async fn run_drs(&self, base_url: &str) -> Result<AdapterOutcome> {
+    async fn run_drs(&self, base_url: &str, fixture: &DrsTestFixture) -> Result<AdapterOutcome> {
         let mut services = empty_services();
         services.drs_url = base_url.trim_end_matches('/').to_string();
         let cfg = TestConfig {
@@ -204,11 +211,12 @@ impl ConformanceAdapter for HelixTestAdapter {
         // Always Generic: do not switch on WES `name`. Not Ferrum mode.
         let service_report = with_wall_timeout(
             DRS_ADAPTER_WALL_SECS,
-            run_drs_checks(
+            run_drs_checks_with_fixture(
                 Mode::Generic,
                 &features_from(self.capabilities),
                 &cfg,
                 &HttpClient::new(),
+                fixture,
             ),
         )
         .await?;
@@ -272,12 +280,15 @@ mod tests {
     use super::*;
 
     #[test]
-    fn pin_matches_versions_lock() {
+    fn pin_matches_executed_checker() {
         let pin = HelixTestPin::from_lockfile();
-        assert_eq!(pin.tag, "v0.1.3");
-        assert_eq!(pin.sha, "1832c043e1679ec283cb2113510ee33684317cce");
         assert_eq!(pin.tag, HELIXTEST_PIN);
-        assert_eq!(pin.sha, HELIXTEST_SHA);
+        assert_eq!(pin.sha, crate::checker::executed_checker_source_sha256());
+        assert_ne!(
+            pin.sha,
+            crate::model::HELIXTEST_SHA,
+            "git pin is not executed checker"
+        );
     }
 
     #[tokio::test]

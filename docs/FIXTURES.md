@@ -47,19 +47,23 @@ Live (you start the stack): [PROVE.md](PROVE.md) / `make test-live HELIX_LIVE_UR
 
 ## Deterministic test object
 
-HelixTest DRS checks GET `objects/test-object-1` (and a known-missing id). Helix’s valid mock implements that table.
+Default catalog input for in-process mocks and Ferrum’s demo object. **Not a GA4GH requirement.** External targets declare their own id with `--drs-object-id` ([TARGETS.md](TARGETS.md) §11, [EXTERNAL_TARGET_CONTRACT.md](EXTERNAL_TARGET_CONTRACT.md)).
+
+HelixTest DRS checks GET `objects/{object_id}` (default `test-object-1`) and a **derived** unknown id. Helix’s valid mock implements the default catalog table.
 
 | Field | Value |
 |-------|--------|
-| Object id | `test-object-1` |
+| Object id | `test-object-1` (override: `--drs-object-id`) |
 | Blob | 4096 bytes, each `0x41` (`'A'`) |
-| Checksum | SHA-256 of that blob (`common::util::sha256_bytes`) |
+| Checksum | SHA-256 of that blob (`common::util::sha256_bytes`). Operator `--drs-object-sha256` supplies an independent expected digest; otherwise checksum compares advertised GetObject sha256 vs download. |
 | Access | `GET /bytes/test-object-1` (HTTP Range → 206) |
-| Unknown id | `nonexistent-object-id-for-conformance` → **404** |
+| Unknown id | `helix.unknown.` + first 32 hex of `sha256("helix.unknown\n{object_id}")` → **404**. Not the global string `nonexistent-object-id-for-conformance`. |
 | `self_uri` | `drs://example.invalid/test-object-1` (not a live host) |
 | `created_time` | `2020-01-01T00:00:00Z` |
 
-Constants: `tests/support/mock_ga4gh_drs.rs` (`TEST_OBJECT_ID`, `UNKNOWN_OBJECT_ID`, `BLOB_LEN`). Security cases hit the same object id behind an Authorization header.
+Constants: `tests/support/mock_ga4gh_drs.rs` (`TEST_OBJECT_ID`, `BLOB_LEN`). The mock still 404s the legacy unknown path; the checker no longer assumes that string is globally unused. Security cases hit the same default object id behind an Authorization header.
+
+A missing configured object is **fixture-unavailable** (skip), not target non-conformance. Helix does not auto-discover objects. A pass on unknown-id `HLX-DRS-005` alone is not an overall DRS verification pass.
 
 ---
 

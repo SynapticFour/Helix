@@ -31,6 +31,9 @@ tokio = { version = "1", features = ["macros", "rt-multi-thread", "time", "sync"
 common = { path = "../HelixTest/helixtest/crates/common", package = "helixtest-common" }
 framework = { path = "../HelixTest/helixtest/crates/framework", package = "helixtest-framework" }
 
+[build-dependencies]
+sha2 = "0.10"
+
 [dev-dependencies]
 wiremock = "0.6"
 assert_cmd = "2"

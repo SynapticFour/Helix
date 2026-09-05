@@ -48,7 +48,7 @@ Raw `helix verify --format json` files are **not bit-for-bit** identical across 
 | Item | Pin |
 |------|-----|
 | Rust | **1.91.1** (`rust-toolchain.toml`). rustup’s `cargo` before Homebrew |
-| HelixTest sibling | SHA in [VERSIONS.lock](../VERSIONS.lock) (`HELIXTEST_SHA=1832c043e1679ec283cb2113510ee33684317cce`, tag v0.1.3) |
+| HelixTest sibling | Git SHA in [VERSIONS.lock](../VERSIONS.lock) (`HELIXTEST_SHA`). Executed checker is `HELIXTEST_CHECKER_SOURCE_SHA256` ([CHECKER_PROVENANCE.md](CHECKER_PROVENANCE.md)) |
 | Crates | [Cargo.lock](../Cargo.lock) (`cargo fetch --locked` then `--offline`) |
 | OS | CI is `ubuntu-latest`. Local macOS/Linux with rustup is the documented path. Windows is unproven here |
 | Locale / clock for this script | `TZ=UTC` `LC_ALL=C` `LANG=C` `NO_COLOR=1` `RUST_LOG=error` |

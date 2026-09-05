@@ -216,6 +216,8 @@ pub fn execution_id(
     sha256_hex(canonical.as_bytes())
 }
 
+/// Format a git tag:sha pair. **Not** the executed checker identity.
+/// Executed identity is `crate::checker::executed_checker_id()`.
 pub fn checker_id(tag: &str, sha: &str) -> String {
     format!("{tag}:{sha}")
 }

@@ -294,7 +294,7 @@ Distinguish **Helix** fixtures from **target** fixtures.
 |---------|--------|--------------|-----------------------------|
 | Helix vendor spec bytes or hash | `error` (runner). Pack not loaded. `verified` empty. | No | Forbidden |
 | Helix fixture catalog required by a SUPPORTED pack (Helix bug: SUPPORTED implies step 6) | `error` | No | Forbidden |
-| Target lacks `test-object-1` / echo TRS / scatter | Existing fixture contract: those **`kind=fixture`** rows fail or skip. **`kind=normative`** still run if they do not need that object. | Yes, if the pack loaded | Only if **all normative** rows passed. Fixture fails must be disclosed and do not support the sentence by themselves |
+| Target lacks the configured DRS object / echo TRS / scatter | Existing fixture contract: those **`kind=fixture`** rows **skip** `fixture_unavailable` (or fail if the object exists but the behavior is wrong). A missing configured object is **not** target non-conformance. **`kind=normative`** still run if they do not need that object; if they need it, they skip the same way. | Yes, if the pack loaded | Only if **all normative** rows **passed** (skip is not pass). Fixture skips/fails must be disclosed and do not support the sentence by themselves |
 
 Skip is never pass. A pack that cannot execute **any** normative check without a missing Helix artifact is an error, not a green skip-only “verified.”
 

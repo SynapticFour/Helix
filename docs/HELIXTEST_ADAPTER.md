@@ -4,7 +4,7 @@ Helix is HelixTest becoming a standalone VERIFY product. HelixTest already runs 
 
 HelixTest stays a **separate repository and a separate git root** (D1). Helix path-depends on the pinned sibling checkout (`helixtest-common` / `helixtest-framework`). Do not merge git histories, vendor the suite, or rewrite HelixTest in this repo.
 
-Source: `src/adapter/`. Pin: [VERSIONS.lock](../VERSIONS.lock) **v0.1.3** / SHA `1832c043e1679ec283cb2113510ee33684317cce`. Domain types: [VERIFICATION_MODEL.md](VERIFICATION_MODEL.md). Identities: [TEST_IDENTITY.md](TEST_IDENTITY.md). Architecture seam: [ARCHITECTURE.md](ARCHITECTURE.md) §5.
+Source: `src/adapter/`. Git checkout pin: [VERSIONS.lock](../VERSIONS.lock) **v0.1.3** / `HELIXTEST_SHA`. Executed checker: [CHECKER_PROVENANCE.md](CHECKER_PROVENANCE.md). Domain types: [VERIFICATION_MODEL.md](VERIFICATION_MODEL.md). Identities: [TEST_IDENTITY.md](TEST_IDENTITY.md). Architecture seam: [ARCHITECTURE.md](ARCHITECTURE.md) §5.
 
 Ferrum is not a Helix runtime dependency. This adapter **does not import Ferrum**. Ferrum may appear only as a test target, a fixture, or a documentation reference. HELIOS stays out of this boundary (`helios-audit`; no RO-Crate / PDF / signed evidence here).
 
@@ -39,7 +39,7 @@ src/adapter            THIS BOUNDARY
     ▼                              ▼                             ▼
 ServiceReport                 Vec<VerificationResult>      HelixTestPin
 (adapter internal;            (Helix id/code/name;         tag v0.1.3
- not verify JSON)             original name preserved)     SHA 1832c043…
+ not verify JSON)             original name preserved)     executed source digest
 ```
 
 Pinned HelixTest crates live in the sibling git root `../HelixTest`. They are not this repository.
@@ -71,14 +71,15 @@ Allowed behind this adapter only:
 - `HttpClient` from HelixTest common (timeout/retry vs Helix discovery client are known)
 - HelixTest report types (`ServiceReport`, `TestCaseResult`) so CLI JSON stays D3
 
-The published pin is the **git tag / SHA**, not crate `0.1.0`:
+The published **git** pin is the tag / SHA CI clones. The **executed** checker is a source digest:
 
-| Field | Value |
-|-------|--------|
-| Tag (`HELIXTEST_PIN` / `HELIXTEST_REF`) | `v0.1.3` |
-| SHA (`HELIXTEST_SHA`) | `1832c043e1679ec283cb2113510ee33684317cce` |
+| Field | Meaning | Value source |
+|-------|---------|--------------|
+| Tag (`HELIXTEST_PIN` / `HELIXTEST_REF`) | HelixTest git tag | `v0.1.3` |
+| Git SHA (`HELIXTEST_SHA`) | Commit CI should check out | [VERSIONS.lock](../VERSIONS.lock) |
+| Executed checker (`HELIXTEST_CHECKER_SOURCE_SHA256`) | SHA-256 of compiled DRS checker sources | `framework::drs::executed_checker_id()` |
 
-`HelixTestAdapter::pinned()` stamps every `AdapterOutcome` with that pair. Do not bump off this pin unless HelixTest has a tag Ferrum / Lab Kit / ga4gh-infra can take.
+`HelixTestAdapter::pinned()` stamps `pin.sha` with the **executed** digest, not the git SHA. Do not bump the git pin unless HelixTest has a tag Ferrum / Lab Kit / ga4gh-infra can take. Uncommitted checker edits change the source digest immediately.
 
 ---
 
@@ -144,7 +145,7 @@ Narrow exception (not this adapter): Stage 3 dummy JWT via `common::auth::build_
 
 ## Integration proof
 
-`tests/adapter_drs.rs` and `tests/adapter_wes.rs` run `HelixTestAdapter` against in-process generic fixtures. DRS: five identities, PASS. WES default capabilities: seven PASS plus scatter SKIP (`supports_scatter_gather=false`), never SKIP-as-PASS. Profile `ferrum` turns scatter on (`tests/verify_profile.rs`). Pin `v0.1.3` / SHA `1832c043e1679ec283cb2113510ee33684317cce`.
+`tests/adapter_drs.rs` and `tests/adapter_wes.rs` run `HelixTestAdapter` against in-process generic fixtures. DRS: five identities, PASS. WES default capabilities: seven PASS plus scatter SKIP (`supports_scatter_gather=false`), never SKIP-as-PASS. Profile `ferrum` turns scatter on (`tests/verify_profile.rs`). Git tag `v0.1.3`; executed checker is the source digest ([CHECKER_PROVENANCE.md](CHECKER_PROVENANCE.md)).
 
 `tests/verify_drs.rs` / `tests/verify_wes.rs` cover `helix verify` CLI JSON (`VerificationRun`). Those paths go through the same adapter.
 

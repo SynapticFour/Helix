@@ -29,7 +29,7 @@ versions:
     schema_component: DrsObject
     fixture_catalog: helix-fixtures-v1
     catalog_id: "03ce38f690ed679ff967e636bb037e0ed4ebe42f2cbde62766921ad7eae96ac1"
-    binding_id: "3775f2bbfc640b0aaf5947d822147a6f4b73ca942c65b545627d04714f2b87f8"
+    binding_id: "8d3ff99b46fbe8d1a27cd2e445a47580bf564265d0ff5fe947ab0edc37615920"
     coverage:
       schema: partial
       behavior: none

@@ -33,7 +33,7 @@
     "helixtest_sha": {
       "type": "string",
       "minLength": 1,
-      "description": "HelixTest git SHA from VERSIONS.lock. Optional with helixtest_version."
+      "description": "SHA-256 of the compiled DRS checker sources (helix-drs-checker-v1). Not VERSIONS.lock HELIXTEST_SHA (git checkout pin). Combined with prefix helixtest-drs: this is standard_selection.checker_id. Optional with helixtest_version."
     },
     "profile": {
       "type": "string",
@@ -53,6 +53,10 @@
     "target": {
       "$ref": "#/$defs/target",
       "description": "What was tested against."
+    },
+    "drs_fixture": {
+      "$ref": "#/$defs/drsFixture",
+      "description": "Target-scoped DRS test input. object_id is not a GA4GH requirement. Optional on files produced before B6. Producers always emit. Not certification."
     },
     "standard_selection": {
       "$ref": "#/$defs/standardSelection",
@@ -134,6 +138,38 @@
         }
       }
     },
+    "drsFixture": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["object_id", "unknown_object_id", "source"],
+      "description": "DRS test input for this target. Not a GA4GH MUST. A 404 on object_id is fixture-unavailable, not target non-conformance.",
+      "properties": {
+        "object_id": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Object id Helix GETs for EXISTING_OBJECT checks. Operator --drs-object-id or default catalog test-object-1."
+        },
+        "unknown_object_id": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Deterministic unknown id derived from object_id for HLX-DRS-005."
+        },
+        "source": {
+          "type": "string",
+          "enum": ["default_catalog", "operator_declared"],
+          "description": "default_catalog is Helix/HelixTest mock input (test-object-1). operator_declared is --drs-object-id. Neither is a DRS 1.4.0 MUST."
+        },
+        "expected_sha256": {
+          "type": "string",
+          "description": "Independently known blob digest. When present, checksum does not take expected from GetObject JSON."
+        },
+        "checksum_mode": {
+          "type": "string",
+          "enum": ["operator_digest", "advertised_consistency"],
+          "description": "operator_digest: compare downloaded bytes to --drs-object-sha256. advertised_consistency: advertised GetObject sha256 vs download (not an independent integrity oracle). Optional on files produced before B7."
+        }
+      }
+    },
     "nullableString": {
       "type": ["string", "null"]
     },
@@ -188,7 +224,10 @@
         "schema_entry": { "$ref": "#/$defs/nullableString" },
         "catalog_id": { "$ref": "#/$defs/nullableString" },
         "binding_id": { "$ref": "#/$defs/nullableString" },
-        "checker_id": { "$ref": "#/$defs/nullableString" },
+        "checker_id": {
+          "$ref": "#/$defs/nullableString",
+          "description": "Executed DRS checker identity (helixtest-drs:<source sha256>). Not a git tag. Not VERSIONS.lock HELIXTEST_SHA."
+        },
         "support_status": { "$ref": "#/$defs/nullableString" },
         "coverage_schema": { "$ref": "#/$defs/nullableString" },
         "coverage_behavior": { "$ref": "#/$defs/nullableString" },

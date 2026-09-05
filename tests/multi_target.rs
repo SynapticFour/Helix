@@ -27,6 +27,7 @@ fn versioned(declared: DeclaredTarget) -> VerifyOptions {
         registry: None,
         vendor_root: None,
         declared_target: declared,
+        ..Default::default()
     }
 }
 
@@ -152,8 +153,16 @@ async fn test4_cache_isolation() {
         .expect("B");
     let sa = a.run.standard_selection.as_ref().unwrap();
     let sb = b.run.standard_selection.as_ref().unwrap();
-    let ka = verification_cache_key(a.run.target.identity.as_ref().unwrap(), sa);
-    let kb = verification_cache_key(b.run.target.identity.as_ref().unwrap(), sb);
+    let ka = verification_cache_key(
+        a.run.target.identity.as_ref().unwrap(),
+        sa,
+        a.run.drs_fixture.as_ref(),
+    );
+    let kb = verification_cache_key(
+        b.run.target.identity.as_ref().unwrap(),
+        sb,
+        b.run.drs_fixture.as_ref(),
+    );
     assert_ne!(ka, kb);
     assert!(with_spec_calls() >= 2);
     assert_ne!(sa.target_execution_id, sb.target_execution_id);
@@ -255,10 +264,8 @@ async fn test8_same_checker_actually_invoked() {
         .checker_id
         .clone();
     assert_eq!(ca, cb);
-    assert_eq!(
-        ca.as_deref(),
-        Some("v0.1.3:1832c043e1679ec283cb2113510ee33684317cce")
-    );
+    let executed = helix::checker::executed_checker_id();
+    assert_eq!(ca.as_deref(), Some(executed.as_str()));
     assert!(with_spec_calls() >= 2);
 }
 
@@ -381,6 +388,7 @@ async fn test12_drs_150_remains_unsupported() {
             registry: None,
             vendor_root: None,
             declared_target: mock_declared("one-five"),
+            ..Default::default()
         },
     )
     .await

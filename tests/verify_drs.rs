@@ -3,7 +3,7 @@
 
 use assert_cmd::Command;
 use helix::identity::{DRS_VERIFY_IDS, WES_VERIFY_IDS};
-use helix::model::{VerificationStatus, HELIXTEST_PIN, HELIXTEST_SHA};
+use helix::model::{VerificationStatus, HELIXTEST_PIN};
 use helix::verify::{DRS_CHECK_NAMES, WES_CHECK_NAMES};
 use predicates::prelude::*;
 use serde_json::Value;
@@ -55,7 +55,10 @@ async fn valid_drs_target_passes_with_stable_ids() {
         outcome.run.helixtest_version.as_deref(),
         Some(HELIXTEST_PIN)
     );
-    assert_eq!(outcome.run.helixtest_sha.as_deref(), Some(HELIXTEST_SHA));
+    assert_eq!(
+        outcome.run.helixtest_sha.as_deref(),
+        Some(helix::checker::executed_checker_source_sha256())
+    );
     assert_eq!(outcome.run.target.url, mock.drs_url().trim_end_matches('/'));
     let drs_exec: Vec<_> = outcome
         .run
@@ -143,7 +146,10 @@ async fn helix_verify_cli_json_is_deterministic_verification_run() {
     assert_eq!(a["profile"].as_str(), Some("generic"));
     assert_eq!(a["helix_version"].as_str(), Some(env!("CARGO_PKG_VERSION")));
     assert_eq!(a["helixtest_version"].as_str(), Some(HELIXTEST_PIN));
-    assert_eq!(a["helixtest_sha"].as_str(), Some(HELIXTEST_SHA));
+    assert_eq!(
+        a["helixtest_sha"].as_str(),
+        Some(helix::checker::executed_checker_source_sha256())
+    );
     assert_eq!(a["target"]["url"].as_str(), Some(url.trim_end_matches('/')));
     let executed = a["executed"].as_array().expect("executed");
     let drs_exec: Vec<_> = executed

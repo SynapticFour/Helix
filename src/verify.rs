@@ -14,21 +14,21 @@ use anyhow::{Context, Result};
 
 use crate::adapter::{ConformanceAdapter, HelixTestAdapter};
 use crate::discover::{
-    discover, http_client, normalize_endpoint, Detection, Discovery, Ga4ghService,
+    discover_for_drs_object, http_client, normalize_endpoint, Detection, Discovery, Ga4ghService,
     ServiceDiscovery, Testability, VERIFY_ORDER,
 };
 use crate::identity::{drs_verify_specs, wes_verify_specs, CheckSpec};
 use crate::model::{
     DiscoveredService, StandardSelection, Target, VerificationCheck, VerificationResult,
-    VerificationRun, HELIXTEST_PIN, HELIXTEST_SHA,
+    VerificationRun, HELIXTEST_PIN,
 };
 use crate::profile::{definition, Profile, ProfileId};
 use crate::standards::{
-    binding_id as compute_binding_id, catalog_id as compute_catalog_id, checker_id,
-    compare_spec_identity, contract_for, declared_checker_id, default_registry_path, execution_id,
-    helix_repo_root, load_pack, load_path, select_all_official_supported, select_automatic,
-    select_explicit, PackLoadError, PackRef, Registry, ReleaseClass, SelectionError,
-    AVAILABLE_BUT_NOT_SUPPORTED, MULTIPLE_PACKS_NOT_EXECUTABLE, SELECTED,
+    binding_id as compute_binding_id, catalog_id as compute_catalog_id, compare_spec_identity,
+    contract_for, declared_checker_id, default_registry_path, execution_id, helix_repo_root,
+    load_pack, load_path, select_all_official_supported, select_automatic, select_explicit,
+    PackLoadError, PackRef, Registry, ReleaseClass, SelectionError, AVAILABLE_BUT_NOT_SUPPORTED,
+    MULTIPLE_PACKS_NOT_EXECUTABLE, SELECTED,
 };
 use crate::target::{DeclaredTarget, TargetIdentity};
 
@@ -62,6 +62,8 @@ pub struct VerifyOptions {
     pub vendor_root: Option<std::path::PathBuf>,
     /// Operator-declared target labels. Untrusted. Never inferred from headers.
     pub declared_target: DeclaredTarget,
+    /// Target-scoped DRS test object. Default catalog `test-object-1`.
+    pub drs_fixture: crate::fixture::DrsVerifyFixture,
 }
 
 impl Default for VerifyOptions {
@@ -72,6 +74,7 @@ impl Default for VerifyOptions {
             registry: None,
             vendor_root: None,
             declared_target: DeclaredTarget::default(),
+            drs_fixture: crate::fixture::DrsVerifyFixture::default_catalog(),
         }
     }
 }
@@ -108,12 +111,14 @@ pub async fn verify_with_profile(endpoint: &str, profile_id: ProfileId) -> Resul
             registry: None,
             vendor_root: None,
             declared_target: DeclaredTarget::default(),
+            drs_fixture: crate::fixture::DrsVerifyFixture::default_catalog(),
         },
     )
     .await
 }
 
 pub async fn verify_with_options(endpoint: &str, options: VerifyOptions) -> Result<VerifyOutcome> {
+    crate::checker::require_checker_pin()?;
     let mut outcome = match &options.selection {
         VerifySelection::Unversioned => verify_unversioned(endpoint, &options).await?,
         VerifySelection::Explicit { .. }
@@ -154,7 +159,13 @@ async fn verify_versioned(endpoint: &str, options: VerifyOptions) -> Result<Veri
         VerifySelection::Unversioned => unreachable!(),
     };
 
-    let mut outcome = discover_only(endpoint, options.profile, &options.declared_target).await?;
+    let mut outcome = discover_only(
+        endpoint,
+        options.profile,
+        &options.declared_target,
+        &options.drs_fixture,
+    )
+    .await?;
     let detected = detected_for_standard(&outcome.discovery, &standard);
 
     let resolved = match &options.selection {
@@ -180,8 +191,14 @@ async fn verify_versioned(endpoint: &str, options: VerifyOptions) -> Result<Veri
                 .expect("selected pack is in registry")
                 .clone();
             let vendor_root = options.vendor_root.clone().unwrap_or_else(helix_repo_root);
-            let join = execute_selected_pack(&mut outcome, options.profile, &version, &vendor_root)
-                .await?;
+            let join = execute_selected_pack(
+                &mut outcome,
+                options.profile,
+                &version,
+                &vendor_root,
+                &options.drs_fixture,
+            )
+            .await?;
             stamp_selected(&mut outcome, requested.as_deref(), &pack_ref, join);
             Ok(outcome)
         }
@@ -290,6 +307,7 @@ async fn execute_selected_pack(
     profile_id: ProfileId,
     pack: &crate::standards::StandardVersion,
     vendor_root: &std::path::Path,
+    fixture: &crate::fixture::DrsVerifyFixture,
 ) -> Result<JoinRecord> {
     let profile = definition(profile_id);
     let standard = pack.standard.as_str();
@@ -368,7 +386,10 @@ async fn execute_selected_pack(
                 .base_url()
                 .expect("DETECTED TESTABLE service has a base URL")
                 .to_string();
-            match adapter.run_drs_with_spec(&url, &loaded.spec).await {
+            match adapter
+                .run_drs_with_spec(&url, &loaded.spec, &fixture.to_helixtest())
+                .await
+            {
                 Ok((out, returned)) => {
                     if let Err(e) = compare_spec_identity(&loaded.expected, &returned) {
                         for result in profile_errors(
@@ -437,10 +458,9 @@ fn join_pack_loaded(loaded: &crate::standards::LoadedPack) -> JoinRecord {
 
 fn join_from_loaded(
     loaded: &crate::standards::LoadedPack,
-    helixtest_sha: Option<&str>,
+    _helixtest_sha: Option<&str>,
 ) -> JoinRecord {
-    let pin = crate::adapter::HelixTestPin::from_lockfile();
-    let checker = checker_id(pin.tag, helixtest_sha.unwrap_or(pin.sha));
+    let checker = crate::checker::executed_checker_id();
     let exec = execution_id(
         &loaded.pack_id,
         &loaded.pack_integrity_sha256,
@@ -670,8 +690,11 @@ fn stamp_outcome(
         }
     }
     if let Some(identity) = outcome.run.target.identity.as_ref() {
-        selection.target_execution_id =
-            Some(crate::target::target_execution_id(identity, &selection));
+        selection.target_execution_id = Some(crate::target::target_execution_id(
+            identity,
+            &selection,
+            outcome.run.drs_fixture.as_ref(),
+        ));
     }
     let target_id = outcome
         .run
@@ -712,7 +735,13 @@ fn detected_for_standard(discovery: &Discovery, standard: &str) -> Option<String
 
 async fn execute_profile(endpoint: &str, options: &VerifyOptions) -> Result<VerifyOutcome> {
     let profile_id = options.profile;
-    let mut outcome = discover_only(endpoint, profile_id, &options.declared_target).await?;
+    let mut outcome = discover_only(
+        endpoint,
+        profile_id,
+        &options.declared_target,
+        &options.drs_fixture,
+    )
+    .await?;
     if !target_connectable(&outcome.discovery.endpoint) {
         let profile = definition(profile_id);
         for kind in profile.enabled_services {
@@ -738,7 +767,7 @@ async fn execute_profile(endpoint: &str, options: &VerifyOptions) -> Result<Veri
                     .base_url()
                     .expect("DETECTED TESTABLE service has a base URL")
                     .to_string();
-                match run_adapter(&adapter, *kind, &url).await {
+                match run_adapter(&adapter, *kind, &url, &options.drs_fixture).await {
                     Ok(out) => {
                         outcome.run.helixtest_version = Some(out.pin.tag.to_string());
                         outcome.run.helixtest_sha = Some(out.pin.sha.to_string());
@@ -782,6 +811,7 @@ async fn discover_only(
     endpoint: &str,
     profile_id: ProfileId,
     declared: &DeclaredTarget,
+    fixture: &crate::fixture::DrsVerifyFixture,
 ) -> Result<VerifyOutcome> {
     let profile = definition(profile_id);
     let endpoint = normalize_endpoint(endpoint)?;
@@ -789,7 +819,8 @@ async fn discover_only(
     let mut run = VerificationRun::new(Target::from_identity(identity));
     run.profile = Some(profile.id.as_str().to_string());
     run.helixtest_version = Some(HELIXTEST_PIN.to_string());
-    run.helixtest_sha = Some(HELIXTEST_SHA.to_string());
+    run.helixtest_sha = Some(crate::checker::executed_checker_source_sha256().to_string());
+    run.drs_fixture = Some(fixture.clone());
 
     if !target_connectable(&endpoint) {
         let discovery = Discovery {
@@ -804,7 +835,7 @@ async fn discover_only(
     }
 
     let client = http_client()?;
-    let discovery = discover(&endpoint, &client).await?;
+    let discovery = discover_for_drs_object(&endpoint, &client, &fixture.object_id).await?;
     run.discovery = model_discovery(&discovery);
     Ok(VerifyOutcome { discovery, run })
 }
@@ -813,9 +844,10 @@ async fn run_adapter(
     adapter: &HelixTestAdapter,
     kind: Ga4ghService,
     url: &str,
+    fixture: &crate::fixture::DrsVerifyFixture,
 ) -> Result<crate::adapter::AdapterOutcome> {
     match kind {
-        Ga4ghService::Drs => adapter.run_drs(url).await,
+        Ga4ghService::Drs => adapter.run_drs(url, &fixture.to_helixtest()).await,
         Ga4ghService::Wes => adapter.run_wes(url).await,
         other => anyhow::bail!("helix verify does not execute {}", other.as_str()),
     }

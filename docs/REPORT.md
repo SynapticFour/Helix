@@ -68,7 +68,9 @@ Helix:
   2026-09-04T09:00:00Z
 
 Test suite:
-  HelixTest v0.1.3 (1832c043e1679ec283cb2113510ee33684317cce)
+  HelixTest tag v0.1.3
+  git checkout pin: (VERSIONS.lock HELIXTEST_SHA)
+  executed checker: helixtest-drs:(HELIXTEST_CHECKER_SOURCE_SHA256)
 
 Standards:
   mode: unversioned

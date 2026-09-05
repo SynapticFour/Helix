@@ -10,7 +10,7 @@ use wiremock::matchers::{method, path};
 use wiremock::{Mock, MockServer, Request, ResponseTemplate};
 
 use super::mock_ga4gh_drs::{
-    honest_blob, valid_drs_object_json, TEST_OBJECT_ID, UNKNOWN_OBJECT_ID,
+    honest_blob, unknown_object_id, valid_drs_object_json, TEST_OBJECT_ID,
 };
 use super::mock_ga4gh_wes::{
     start_mock_ga4gh_drs_and_wes_mutated, MockGa4ghDrsWes, WesInfoMut, WesLifecycleMut,
@@ -101,7 +101,7 @@ impl wiremock::Respond for HonestRange {
 
 async fn mount_unknown(server: &MockServer, status: u16, body: Value) {
     Mock::given(method("GET"))
-        .and(path(format!("/objects/{UNKNOWN_OBJECT_ID}")))
+        .and(path(format!("/objects/{}", unknown_object_id())))
         .respond_with(ResponseTemplate::new(status).set_body_json(body))
         .mount(server)
         .await;
@@ -109,7 +109,7 @@ async fn mount_unknown(server: &MockServer, status: u16, body: Value) {
 
 async fn mount_unknown_text(server: &MockServer, status: u16, body: &str) {
     Mock::given(method("GET"))
-        .and(path(format!("/objects/{UNKNOWN_OBJECT_ID}")))
+        .and(path(format!("/objects/{}", unknown_object_id())))
         .respond_with(ResponseTemplate::new(status).set_body_string(body))
         .mount(server)
         .await;
@@ -255,8 +255,8 @@ pub async fn start_mutant(id: &str) -> MutationTarget {
                 .mount(&server)
                 .await;
             let mut unknown = object;
-            unknown["id"] = json!(UNKNOWN_OBJECT_ID);
-            unknown["name"] = json!(UNKNOWN_OBJECT_ID);
+            unknown["id"] = json!(unknown_object_id());
+            unknown["name"] = json!(unknown_object_id());
             mount_unknown(&server, 200, unknown).await;
             Mock::given(method("GET"))
                 .and(path(format!("/bytes/{TEST_OBJECT_ID}")))

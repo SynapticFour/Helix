@@ -2,7 +2,7 @@
   "schema_version": "helix-verification-v1",
   "helix_version": "0.1.0",
   "helixtest_version": "v0.1.3",
-  "helixtest_sha": "1832c043e1679ec283cb2113510ee33684317cce",
+  "helixtest_sha": "4768d348e4db3df1f1c835d7afe305276acb2651ae9823e6ac0ad213d05e9f65",
   "profile": "generic",
   "fixture_version": "helix-fixtures-v1",
   "timestamp": "2026-09-04T12:00:00Z",

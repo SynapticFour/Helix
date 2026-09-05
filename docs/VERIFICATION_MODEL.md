@@ -100,7 +100,7 @@ TES / TRS / htsget catalog rows exist; `helix verify` does not execute them. DET
   "schema_version": "helix-verification-v1",
   "helix_version": "0.1.0",
   "helixtest_version": "v0.1.3",
-  "helixtest_sha": "1832c043e1679ec283cb2113510ee33684317cce",
+  "helixtest_sha": "<executed DRS checker source sha256; not HELIXTEST_SHA>",
   "profile": "generic",
   "fixture_version": "helix-fixtures-v1",
   "timestamp": "2026-09-04T09:00:00Z",

@@ -10,8 +10,9 @@ Catalog: [../FIXTURES.md](../FIXTURES.md). Contract: [../EXTERNAL_TARGET_CONTRAC
 |---------|----------|
 | `GET {drs_base}/objects/test-object-1` | 200 `DrsObject`, `id` = `test-object-1` |
 | Bytes URL in that object’s access method | 4096 bytes, each `0x41` (`A`) |
-| `checksums` | Include type **`sha256`** of that blob (hex) |
-| `GET {drs_base}/objects/nonexistent-object-id-for-conformance` | **404** |
+| `checksums` | Include type **`sha256`** of that blob (hex), or pass `--drs-object-sha256` |
+| `GET {drs_base}/objects/{helix.unknown.* derived from object_id}` | **404** |
+| External origins | `--drs-object-id` instead of `test-object-1`; Helix does not enumerate objects |
 
 The bytes path is not specified. Any http(s) URL that returns those bytes is valid. The in-tree mock uses `/bytes/test-object-1`; that path is not required.
 

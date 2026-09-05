@@ -3,7 +3,7 @@
 //! Not certification. Not HELIOS.
 
 use assert_cmd::Command;
-use helix::model::{HELIXTEST_PIN, HELIXTEST_SHA};
+use helix::model::HELIXTEST_PIN;
 use predicates::prelude::*;
 use serde_json::Value;
 
@@ -137,7 +137,10 @@ async fn format_json_is_verification_run_without_human_marks() {
     assert_eq!(v["helix_version"].as_str(), Some(env!("CARGO_PKG_VERSION")));
     assert_eq!(v["schema_version"].as_str(), Some("helix-verification-v1"));
     assert_eq!(v["helixtest_version"].as_str(), Some(HELIXTEST_PIN));
-    assert_eq!(v["helixtest_sha"].as_str(), Some(HELIXTEST_SHA));
+    assert_eq!(
+        v["helixtest_sha"].as_str(),
+        Some(helix::checker::executed_checker_source_sha256())
+    );
     assert_eq!(v["target"]["url"].as_str(), Some(url.trim_end_matches('/')));
     assert!(v.get("passed").is_none());
     assert!(v.get("services").is_none());

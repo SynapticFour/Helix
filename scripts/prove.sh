@@ -24,6 +24,8 @@ for f in \
   docs/CLAIMS.md \
   docs/INTEROP.md \
   docs/TARGETS.md \
+  docs/CHECKER_PROVENANCE.md \
+  docs/EXTERNAL_EVIDENCE.md \
   docs/MUTATION.md \
   docs/INDEPENDENT_VERIFICATION.md \
   docs/PUBLIC_READINESS_AUDIT.md \
@@ -98,7 +100,9 @@ grep -q "compatibility change" docs/TEST_IDENTITY.md
 grep -q "HLX-DRS-005" docs/TEST_IDENTITY.md
 grep -q "DRS invalid object id returns 404" docs/TEST_IDENTITY.md
 grep -q "pub const SPECS" src/identity.rs
-grep -q "HELIXTEST_SHA=1832c043e1679ec283cb2113510ee33684317cce" VERSIONS.lock
+grep -q "HELIXTEST_SHA=0d3f148b7fb99d653723d6cd917255ae72c17bac" VERSIONS.lock
+grep -q "HELIXTEST_CHECKER_SOURCE_SHA256=d5d4329e69e4e46504d6e7b96f75a8ec9b4395515275c74306b6f9812f5cccb4" VERSIONS.lock
+grep -q "pub fn executed_checker_id" src/checker.rs
 grep -q "fn discover" src/discover.rs
 grep -q "NOT_DETECTED" docs/DISCOVERY.md
 grep -q "DETECTED is not a pass" docs/DISCOVERY.md
@@ -324,6 +328,12 @@ grep -q "unresolved_discrepancy" docs/INTEROP.md
 grep -q "B4 multi-implementation evidence: pending" docs/TARGETS.md
 grep -q "A mock is not an independent implementation" docs/TARGETS.md
 grep -q "target_execution_id" docs/TARGETS.md
+grep -q "DRS test fixture (B6)" docs/TARGETS.md
+grep -q "fixture_unavailable" docs/TARGETS.md
+grep -q -- "--drs-object-id" docs/CLI_CONTRACT.md
+grep -q "operator_declared" docs/TARGETS.md
+grep -q "pub struct DrsVerifyFixture" src/fixture.rs
+grep -q "FIXTURE_UNAVAILABLE" ../HelixTest/helixtest/crates/framework/src/drs.rs
 grep -q "pub struct TargetIdentity" src/target.rs
 grep -q "pub fn build_matrix" src/interop.rs
 grep -q "CrossImpl::MustAgree" src/interop.rs
@@ -374,5 +384,10 @@ grep -q "fn src_must_not_fetch_standard_sources_from_the_network" tests/guardrai
 grep -q "fn emit_and_load_paths_call_check_run" tests/guardrails.rs
 grep -q "pub fn check_set" src/claims.rs
 grep -q '"const": false' schemas/helix-verification-v1.json
+grep -q "executed checker identity" docs/CHECKER_PROVENANCE.md
+grep -q "HELIXTEST_CHECKER_SOURCE_SHA256" docs/CHECKER_PROVENANCE.md
+grep -q "Starter Kit is NOT VERIFIED" docs/EXTERNAL_EVIDENCE.md
+grep -q "pub fn executed_checker_id" src/checker.rs
+grep -q "require_checker_pin" src/verify.rs
 
 echo "prove: docs OK"

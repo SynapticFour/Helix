@@ -4,7 +4,7 @@
 
 use assert_cmd::Command;
 use helix::identity::{DRS_VERIFY_IDS, WES_VERIFY_IDS};
-use helix::model::{VerificationStatus, HELIXTEST_PIN, HELIXTEST_SHA};
+use helix::model::{VerificationStatus, HELIXTEST_PIN};
 use helix::verify::WES_CHECK_NAMES;
 use predicates::prelude::*;
 use serde_json::Value;
@@ -135,7 +135,10 @@ async fn helix_verify_cli_json_wes_is_deterministic() {
     assert!(a.get("services").is_none(), "not HelixTest OverallReport");
     assert!(a.get("passed").is_none());
     assert_eq!(a["helixtest_version"].as_str(), Some(HELIXTEST_PIN));
-    assert_eq!(a["helixtest_sha"].as_str(), Some(HELIXTEST_SHA));
+    assert_eq!(
+        a["helixtest_sha"].as_str(),
+        Some(helix::checker::executed_checker_source_sha256())
+    );
     let executed = a["executed"].as_array().expect("executed");
     let wes_exec = by_service(executed, "wes");
     assert_eq!(wes_exec.len(), 7);

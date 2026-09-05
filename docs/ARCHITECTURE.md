@@ -204,7 +204,7 @@ Rules:
 - Skip is not pass (`passed: true` iff `status == pass`).
 - Discovered-but-unwired services are skipped with an explicit reason, not omitted as if they passed.
 - Generic definitions must not require `ferrum_like` forks.
-- Object id for DRS remains HelixTest’s `test-object-1` while that engine is the adapter (do not silently change the fixture id).
+- Object id for DRS is target-scoped test input (`--drs-object-id`, default catalog `test-object-1`). It is not a GA4GH requirement and must not be hard-coded per implementation.
 
 ### 4.8 CLI
 
@@ -286,7 +286,7 @@ Stage 3 mints dummy HS256 via `common::auth::build_jwt`. That is a **test-fixtur
 
 ### 5.5 Pin
 
-Operators and Helix CI pin **git tag / SHA**, not crate `0.1.0`. Do not bump off v0.1.3 / `1832c043e1679ec283cb2113510ee33684317cce` without a HelixTest tag that Ferrum / Lab Kit / ga4gh-infra also take.
+Operators and Helix CI pin **git tag / SHA** for the sibling checkout. Executed checker identity is the source digest in [VERSIONS.lock](../VERSIONS.lock) `HELIXTEST_CHECKER_SOURCE_SHA256` ([CHECKER_PROVENANCE.md](CHECKER_PROVENANCE.md)). Do not bump the published git tag off v0.1.3 without a HelixTest tag that Ferrum / Lab Kit / ga4gh-infra also take.
 
 ---
 

@@ -392,12 +392,22 @@ async fn record_from_hit(client: &Client, kind: Ga4ghService, hit: ProbeHit) -> 
 /// Discover which Stage 1 GA4GH APIs answer under `endpoint`.
 /// Lightweight probes only — does not run HelixTest checks.
 pub async fn discover(endpoint: &str, client: &Client) -> Result<Discovery> {
+    discover_for_drs_object(endpoint, client, crate::fixture::DEFAULT_DRS_OBJECT_ID).await
+}
+
+/// Same probes as [`discover`], using `drs_object_id` for DRS object paths.
+/// The id is test input, not a GA4GH requirement.
+pub async fn discover_for_drs_object(
+    endpoint: &str,
+    client: &Client,
+    drs_object_id: &str,
+) -> Result<Discovery> {
     let endpoint = normalize_endpoint(endpoint)?;
     let mut services = Vec::with_capacity(VERIFY_ORDER.len());
 
     for kind in VERIFY_ORDER {
         let hit = match kind {
-            Ga4ghService::Drs => discover_drs(client, &endpoint).await,
+            Ga4ghService::Drs => discover_drs(client, &endpoint, drs_object_id).await,
             Ga4ghService::Wes => discover_wes(client, &endpoint).await,
             Ga4ghService::Tes => discover_tes(client, &endpoint).await,
             Ga4ghService::Trs => discover_trs(client, &endpoint).await,
@@ -413,11 +423,11 @@ pub async fn discover(endpoint: &str, client: &Client) -> Result<Discovery> {
     Ok(Discovery { endpoint, services })
 }
 
-async fn discover_drs(client: &Client, endpoint: &str) -> Option<ProbeHit> {
+async fn discover_drs(client: &Client, endpoint: &str, object_id: &str) -> Option<ProbeHit> {
     let gw = format!("{endpoint}/ga4gh/drs/v1");
-    let gw_obj = format!("{gw}/objects/test-object-1");
+    let gw_obj = format!("{gw}/objects/{object_id}");
     let gw_info = format!("{gw}/service-info");
-    let split_obj = format!("{endpoint}/objects/test-object-1");
+    let split_obj = format!("{endpoint}/objects/{object_id}");
     first_present(
         client,
         &[

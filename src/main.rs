@@ -99,6 +99,17 @@ struct VerifyArgs {
     #[arg(long)]
     implementation_version: Option<String>,
 
+    /// Operator-declared DRS object id for EXISTING_OBJECT checks. Default `test-object-1`.
+    /// Test input, not a GA4GH requirement. A 404 on this id is fixture-unavailable, not
+    /// target non-conformance.
+    #[arg(long)]
+    drs_object_id: Option<String>,
+
+    /// Independently known sha256 of the configured DRS object bytes. Optional.
+    /// When set, checksum does not take expected digest from the GetObject JSON.
+    #[arg(long)]
+    drs_object_sha256: Option<String>,
+
     /// text (default) or json (Helix VerificationRun). `--report` is an alias.
     #[arg(long, visible_alias = "report", value_enum, default_value_t = OutputFormat::Text)]
     format: OutputFormat,
@@ -515,6 +526,13 @@ async fn verify_cmd(args: VerifyArgs) -> Result<()> {
             registry: None,
             vendor_root: None,
             declared_target,
+            drs_fixture: match (args.drs_object_id, args.drs_object_sha256) {
+                (None, None) => helix::fixture::DrsVerifyFixture::default_catalog(),
+                (None, Some(_)) => {
+                    anyhow::bail!("--drs-object-sha256 requires --drs-object-id");
+                }
+                (Some(id), sha) => helix::fixture::DrsVerifyFixture::operator_declared(id, sha)?,
+            },
         },
     )
     .await?;

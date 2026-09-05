@@ -69,6 +69,7 @@ TES / TRS / htsget checks are not executed by `verify` today. Discovery of those
 | Profile flag | `--profile` (`generic` or `ferrum`) | additive; default `generic`; not inferred from the target |
 | Standard / version flags | `--standard`, `--version`, `--all-supported-versions`, `--release-class` | additive; default verify stays unversioned; [STANDARD_VERSIONING.md](STANDARD_VERSIONING.md) |
 | Target identity flags | `--target-id`, `--target-kind`, `--implementation-name`, `--implementation-version` | additive; declared untrusted metadata; [TARGETS.md](TARGETS.md) |
+| DRS fixture flags | `--drs-object-id`, `--drs-object-sha256` | additive; target-scoped test input, not a GA4GH MUST; sha256 requires object-id; [TARGETS.md](TARGETS.md) §11 |
 | HelixTest binary | `helixtest` | separate product; not this contract |
 | Standards registry | `helix standards` | shipped; provenance only; [STANDARDS_REGISTRY.md](STANDARDS_REGISTRY.md) |
 
@@ -139,7 +140,7 @@ Schema: `VerificationRun` ([VERIFICATION_MODEL.md](VERIFICATION_MODEL.md), froze
 | `skipped` | Results with `skip` only |
 | `summary` | `{passed, failed, skipped, errors, total}` counts, not a score |
 
-**Optional** (omitted when unset; consumers must not require them): `helixtest_version`, `helixtest_sha`, `profile`, `fixture_version` (Helix always emits `helix-fixtures-v1` today; missing on old files deserializes as that value), `standard_selection` (Helix always emits it today; missing on old files is unversioned), `layer_summary` (Helix always emits it today; no `percent` / `score` / `compliant`; SCHEMA PASS is not BEHAVIOR PASS; [BEHAVIOR.md](BEHAVIOR.md)), `claims` (Helix always emits six items today; missing on old files is not VERIFIED; human text is generated only from this array; [CLAIMS.md](CLAIMS.md)), per-result `helixtest_name` / `profile` / `message` / `failure` / `diagnostic` / `standard` / `requested_version` / `detected_version` / `selected_version` / `verified_version` / `standards_registry_entry` / `standards_source_commit` / `layer` / `observed_response` / `traceability` (Helix always emits `traceability` today; missing on old files is empty; `category`/`check_kind=normative` is not used in the shipped catalog; `claim_scope` is never `ga4gh_requirement`), discovery `base_url` / `not_testable_reason`.
+**Optional** (omitted when unset; consumers must not require them): `helixtest_version`, `helixtest_sha`, `profile`, `fixture_version` (Helix always emits `helix-fixtures-v1` today; missing on old files deserializes as that value), `standard_selection` (Helix always emits it today; missing on old files is unversioned), `drs_fixture` (Helix always emits it today; missing on old files is empty; object id is test input, not a GA4GH MUST), `layer_summary` (Helix always emits it today; no `percent` / `score` / `compliant`; SCHEMA PASS is not BEHAVIOR PASS; [BEHAVIOR.md](BEHAVIOR.md)), `claims` (Helix always emits six items today; missing on old files is not VERIFIED; human text is generated only from this array; [CLAIMS.md](CLAIMS.md)), per-result `helixtest_name` / `profile` / `message` / `failure` / `diagnostic` / `standard` / `requested_version` / `detected_version` / `selected_version` / `verified_version` / `standards_registry_entry` / `standards_source_commit` / `layer` / `observed_response` / `traceability` (Helix always emits `traceability` today; missing on old files is empty; `category`/`check_kind=normative` is not used in the shipped catalog; `claim_scope` is never `ga4gh_requirement`), discovery `base_url` / `not_testable_reason`.
 
 `requested_version` is the operator instruction. `detected_version` is copied from 2xx service-info `type.version` only (never from URL `/v1`). `selected_version` / `verified_version` are Helix choices and stay empty when the row is AVAILABLE-only or unknown. Those fields must not imply the target declared a version Helix merely selected. `substituted` on `standard_selection` is always `false`.
 
@@ -158,7 +159,7 @@ Run identity for `helix compare` is these fields plus check ids and timestamp ([
 - Do not add HELIOS fields (`signature`, `ro_crate`, PDF, audit trail).
 - `executed` / `skipped` are sorted by `code`, then `id`.
 - Assigned Helix `id` / `code` pairs are a compatibility change ([TEST_IDENTITY.md](TEST_IDENTITY.md)).
-- Adding an **optional** field is non-breaking for consumers that ignore unknown keys. This v1 schema file uses `additionalProperties: false`; a new field needs a new schema file and `schema_version` ([SCHEMA.md](SCHEMA.md)), except `fixture_version` (compare identity), the standard-version fields, per-check `traceability`, the layer fields (`layer`, `observed_response`, `layer_summary`), and `claims` on this same v1 file.
+- Adding an **optional** field is non-breaking for consumers that ignore unknown keys. This v1 schema file uses `additionalProperties: false`; a new field needs a new schema file and `schema_version` ([SCHEMA.md](SCHEMA.md)), except `fixture_version` (compare identity), the standard-version fields, per-check `traceability`, the layer fields (`layer`, `observed_response`, `layer_summary`), `claims`, and `drs_fixture` on this same v1 file.
 
 Same mock URL, same binary, same HelixTest pin, same fixture catalog: JSON values match after replacing `timestamp` (`tests/repro.rs`). That is **not** bit-for-bit identity of two raw files. A new mock process may bind a different `target.url` port. Comparable runs may also differ in Helix/HelixTest version (`suite_changed`); that is identity, not `NEW_FAIL` ([RUN_IDENTITY.md](RUN_IDENTITY.md), [INDEPENDENT_VERIFICATION.md](INDEPENDENT_VERIFICATION.md)).
 
@@ -173,7 +174,8 @@ Same mock URL, same binary, same HelixTest pin, same fixture catalog: JSON value
 | JSON `schema_version` | frozen document id `helix-verification-v1` |
 | JSON `fixture_version` | fixture catalog id `helix-fixtures-v1` ([RUN_IDENTITY.md](RUN_IDENTITY.md)). Not HELIOS |
 | JSON `helixtest_version` | HelixTest **git tag** from [VERSIONS.lock](../VERSIONS.lock) (`v0.1.3`) |
-| JSON `helixtest_sha` | HelixTest git SHA from the lockfile |
+| JSON `helixtest_sha` | SHA-256 of the **compiled** DRS checker sources, not `HELIXTEST_SHA` (git checkout). See [CHECKER_PROVENANCE.md](CHECKER_PROVENANCE.md) |
+| JSON `standard_selection.checker_id` | `helixtest-drs:` plus that source digest. Not a lockfile string |
 
 Operators pin HelixTest by **tag/SHA**, not crate `0.1.0`. Do not invent a later HelixTest tag here.
 
