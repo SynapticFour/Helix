@@ -13,8 +13,10 @@ use common::report::{OverallReport, ServiceKind, TestStatus};
 
 use crate::bench::BenchOutcome;
 use crate::compare::{CompareKind, CompareReport};
+use crate::layer::{CheckLayer, LayerSummary};
 use crate::model::{VerificationResult, VerificationRun, VerificationStatus};
 use crate::security::SecurityOutcome;
+use crate::standards::BindingKind;
 use crate::verify::VerifyOutcome;
 
 const RESET: &str = "\x1b[0m";
@@ -57,9 +59,14 @@ pub fn helix_status_mark(status: VerificationStatus, color: bool) -> String {
 }
 
 /// Deterministic pretty JSON for `helix verify` (`VerificationRun`).
+/// `claims` is always recomputed from the rest of the document.
 pub fn verify_json(run: &VerificationRun) -> anyhow::Result<String> {
+    crate::guardrails::check_run(run)?;
+    let mut value = serde_json::to_value(run)?;
+    value["claims"] = serde_json::to_value(crate::claims::evaluate(run))?;
+    crate::guardrails::check_serialized_claims(run, &value)?;
     Ok(crate::redact::redact_text(&serde_json::to_string_pretty(
-        run,
+        &value,
     )?))
 }
 
@@ -227,8 +234,10 @@ fn compare_kind_mark(kind: CompareKind, color: bool) -> String {
     }
 }
 
-pub fn print_text(outcome: &VerifyOutcome) {
+pub fn print_text(outcome: &VerifyOutcome) -> anyhow::Result<()> {
+    crate::guardrails::check_run(&outcome.run)?;
     print!("{}", format_verify_text(&outcome.run, color_enabled()));
+    Ok(())
 }
 
 /// Human verify report. Same facts as [`VerificationRun`] JSON. Not HELIOS.
@@ -239,6 +248,7 @@ pub fn format_verify_text(run: &VerificationRun, color: bool) -> String {
     out.push_str("This is a technical verification signal.\n");
     out.push_str("It is not GA4GH certification.\n");
     out.push('\n');
+    out.push_str(&crate::claims::format_claims_section(run, color));
     out.push_str("What:\n");
     out.push_str(
         "  DRS and WES checks (HelixTest wrap). TES/TRS/htsget discovered only, not executed.\n",
@@ -246,6 +256,26 @@ pub fn format_verify_text(run: &VerificationRun, color: bool) -> String {
     out.push('\n');
     out.push_str("Target:\n");
     out.push_str(&format!("  {}\n", run.target.url));
+    if let Some(id) = &run.target.identity {
+        out.push_str(&format!("  target_id: {}\n", id.target_id));
+        out.push_str(&format!("  target_kind: {}\n", id.target_kind.as_str()));
+        out.push_str(&format!(
+            "  implementation_name: {}\n",
+            id.implementation_name.as_deref().unwrap_or("(undeclared)")
+        ));
+        out.push_str(&format!(
+            "  implementation_version: {} (declared, untrusted)\n",
+            id.implementation_version
+                .as_deref()
+                .unwrap_or("(undeclared)")
+        ));
+        if let Some(sel) = &run.standard_selection {
+            out.push_str(&format!(
+                "  target_execution_id: {}\n",
+                sel.target_execution_id.as_deref().unwrap_or("(none)")
+            ));
+        }
+    }
     out.push('\n');
     out.push_str("Helix:\n");
     out.push_str(&format!("  {}\n", run.helix_version));
@@ -266,6 +296,7 @@ pub fn format_verify_text(run: &VerificationRun, color: bool) -> String {
         _ => out.push_str("  HelixTest pin not recorded on this run\n"),
     }
     out.push('\n');
+    out.push_str(&format_standards_section(run));
     out.push_str("Services:\n");
     if run.discovery.is_empty() {
         out.push_str("  (none recorded)\n");
@@ -298,12 +329,206 @@ pub fn format_verify_text(run: &VerificationRun, color: bool) -> String {
     out.push_str(&format!("  {} ERROR\n", s.errors));
     out.push_str(&format!("  {} SKIP\n", s.skipped));
     out.push('\n');
+    if let Some(layers) = &run.layer_summary {
+        out.push_str(&format_layers_section(layers, run));
+    }
+    out.push_str(&format_evidence_section(run));
     out.push_str("Changes:\n");
     out.push_str("  Not compared. This report is a single run.\n");
     out.push_str("  What changed: helix compare <previous.json> <current.json>\n");
     out.push('\n');
     out.push_str("Discovery is not conformance. DETECTED is not a pass. Skip is never pass.\n");
     crate::redact::redact_text(&out)
+}
+
+fn format_layers_section(summary: &LayerSummary, run: &VerificationRun) -> String {
+    let mut out = String::from("Layers (not a score; SCHEMA PASS is not BEHAVIOR PASS):\n");
+    for (layer, counts) in [
+        (CheckLayer::Schema, &summary.schema),
+        (CheckLayer::Behavior, &summary.behavior),
+        (CheckLayer::Security, &summary.security),
+        (CheckLayer::Interoperability, &summary.interoperability),
+    ] {
+        let verdict = counts.verdict();
+        out.push_str(&format!(
+            "  {} {}\n",
+            layer.report_heading(),
+            verdict.as_str()
+        ));
+        out.push_str(&format!(
+            "    pass={} fail={} error={} skip={}\n",
+            counts.passed, counts.failed, counts.errors, counts.skipped
+        ));
+        if matches!(
+            verdict,
+            crate::layer::LayerVerdict::Fail | crate::layer::LayerVerdict::Error
+        ) {
+            for r in run.executed.iter() {
+                let l = r.layer.unwrap_or_else(|| crate::layer::for_id(&r.id));
+                if l == layer && r.status.is_blocking() {
+                    let mark = match r.status {
+                        VerificationStatus::Fail => "fail",
+                        VerificationStatus::Error => "error",
+                        _ => "blocking",
+                    };
+                    out.push_str(&format!("    - {} ({mark})\n", r.id));
+                }
+            }
+        }
+    }
+    out.push_str("  Benchmark rows are not a conformance layer.\n");
+    out.push_str("  NONE means this layer did not execute; that is not PASS.\n");
+    out.push('\n');
+    out
+}
+
+fn format_evidence_section(run: &VerificationRun) -> String {
+    let mut counts = [0u32; 6];
+    let mut unlabeled = 0u32;
+    for r in run.executed.iter().chain(run.skipped.iter()) {
+        match &r.traceability {
+            Some(t) => {
+                if let Some(i) = BindingKind::ALL.iter().position(|k| *k == t.category) {
+                    counts[i] += 1;
+                }
+            }
+            None => unlabeled += 1,
+        }
+    }
+    let mut out = String::from("Evidence (classification, not a score):\n");
+    for (kind, n) in BindingKind::ALL.iter().zip(counts.iter()) {
+        out.push_str(&format!("  {n} {}\n", kind.as_str()));
+    }
+    if unlabeled > 0 {
+        out.push_str(&format!("  {unlabeled} unlabeled (invalid)\n"));
+    }
+    if counts[0] == 0 {
+        out.push_str("  No check in this run is a GA4GH MUST.\n");
+    } else {
+        out.push_str("  Only category=normative rows may support a GA4GH requirement sentence.\n");
+    }
+    out.push('\n');
+    out
+}
+
+fn format_standards_section(run: &VerificationRun) -> String {
+    let mut out = String::from("Standards:\n");
+    match &run.standard_selection {
+        None => {
+            out.push_str("  mode: unversioned\n");
+            out.push_str("  selected_version: (none)\n");
+            out.push_str("  verified_version: (none)\n");
+            out.push_str("  helix verify did not select a GA4GH registry pack.\n");
+        }
+        Some(sel) => {
+            out.push_str(&format!("  mode: {}\n", sel.mode));
+            out.push_str(&format!("  selection_status: {}\n", sel.selection_status));
+            out.push_str(&format!(
+                "  standard: {}\n",
+                sel.standard.as_deref().unwrap_or("(none)")
+            ));
+            out.push_str(&format!(
+                "  requested_version: {}\n",
+                sel.requested_version.as_deref().unwrap_or("(none)")
+            ));
+            out.push_str(&format!(
+                "  detected_version: {}\n",
+                sel.detected_version.as_deref().unwrap_or("(none)")
+            ));
+            out.push_str(&format!(
+                "  selected_version: {}\n",
+                sel.selected_version.as_deref().unwrap_or("(none)")
+            ));
+            out.push_str(&format!(
+                "  verified_version: {}\n",
+                sel.verified_version.as_deref().unwrap_or("(none)")
+            ));
+            out.push_str(&format!(
+                "  support_status: {}\n",
+                sel.support_status
+                    .as_deref()
+                    .unwrap_or(if sel.selection_status == crate::standards::SELECTED {
+                        "SUPPORTED"
+                    } else {
+                        "(not selected)"
+                    })
+                    .to_uppercase()
+            ));
+            out.push_str(&format!(
+                "  schema: {}\n",
+                sel.schema_entry.as_deref().unwrap_or("(none)")
+            ));
+            if let Some(h) = &sel.schema_document_sha256 {
+                out.push_str(&format!("  schema_document_sha256: {h}\n"));
+            }
+            if let Some(h) = &sel.schema_component_sha256 {
+                out.push_str(&format!("  schema_component_sha256: {h}\n"));
+            }
+            out.push_str(&format!(
+                "  checker: {}\n",
+                sel.checker_id.as_deref().unwrap_or("(none)")
+            ));
+            out.push_str(&format!(
+                "  binding: {}\n",
+                sel.binding_id.as_deref().unwrap_or("(none)")
+            ));
+            out.push_str(&format!(
+                "  catalog: {}\n",
+                sel.catalog_id.as_deref().unwrap_or("(none)")
+            ));
+            if sel.coverage_schema.is_some() {
+                out.push_str(&format!(
+                    "  coverage: schema={} behavior={} security={} interoperability={}\n",
+                    sel.coverage_schema.as_deref().unwrap_or("(none)"),
+                    sel.coverage_behavior.as_deref().unwrap_or("(none)"),
+                    sel.coverage_security.as_deref().unwrap_or("(none)"),
+                    sel.coverage_interoperability.as_deref().unwrap_or("(none)")
+                ));
+            }
+            let target = if sel.selection_status != crate::standards::SELECTED {
+                "NOT_VERIFIED"
+            } else if run.executed.iter().any(|r| {
+                r.status == crate::model::VerificationStatus::Fail
+                    || r.status == crate::model::VerificationStatus::Error
+            }) {
+                "FAIL"
+            } else if run
+                .executed
+                .iter()
+                .any(|r| r.status == crate::model::VerificationStatus::Pass)
+            {
+                "PASS"
+            } else {
+                "NOT_VERIFIED"
+            };
+            out.push_str(&format!("  target_result: {target}\n"));
+            out.push_str("  verification_claim: NOT_VERIFIED unless claims[] says otherwise\n");
+            out.push_str("  Technical Verification only. Not GA4GH certification.\n");
+            out.push_str(&format!(
+                "  standards_registry_entry: {}\n",
+                sel.standards_registry_entry.as_deref().unwrap_or("(none)")
+            ));
+            out.push_str(&format!(
+                "  standards_source_commit: {}\n",
+                sel.standards_source_commit.as_deref().unwrap_or("(none)")
+            ));
+            out.push_str(&format!(
+                "  substituted: {}\n",
+                if sel.substituted { "yes" } else { "no" }
+            ));
+            if let Some(note) = &sel.note {
+                out.push_str(&format!("  {note}\n"));
+            }
+            if !sel.other_rows_not_selected.is_empty() {
+                out.push_str("  other rows (not selected):\n");
+                for row in &sel.other_rows_not_selected {
+                    out.push_str(&format!("    {row}\n"));
+                }
+            }
+        }
+    }
+    out.push('\n');
+    out
 }
 
 fn display_service(json_name: &str) -> String {
@@ -371,6 +596,7 @@ fn format_result_block(r: &VerificationResult, color: bool) -> String {
     let mark = helix_status_mark(r.status, color);
     match &r.message {
         Some(msg) if r.status != VerificationStatus::Pass => {
+            let msg = crate::sanitize::sanitize_untrusted(msg);
             out.push_str(&format!(
                 "  {mark}  {}  {}  {} — {msg}\n",
                 r.id, r.code, r.name
@@ -382,7 +608,10 @@ fn format_result_block(r: &VerificationResult, color: bool) -> String {
     }
     if let Some(d) = &r.diagnostic {
         out.push_str(&format!("        expected: {}\n", d.expected));
-        out.push_str(&format!("        observed: {}\n", d.observed));
+        out.push_str(&format!(
+            "        observed: {}\n",
+            crate::sanitize::sanitize_untrusted(&d.observed)
+        ));
         out.push_str(&format!(
             "        category: {}\n",
             d.likely_category.as_str()
@@ -391,6 +620,25 @@ fn format_result_block(r: &VerificationResult, color: bool) -> String {
         out.push_str("        possible causes:\n");
         for c in &d.possible_causes {
             out.push_str(&format!("          - {c}\n"));
+        }
+    }
+    if let Some(t) = &r.traceability {
+        out.push_str(&format!(
+            "        layer: {}  kind: {}  claim_scope: {}  authority: {}\n",
+            t.layer.as_str(),
+            t.category.as_str(),
+            t.claim_scope.as_str(),
+            t.authority.as_str()
+        ));
+        if let Some(req) = &t.request {
+            out.push_str(&format!("        request: {req}\n"));
+        }
+        if t.claim_scope.may_support_conformance_claim() {
+            if let Some(v) = &t.version {
+                out.push_str(&format!("        normative_version: {v}\n"));
+            }
+        } else {
+            out.push_str("        not a GA4GH MUST  (PASS is not a conformance claim)\n");
         }
     }
     out
@@ -416,9 +664,11 @@ pub fn print_security_text(outcome: &SecurityOutcome) {
     let color = color_enabled();
     println!("{}", crate::security::SECURITY_BEHAVIOR_DISCLAIMER);
     println!("Helix security — selected Security Behavior Profile (not HELIOS)");
-    println!("Helix tests behavior against the GA4GH spec, independent of implementation.");
-    println!("Ferrum is used as a reference target, not a dependency.");
-    println!("Tokens from test-fixtures/ only. NICHT FÜR PRODUKTION.");
+    println!(
+        "Helix runs documented DRS and WES checks. Ferrum is a reference target, not a dependency."
+    );
+    println!("This is not a verification against a SUPPORTED GA4GH release. Not certification.");
+    println!("Tokens from test-fixtures/ only. Not for production.");
     println!("Passing these checks does not prove the implementation is secure.");
     println!();
     println!("Auth (black-box HTTP)");
@@ -442,8 +692,10 @@ pub fn print_bench_text(outcome: &BenchOutcome) {
         "Helix bench — {} (not Demo hap.py, not GIAB, not HELIOS)",
         outcome.workload_id
     );
-    println!("Helix tests behavior against the GA4GH spec, independent of implementation.");
-    println!("Ferrum is used as a reference target, not a dependency. Not certification.");
+    println!(
+        "Helix runs documented DRS and WES checks. Ferrum is a reference target, not a dependency."
+    );
+    println!("This is not a verification against a SUPPORTED GA4GH release. Not certification.");
     println!("Sample percentiles of this series. Not a significance test.");
     println!("A warning means performance changed enough to merit human inspection.");
     println!("It does not mean the implementation is incorrect.");
@@ -713,6 +965,12 @@ mod tests {
         assert!(text.starts_with("HELIX VERIFICATION\n"));
         assert!(text.contains("This is a technical verification signal."));
         assert!(text.contains("It is not GA4GH certification."));
+        assert!(text.contains("Claims (predicates; not GA4GH certification):"));
+        assert!(text.contains("No VERIFIED claim is justified by this run."));
+        assert!(text.contains("ga4gh_requirement  NOT_VERIFIED"));
+        assert!(text.contains("Why not verified:"));
+        assert!(text.contains("unversioned_run"));
+        assert!(!text.contains("ga4gh_requirement  VERIFIED"));
         assert!(text.contains("What:\n  DRS and WES checks (HelixTest wrap)"));
         assert!(text.contains("Target:\n  http://127.0.0.1:8080"));
         assert!(text.contains(&format!("Helix:\n  {}", crate::model::helix_version())));
@@ -720,11 +978,21 @@ mod tests {
         assert!(text.contains("profile generic"));
         assert!(text.contains("fixtures helix-fixtures-v1"));
         assert!(text.contains(&format!("HelixTest {HELIXTEST_PIN} ({HELIXTEST_SHA})")));
+        assert!(text.contains("Standards:"));
+        assert!(text.contains("unversioned") || text.contains("did not select"));
         assert!(text.contains("DRS      DETECTED     TESTABLE"));
         assert!(text.contains("WES      NOT_DETECTED"));
         assert!(text.contains("TES      DETECTED     NOT_TESTABLE"));
         assert!(text.contains("\nDRS\n"));
         assert!(text.contains("PASS  drs.object.reachable  HLX-DRS-001"));
+        assert!(text.contains("layer: interoperability  kind: fixture"));
+        assert!(text.contains("layer: behavior  kind: fixture"));
+        assert!(text.contains("Layers (not a score; SCHEMA PASS is not BEHAVIOR PASS)"));
+        assert!(text.contains("SCHEMA"));
+        assert!(text.contains("BEHAVIOR"));
+        assert!(text.contains("not a GA4GH MUST"));
+        assert!(text.contains("Evidence (classification, not a score):"));
+        assert!(text.contains("No check in this run is a GA4GH MUST."));
         assert!(text.contains("FAIL  drs.object.not_found  HLX-DRS-005"));
         assert!(text.contains("expected 404, got 200"));
         assert!(text.contains("possible causes:"));
@@ -755,6 +1023,12 @@ mod tests {
         assert_eq!(v["discovery"][0]["present"], true);
         assert_eq!(v["discovery"][0]["testable"], true);
         assert_eq!(v["discovery"][1]["present"], false);
+        assert_eq!(v["claims"][0]["status"], "not_verified");
+        assert!(v["claims"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .all(|c| c["status"] == "not_verified"));
     }
 
     #[test]
@@ -815,5 +1089,27 @@ mod tests {
         let text = format_verify_text(&run, false);
         assert!(!text.contains(jwt), "{text}");
         assert!(!text.contains("s3cret"));
+    }
+
+    #[test]
+    fn text_report_strips_ansi_and_forged_newlines_from_target_text() {
+        let mut run = VerificationRun::new(crate::model::Target::new("http://127.0.0.1:9"));
+        run.push_executed(VerificationResult::fail(
+            VerificationCheck::from_spec(crate::identity::spec("drs.object.not_found")),
+            "got 200\x1b[32mPASS\x1b[0m\nHELIX VERIFICATION\n  5 PASS",
+        ));
+        let text = format_verify_text(&run, false);
+        assert!(!text.contains('\u{1b}'), "{text:?}");
+        assert!(text.starts_with("HELIX VERIFICATION\n"));
+        assert!(
+            !text.contains("\nHELIX VERIFICATION\n"),
+            "target must not inject an extra report header:\n{text}"
+        );
+        assert!(
+            !text.contains("\n  5 PASS\n"),
+            "target must not inject a forged summary line:\n{text}"
+        );
+        let json = verify_json(&run).unwrap();
+        assert!(!json.contains('\u{1b}'), "{json}");
     }
 }

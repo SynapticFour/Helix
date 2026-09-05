@@ -4,7 +4,7 @@ Scope stages, not calendar dates. Capacity is single-steward; a stage is done wh
 
 **Synaptic Four builds the infrastructure. Helix proves it works.** Positioning: [HELIX_VISION.md](HELIX_VISION.md). What the suite actually runs today: [INVENTORY.md](../INVENTORY.md). HELIOS is not on this ladder.
 
-**Current position (2026-09-04):** Stage 0 is **exited**. Stage 1 is **in progress** (`helix verify` DRS). Stage 2 has started as a **pilot only**: [helix-action](https://github.com/SynapticFour/helix-action) (parallel to helixtest-action) plus Ferrum branch `ci/helix-verify-pilot`. Not on Ferrum `main`. Not a required check. Stage 3 is **started, not exited**. Stage 4 is **started** as a repeatable engine (`helix bench`, `http.drs.smoke.v1`, warn-only) — not exited. HelixTest stays a **separate git root** ([DECISIONS.md](DECISIONS.md) D1).
+**Current position (2026-09-05):** Stage 0 is **exited**. Stage 1 **CLI** ships DRS and WES execution (`helix verify`); the Stage 1 **exit criterion** (recorded DRS+WES against Ferrum local) is **not** a public artefact in this repo. Stage 2 remains a **pilot only**: [helix-action](https://github.com/SynapticFour/helix-action). Not on Ferrum `main`. Stage 3 and 4 are **started, not exited**. DRS 1.4.0 is SUPPORTED for technical verification within declared coverage; that is not VERIFIED. External multi-implementation validation is **pending**. HelixTest stays a **separate git root** ([DECISIONS.md](DECISIONS.md) D1).
 
 Stages are sequential. Do not start *n+1* until *n* has exited. Skipping a stage to chase visibility (5) or a dashboard is out of order.
 

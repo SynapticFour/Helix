@@ -33,11 +33,25 @@ jobs:
         with:
           toolchain: 1.91.1
           components: rustfmt, clippy
+      - name: Fetch crates (Cargo.lock checksums)
+        run: cargo fetch --locked
       - name: Prove
+        env:
+          TZ: UTC
+          LC_ALL: C
+          LANG: C
+          NO_COLOR: "1"
         run: make prove
+      - name: Independent verification
+        env:
+          TZ: UTC
+          LC_ALL: C
+          LANG: C
+          NO_COLOR: "1"
+        run: make independent-verify
       - name: Verify fixture
         run: make verify-fixture
       - name: Clippy
-        run: cargo clippy --all-targets -- -D warnings
+        run: cargo clippy --locked --offline --all-targets -- -D warnings
       - name: Fmt
         run: cargo fmt --all -- --check

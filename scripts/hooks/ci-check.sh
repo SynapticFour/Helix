@@ -19,8 +19,11 @@ echo "ci-check: cargo clippy"
 # Match .github/workflows/ci.yml (single package, not --workspace)
 cargo clippy --all-targets -- -D warnings
 
-echo "ci-check: prove (docs + cargo test)"
+echo "ci-check: prove (docs + cargo test --locked --offline)"
 make prove
+
+echo "ci-check: independent-verify (vendor sha256 + two-run fixture equality)"
+make independent-verify
 
 echo "ci-check: verify-fixture (helix verify vs in-process DRS mock)"
 make verify-fixture

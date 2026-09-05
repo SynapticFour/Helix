@@ -15,4 +15,4 @@ We will acknowledge receipt as quickly as possible, triage severity, and coordin
 
 This project is maintained on a best-effort basis (single-steward). Security documentation and test coverage improve over time, but no absolute security guarantee is provided.
 
-Helix is a VERIFY CLI, not a security product. How Helix behaves as an HTTP client (untrusted targets, redaction, redirects, size limits) is documented in [docs/THREAT_MODEL.md](docs/THREAT_MODEL.md). Helix must never accidentally print secrets or `Authorization` header values. Reproducibility / signed evidence stays in HELIOS (`helios-audit`).
+Helix is a VERIFY CLI, not a security product or security scanner. How Helix behaves as an HTTP client (untrusted targets, redaction, sanitization, redirects, size limits) is documented in [docs/THREAT_MODEL.md](docs/THREAT_MODEL.md). Helix must never accidentally print secrets or `Authorization` header values. Dummy HMAC/Crypt4GH files in `test-fixtures/` are not production credentials. Reproducibility / signed evidence stays in HELIOS (`helios-audit`). Acknowledgement is best-effort; there is no response-time SLA.

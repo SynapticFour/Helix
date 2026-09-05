@@ -121,3 +121,99 @@ pub async fn mount_invalid_drs_object(server: &MockServer) {
         .mount(server)
         .await;
 }
+
+pub fn valid_drs_object_json(server_uri: &str) -> serde_json::Value {
+    let blob = vec![b'A'; BLOB_LEN];
+    drs_object_json(server_uri, &sha256_bytes(&blob))
+}
+
+pub fn honest_blob() -> Vec<u8> {
+    vec![b'A'; BLOB_LEN]
+}
+
+fn drs_object_json(server_uri: &str, sha256: &str) -> serde_json::Value {
+    let access_url = format!("{server_uri}/bytes/{TEST_OBJECT_ID}");
+    json!({
+        "id": TEST_OBJECT_ID,
+        "name": TEST_OBJECT_ID,
+        "self_uri": format!("drs://example.invalid/{TEST_OBJECT_ID}"),
+        "size": BLOB_LEN,
+        "created_time": "2020-01-01T00:00:00Z",
+        "checksums": [{ "type": "sha256", "checksum": sha256 }],
+        "access_methods": [{
+            "type": "https",
+            "access_url": { "url": access_url }
+        }]
+    })
+}
+
+/// Schema-valid DrsObject (HelixTest extras included) whose bytes do not match checksums.
+/// SCHEMA can PASS while BEHAVIOR (checksum) FAILS.
+pub async fn start_mock_schema_ok_checksum_wrong() -> MockGa4ghDrs {
+    let server = MockServer::start().await;
+    let claimed = vec![b'A'; BLOB_LEN];
+    let served = vec![b'B'; BLOB_LEN];
+    let sha256 = sha256_bytes(&claimed);
+    let object = drs_object_json(&server.uri(), &sha256);
+
+    Mock::given(method("GET"))
+        .and(path(format!("/objects/{TEST_OBJECT_ID}")))
+        .respond_with(ResponseTemplate::new(200).set_body_json(object))
+        .mount(&server)
+        .await;
+
+    Mock::given(method("GET"))
+        .and(path(format!("/objects/{UNKNOWN_OBJECT_ID}")))
+        .respond_with(ResponseTemplate::new(404).set_body_string("not found"))
+        .mount(&server)
+        .await;
+
+    Mock::given(method("GET"))
+        .and(path(format!("/bytes/{TEST_OBJECT_ID}")))
+        .respond_with(BytesWithOptionalRange { body: served })
+        .mount(&server)
+        .await;
+
+    MockGa4ghDrs { server }
+}
+
+/// Schema-valid fixture object, but the unknown-id probe returns HTTP 200.
+/// SCHEMA can PASS while BEHAVIOR (404) FAILS.
+pub async fn start_mock_schema_ok_unknown_id_200() -> MockGa4ghDrs {
+    let server = MockServer::start().await;
+    let blob = vec![b'A'; BLOB_LEN];
+    let sha256 = sha256_bytes(&blob);
+    let object = drs_object_json(&server.uri(), &sha256);
+    let unknown = json!({
+        "id": UNKNOWN_OBJECT_ID,
+        "name": UNKNOWN_OBJECT_ID,
+        "self_uri": format!("drs://example.invalid/{UNKNOWN_OBJECT_ID}"),
+        "size": BLOB_LEN,
+        "created_time": "2020-01-01T00:00:00Z",
+        "checksums": [{ "type": "sha256", "checksum": sha256 }],
+        "access_methods": [{
+            "type": "https",
+            "access_url": { "url": format!("{}/bytes/{TEST_OBJECT_ID}", server.uri()) }
+        }]
+    });
+
+    Mock::given(method("GET"))
+        .and(path(format!("/objects/{TEST_OBJECT_ID}")))
+        .respond_with(ResponseTemplate::new(200).set_body_json(object))
+        .mount(&server)
+        .await;
+
+    Mock::given(method("GET"))
+        .and(path(format!("/objects/{UNKNOWN_OBJECT_ID}")))
+        .respond_with(ResponseTemplate::new(200).set_body_json(unknown))
+        .mount(&server)
+        .await;
+
+    Mock::given(method("GET"))
+        .and(path(format!("/bytes/{TEST_OBJECT_ID}")))
+        .respond_with(BytesWithOptionalRange { body: blob })
+        .mount(&server)
+        .await;
+
+    MockGa4ghDrs { server }
+}

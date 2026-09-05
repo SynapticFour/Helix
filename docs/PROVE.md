@@ -1,6 +1,6 @@
 # Prove Helix without a running platform
 
-`make prove` is the zero-risk path for **this** repo: honesty docs plus `cargo test --locked --all-targets` against **in-process fixtures**. No Docker, no Ferrum, no hospital, no real credentials, no HELIOS.
+`make prove` is the zero-risk path for **this** repo: honesty docs plus `cargo test --locked --offline --all-targets` against **in-process fixtures**. Run `make fetch` first (`cargo fetch --locked`). No Docker, no Ferrum, no hospital, no real credentials, no HELIOS.
 
 To **see** a `helix verify` report without Ferrum: `make verify-fixture` (same DRS mock as [FIXTURES.md](FIXTURES.md) §1). That is not part of `make prove`’s test loop; run it after prove if you want the human report.
 
@@ -11,11 +11,12 @@ git clone https://github.com/SynapticFour/Helix.git
 git clone https://github.com/SynapticFour/HelixTest.git
 git -C HelixTest checkout "$(grep '^HELIXTEST_SHA=' Helix/VERSIONS.lock | cut -d= -f2)"
 cd Helix
+make fetch
 make prove
 make verify-fixture
 ```
 
-Needs a sibling HelixTest checkout (D1 path dep, pin in [VERSIONS.lock](../VERSIONS.lock)). Does not start servers. Missing sibling → Make exit 2 with clone instructions (`scripts/require-helixtest.sh`).
+Needs a sibling HelixTest checkout (D1 path dep, pin in [VERSIONS.lock](../VERSIONS.lock)). `make fetch` downloads crates at `Cargo.lock` checksums (explicit network). `make prove` then runs `cargo test --locked --offline`. Missing sibling → Make exit 2 with clone instructions (`scripts/require-helixtest.sh`). Independent verification: [INDEPENDENT_VERIFICATION.md](INDEPENDENT_VERIFICATION.md).
 
 `make prove` does **not** skip, ignore, or exclude tests. Live-stack HelixTest crates stay in HelixTest; Helix has no `#[ignore]` live cargo tests today. Do not weaken a live path by folding it into prove.
 

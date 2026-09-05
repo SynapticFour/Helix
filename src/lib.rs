@@ -4,17 +4,27 @@
 
 pub mod adapter;
 pub mod bench;
+pub mod claims;
 pub mod compare;
 pub mod diagnostics;
 pub mod discover;
+pub mod guardrails;
 pub mod http_safety;
 pub mod identity;
+pub mod interop;
+pub mod layer;
 pub mod model;
+pub mod mutation;
 pub mod profile;
 pub mod redact;
 pub mod report;
+pub mod repro;
 pub mod run_identity;
+pub mod sanitize;
 pub mod security;
+pub mod standards;
+pub mod target;
+pub mod traceability;
 pub mod verify;
 
 /// HelixTest `HttpClient` installs tracing on first GET (default includes `common=debug`).

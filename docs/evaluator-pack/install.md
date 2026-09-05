@@ -19,13 +19,14 @@ git clone https://github.com/SynapticFour/Helix.git
 git clone https://github.com/SynapticFour/HelixTest.git
 git -C HelixTest checkout "$(grep '^HELIXTEST_SHA=' Helix/VERSIONS.lock | cut -d= -f2)"
 cd Helix
+make fetch
 make prove
 make verify-fixture
 ```
 
 Missing sibling → Make exit 2 with the same clone commands (`scripts/require-helixtest.sh`). If it warns that HelixTest HEAD ≠ the pin, checkout the pin; CI uses the pin.
 
-`make prove` = docs checks + `cargo test --locked --all-targets` (in-process fixtures). No Ferrum, Docker, or credentials.
+`make fetch` = `cargo fetch --locked` (crates.io checksums; explicit network; not GA4GH). `make prove` = docs checks + `cargo test --locked --offline --all-targets` (in-process fixtures). No Ferrum, Docker, or credentials. Independent verification: [../INDEPENDENT_VERIFICATION.md](../INDEPENDENT_VERIFICATION.md).
 
 `make verify-fixture` = `helix verify` against the in-process DRS mock. Prints `HELIX VERIFICATION`. No stack to start.
 

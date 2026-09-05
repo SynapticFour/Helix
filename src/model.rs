@@ -42,14 +42,30 @@ fn default_fixture_version() -> String {
 }
 
 /// Gateway-style origin Helix was pointed at. Not a Ferrum type.
+///
+/// `url` is always the operator origin. `identity` is first-class target
+/// identity (B4). Missing on files produced before this field.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Target {
     pub url: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub identity: Option<crate::target::TargetIdentity>,
 }
 
 impl Target {
     pub fn new(url: impl Into<String>) -> Self {
-        Self { url: url.into() }
+        let url = url.into();
+        Self {
+            identity: Some(crate::target::TargetIdentity::unspecified(&url)),
+            url,
+        }
+    }
+
+    pub fn from_identity(identity: crate::target::TargetIdentity) -> Self {
+        Self {
+            url: identity.endpoint.clone(),
+            identity: Some(identity),
+        }
     }
 }
 
@@ -210,6 +226,31 @@ pub struct VerificationResult {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub helixtest_name: Option<String>,
     pub service: String,
+    /// GA4GH standard this check belongs to (`drs`, `wes`, …). Same as `service` today.
+    /// Not a claim that the target declared this standard's version.
+    #[serde(default)]
+    pub standard: Option<String>,
+    /// Operator-requested GA4GH version (`--version`). Empty when verify is unversioned.
+    #[serde(default)]
+    pub requested_version: Option<String>,
+    /// Version Helix observed from 2xx service-info `type.version` only. Never from URL `/v1`.
+    /// Empty when evidence is insufficient. Not copied from `selected_version`.
+    #[serde(default)]
+    pub detected_version: Option<String>,
+    /// Registry version Helix **chose** to load. Empty when selection failed.
+    /// Never filled with a version Helix merely looked up (AVAILABLE-only).
+    #[serde(default)]
+    pub selected_version: Option<String>,
+    /// Registry version for a versioned claim sentence. Empty in B2 (no SUPPORTED,
+    /// no normative bindings). Must not be set merely because a pack ran.
+    #[serde(default)]
+    pub verified_version: Option<String>,
+    /// Registry `pack_id` involved in this decision (looked-up or selected). Not a declaration.
+    #[serde(default)]
+    pub standards_registry_entry: Option<String>,
+    /// Pinned GA4GH git commit for `standards_registry_entry`. Empty when no row applied.
+    #[serde(default)]
+    pub standards_source_commit: Option<String>,
     pub category: CheckCategory,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub profile: Option<String>,
@@ -222,6 +263,22 @@ pub struct VerificationResult {
     /// Deterministic DRS/WES failure diagnostic. Absent on pass/skip and on ids without a catalogued spec.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub diagnostic: Option<crate::diagnostics::FailureDiagnostic>,
+    /// Evidence layer. SCHEMA PASS is not BEHAVIOR PASS. Producers always emit.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub layer: Option<crate::layer::CheckLayer>,
+    /// Observed HTTP/body summary on fail/error when a diagnostic exists.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub observed_response: Option<String>,
+    /// Operator/target id this row was executed against. Not a version claim.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub target_id: Option<String>,
+    /// SPEC vs TARGET vs HELIX vs TRANSPORT. Absent on pass.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub attribution: Option<crate::target::FailureAttribution>,
+    /// Kind, authority, and (only when justified) a GA4GH locator. Producers always emit.
+    /// Missing on old files. Not a certification claim. [docs/TRACEABILITY.md]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub traceability: Option<crate::traceability::CheckTraceability>,
 }
 
 impl VerificationResult {
@@ -235,11 +292,19 @@ impl VerificationResult {
                 (Severity::Error, Some(FailureCode::new(check.code.clone())))
             }
         };
+        let layer = crate::layer::for_id(&check.id);
         let mut result = Self {
             id: check.id,
             code: check.code,
             name: check.name,
             helixtest_name: None,
+            standard: Some(check.service.clone()),
+            requested_version: None,
+            detected_version: None,
+            selected_version: None,
+            verified_version: None,
+            standards_registry_entry: None,
+            standards_source_commit: None,
             service: check.service,
             category: check.category,
             profile: check.profile,
@@ -248,8 +313,18 @@ impl VerificationResult {
             message: None,
             failure,
             diagnostic: None,
+            layer: Some(layer),
+            observed_response: None,
+            target_id: None,
+            attribution: None,
+            traceability: None,
         };
+        result.traceability = Some(crate::traceability::for_id(&result.id));
         crate::diagnostics::attach(&mut result);
+        if let Some(d) = &result.diagnostic {
+            result.observed_response = Some(d.observed.clone());
+        }
+        crate::target::attach_attribution(&mut result);
         result
     }
 
@@ -261,12 +336,16 @@ impl VerificationResult {
 
     /// Preserve HelixTest `error` text on `message` and, for fail/error, `failure.detail`.
     pub fn with_error_text(mut self, error: impl Into<String>) -> Self {
-        let error = crate::redact::redact_text(&error.into());
+        let error = crate::sanitize::sanitize_untrusted(&error.into());
         if let Some(f) = self.failure.as_mut() {
             f.detail = Some(error.clone());
         }
         self.message = Some(error);
         crate::diagnostics::attach(&mut self);
+        if let Some(d) = &self.diagnostic {
+            self.observed_response = Some(d.observed.clone());
+        }
+        crate::target::attach_attribution(&mut self);
         self
     }
 
@@ -276,21 +355,30 @@ impl VerificationResult {
 
     pub fn fail(check: VerificationCheck, message: impl Into<String>) -> Self {
         let mut r = Self::from_check(check, VerificationStatus::Fail);
-        r.message = Some(crate::redact::redact_text(&message.into()));
+        r.message = Some(crate::sanitize::sanitize_untrusted(&message.into()));
         crate::diagnostics::attach(&mut r);
+        if let Some(d) = &r.diagnostic {
+            r.observed_response = Some(d.observed.clone());
+        }
+        crate::target::attach_attribution(&mut r);
         r
     }
 
     pub fn skip(check: VerificationCheck, message: impl Into<String>) -> Self {
         let mut r = Self::from_check(check, VerificationStatus::Skip);
-        r.message = Some(crate::redact::redact_text(&message.into()));
+        r.message = Some(crate::sanitize::sanitize_untrusted(&message.into()));
+        crate::target::attach_attribution(&mut r);
         r
     }
 
     pub fn error(check: VerificationCheck, message: impl Into<String>) -> Self {
         let mut r = Self::from_check(check, VerificationStatus::Error);
-        r.message = Some(crate::redact::redact_text(&message.into()));
+        r.message = Some(crate::sanitize::sanitize_untrusted(&message.into()));
         crate::diagnostics::attach(&mut r);
+        if let Some(d) = &r.diagnostic {
+            r.observed_response = Some(d.observed.clone());
+        }
+        crate::target::attach_attribution(&mut r);
         r
     }
 
@@ -350,6 +438,119 @@ impl DiscoveredService {
     }
 }
 
+/// How Helix chose (or refused) a GA4GH registry pack for this run.
+///
+/// `requested_version` is the operator instruction. `detected_version` is copied
+/// from service-info. `selected_version` / `verified_version` are Helix choices.
+/// Those four must not collapse. `substituted` is always false.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct StandardSelection {
+    /// `unversioned` | `explicit` | `automatic` | `compatibility`
+    pub mode: String,
+    /// e.g. `UNVERSIONED`, `SELECTED`, `AVAILABLE_BUT_NOT_SUPPORTED`
+    pub selection_status: String,
+    pub substituted: bool,
+    #[serde(default)]
+    pub standard: Option<String>,
+    #[serde(default)]
+    pub requested_version: Option<String>,
+    #[serde(default)]
+    pub detected_version: Option<String>,
+    #[serde(default)]
+    pub selected_version: Option<String>,
+    #[serde(default)]
+    pub verified_version: Option<String>,
+    #[serde(default)]
+    pub standards_registry_entry: Option<String>,
+    #[serde(default)]
+    pub standards_source_commit: Option<String>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub other_rows_not_selected: Vec<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub note: Option<String>,
+    /// True only when this verify run hashed the selected vendor tree. Default verify does not.
+    #[serde(default)]
+    pub integrity_validated: bool,
+    /// Recorded hash result when `integrity_validated`. Missing means not recorded (fail closed).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub integrity_ok: Option<bool>,
+    /// `sha256-manifest-v1` of the loaded vendor tree. Empty on unversioned / failed load.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub pack_integrity_sha256: Option<String>,
+    /// Manifest digest of the schema-entry `$ref` closure actually compiled.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub schema_document_sha256: Option<String>,
+    /// SHA-256 of compact JSON of the compiled schema Value.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub schema_component_sha256: Option<String>,
+    /// Spec-join identity (pack + schema + checker). Same across targets. Not a target URL. Not HELIOS.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub execution_id: Option<String>,
+    /// Target-scoped run identity. Includes target_id so Target A cannot reuse Target B.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub target_execution_id: Option<String>,
+    /// Pack `schema_entry` used for this join.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub schema_entry: Option<String>,
+    /// sha256 of the compiled support catalog + coverage. Required for YAML supported.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub catalog_id: Option<String>,
+    /// sha256 of catalog_id + pack/schema/checker identities.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub binding_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub checker_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub support_status: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub coverage_schema: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub coverage_behavior: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub coverage_security: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub coverage_interoperability: Option<String>,
+}
+
+impl StandardSelection {
+    pub fn unversioned() -> Self {
+        Self {
+            mode: "unversioned".into(),
+            selection_status: crate::standards::UNVERSIONED.into(),
+            substituted: false,
+            standard: None,
+            requested_version: None,
+            detected_version: None,
+            selected_version: None,
+            verified_version: None,
+            standards_registry_entry: None,
+            standards_source_commit: None,
+            other_rows_not_selected: Vec::new(),
+            note: Some(
+                "helix verify did not select a GA4GH registry pack. \
+                 Detected service-info versions are recorded, not selected."
+                    .into(),
+            ),
+            integrity_validated: false,
+            integrity_ok: None,
+            pack_integrity_sha256: None,
+            schema_document_sha256: None,
+            schema_component_sha256: None,
+            execution_id: None,
+            target_execution_id: None,
+            schema_entry: None,
+            catalog_id: None,
+            binding_id: None,
+            checker_id: None,
+            support_status: None,
+            coverage_schema: None,
+            coverage_behavior: None,
+            coverage_security: None,
+            coverage_interoperability: None,
+        }
+    }
+}
+
 /// Counts only. Not a weighted score, not a certification level.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
 pub struct VerificationSummary {
@@ -380,10 +581,16 @@ pub struct VerificationRun {
     pub fixture_version: String,
     pub timestamp: String,
     pub target: Target,
+    /// Pack selection for this run. Optional on files produced before this field.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub standard_selection: Option<StandardSelection>,
     pub discovery: Vec<DiscoveredService>,
     pub executed: Vec<VerificationResult>,
     pub skipped: Vec<VerificationResult>,
     pub summary: VerificationSummary,
+    /// SCHEMA / BEHAVIOR / SECURITY / INTEROPERABILITY counts. Not a score.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub layer_summary: Option<crate::layer::LayerSummary>,
 }
 
 /// DRS-only helper for tests that still build a single-service run.
@@ -400,10 +607,12 @@ impl VerificationRun {
             fixture_version: FIXTURE_VERSION.to_string(),
             timestamp: Utc::now().to_rfc3339_opts(SecondsFormat::Secs, true),
             target,
+            standard_selection: None,
             discovery: Vec::new(),
             executed: Vec::new(),
             skipped: Vec::new(),
             summary: VerificationSummary::default(),
+            layer_summary: Some(crate::layer::LayerSummary::default()),
         }
     }
 
@@ -460,6 +669,22 @@ impl VerificationRun {
             }
         }
         self.summary = summary;
+        self.layer_summary = Some(self.compute_layer_summary());
+    }
+
+    fn compute_layer_summary(&self) -> crate::layer::LayerSummary {
+        let mut layers = crate::layer::LayerSummary::default();
+        for r in self.executed.iter().chain(self.skipped.iter()) {
+            let layer = r.layer.unwrap_or_else(|| crate::layer::for_id(&r.id));
+            let outcome = match r.status {
+                VerificationStatus::Pass => crate::layer::LayerOutcome::Pass,
+                VerificationStatus::Fail => crate::layer::LayerOutcome::Fail,
+                VerificationStatus::Skip => crate::layer::LayerOutcome::Skip,
+                VerificationStatus::Error => crate::layer::LayerOutcome::Error,
+            };
+            layers.record(layer, outcome);
+        }
+        layers
     }
 
     /// Any FAIL or ERROR. Skip does not count.

@@ -17,12 +17,31 @@ for f in \
   docs/BENCHMARKS.md docs/DIAGNOSTICS.md docs/REPORT.md docs/SCHEMA.md docs/THREAT_MODEL.md \
   docs/EVALUATOR_JOURNEY.md docs/EXTERNAL_TARGET_CONTRACT.md \
   docs/RUN_IDENTITY.md docs/OPEN_SOURCE_RELEASE_CHECKLIST.md \
+  docs/STANDARDS_REGISTRY.md docs/STANDARD_VERSIONING.md docs/TRUST.md \
+  docs/TRACEABILITY.md \
+  docs/TAXONOMY.md \
+  docs/BEHAVIOR.md \
+  docs/CLAIMS.md \
+  docs/INTEROP.md \
+  docs/TARGETS.md \
+  docs/MUTATION.md \
+  docs/INDEPENDENT_VERIFICATION.md \
+  docs/PUBLIC_READINESS_AUDIT.md \
+  docs/ARCHITECTURE_GUARDRAILS.md \
   docs/evaluator-pack/README.md docs/evaluator-pack/install.md \
   docs/evaluator-pack/explanation.md docs/evaluator-pack/target.md \
   docs/evaluator-pack/fixtures.md docs/evaluator-pack/commands.md \
   docs/evaluator-pack/interpret.md docs/evaluator-pack/FAILURE_REPORT.md \
   docs/evaluator-pack/example-verify.json \
-  schemas/helix-verification-v1.json VERSIONS.lock
+  schemas/helix-verification-v1.json schemas/helix-standard-version-v1.json \
+  schemas/helix-interop-matrix-v1.json \
+  standards/registry.yaml \
+  standards/vendor/ga4gh.drs.1.4.0/openapi/data_repository_service.openapi.yaml \
+  standards/vendor/ga4gh.drs.1.4.0/openapi/components/schemas/DrsObject.yaml \
+  standards/vendor/ga4gh.drs.1.5.0/openapi/data_repository_service.openapi.yaml \
+  standards/vendor/ga4gh.drs.1.5.0/openapi/components/schemas/DrsObject.yaml \
+  standards/vendor/ga4gh.wes.1.1.0/workflow_execution_service.openapi.yaml \
+  VERSIONS.lock
 do
   if [[ ! -f "$f" ]]; then
     echo "missing $f" >&2
@@ -36,7 +55,8 @@ fi
 grep -q "Not a product SKU" docs/IDENTITY.md
 grep -q "HELIOS" docs/IDENTITY.md
 grep -q "GA4GH certification" README.md
-grep -q "Helix tests behavior against the GA4GH spec, independent of implementation. Ferrum is used as a reference target, not a dependency." README.md
+grep -q "Helix runs the same documented DRS and WES checks against any HTTP origin that implements those GA4GH paths. Ferrum is used as a reference target, not a dependency." README.md
+grep -q "Helix supports technical verification checks for GA4GH DRS 1.4.0 within the declared coverage boundary" README.md
 grep -q "clinical pilot" docs/IDENTITY.md
 grep -q "Prompt B1" INVENTORY.md || grep -q "Coupling to Ferrum" INVENTORY.md
 grep -q "Synaptic Four builds the infrastructure. Helix proves it works." docs/HELIX_VISION.md
@@ -182,6 +202,7 @@ grep -q "HELIX VERIFICATION" docs/REPORT.md
 grep -q "This is a technical verification signal" docs/REPORT.md
 grep -q "It is not GA4GH certification" docs/REPORT.md
 grep -q "Not compared" docs/REPORT.md
+grep -q "Claims (predicates; not GA4GH certification)" docs/REPORT.md
 grep -q "fn format_verify_text" src/report.rs
 grep -q "fn format_compare_text" src/report.rs
 if grep -qi 'ro-crate' docs/REPORT.md; then
@@ -200,10 +221,15 @@ if grep -q '"cause"' schemas/helix-verification-v1.json; then
   exit 1
 fi
 grep -q "not a security product" docs/THREAT_MODEL.md
+grep -q "not a security scanner" docs/THREAT_MODEL.md
 grep -q "HelixTest already runs" docs/THREAT_MODEL.md
 grep -q "never accidentally print" docs/THREAT_MODEL.md
 grep -q "access_url" docs/THREAT_MODEL.md
 grep -q "fn redact_text" src/redact.rs
+grep -q "fn sanitize_untrusted" src/sanitize.rs
+grep -q "confined_vendor_file" src/standards/validate.rs
+grep -q "DRS_ADAPTER_WALL_SECS" src/adapter/mod.rs
+grep -q "fn start_ansi_and_log_injection" tests/support/mock_adversarial.rs
 grep -q "redirect(Policy::none())" src/http_safety.rs
 grep -q "MAX_RESPONSE_BYTES" src/http_safety.rs
 grep -q "userinfo" src/discover.rs
@@ -245,9 +271,108 @@ grep -q "make verify-fixture" docs/evaluator-pack/commands.md
 grep -q "helix-verification-v1" docs/evaluator-pack/example-verify.json
 grep -q "Helix failure report" docs/evaluator-pack/FAILURE_REPORT.md
 grep -q "What Helix is (one page)" docs/evaluator-pack/explanation.md
+grep -q "helix standards list" docs/CLI_CONTRACT.md
+grep -q "helix standards trace" docs/CLI_CONTRACT.md
+grep -q "A GitHub tag alone does not make a version supported" docs/STANDARDS_REGISTRY.md
+grep -q "OFFICIAL ∩ SUPPORTED" docs/STANDARDS_REGISTRY.md
+grep -q "ga4gh.drs.1.5.0" standards/registry.yaml
+grep -q "support_status: available" standards/registry.yaml
+grep -q "fn official_supported" src/standards/mod.rs
+grep -q "AVAILABLE_BUT_NOT_SUPPORTED" src/standards/select.rs
+grep -q "VerifySelection::Unversioned" src/verify.rs
+grep -q "all-supported-versions" src/main.rs
+grep -q "AVAILABLE_BUT_NOT_SUPPORTED" docs/STANDARD_VERSIONING.md
+grep -q "Do not fall back to another version" docs/STANDARD_VERSIONING.md
+grep -q "Do not ask the user to trust Helix" docs/TRUST.md
+grep -q "Never silently substitute one standard version" docs/TRUST.md
+grep -q "AVAILABLE_BUT_NOT_SUPPORTED" docs/TRUST.md
+grep -q "independent skeptical engineer" docs/TRUST.md
+grep -q "check_kind" docs/TRACEABILITY.md
+grep -q "not GA4GH certification" docs/TRACEABILITY.md
+grep -q "Exactly one shipped Helix check is \`normative\`" docs/TRACEABILITY.md
+grep -q "helix standards trace" docs/TRACEABILITY.md
+grep -q "pub struct CheckTraceability" src/traceability.rs
+grep -q "fn catalog_covers_every_spec" src/traceability.rs || grep -q "catalog_covers_every_spec_and_none_are_normative" src/traceability.rs
+grep -q "StandardsCommand::Trace" src/main.rs
+grep -q "traceability" schemas/helix-verification-v1.json
+grep -q "claim_scope" schemas/helix-verification-v1.json
+grep -q '"guidance"' schemas/helix-standard-version-v1.json
+grep -q "claim_scope" src/traceability.rs
+grep -q "Exactly one shipped Helix check is \`normative\`" docs/TAXONOMY.md
+grep -q "PASS is not a conformance claim" docs/TAXONOMY.md
+grep -q "HelixTest extras" docs/TAXONOMY.md
+grep -q "SCHEMA PASS is not BEHAVIOR PASS" docs/BEHAVIOR.md
+grep -q "uncovered" docs/BEHAVIOR.md
+grep -q "No aggregated compliance percentage" docs/BEHAVIOR.md
+grep -q "known-bad" docs/BEHAVIOR.md
+grep -q "pub enum CheckLayer" src/layer.rs
+grep -q "fn schema_pass_does_not_make_behavior_pass" src/layer.rs
+grep -q "start_mock_schema_ok_checksum_wrong" tests/support/mock_ga4gh_drs.rs
+grep -q "Exactly one shipped check is \`normative\`" docs/CLAIMS.md
+grep -q "not_verified" docs/CLAIMS.md
+grep -q "fixture_failure_is_not_a_normative_failure" docs/CLAIMS.md
+grep -q "pub fn evaluate" src/claims.rs
+grep -q "pub enum ClaimKind" src/claims.rs
+grep -q "Why not verified" src/claims.rs
+if grep -E '\.contains\("(PASS|FAIL)' src/claims.rs; then
+  echo "claim engine must not search PASS/FAIL strings" >&2
+  exit 1
+fi
+grep -q "External validation: pending" docs/INTEROP.md
+grep -q "not independent evidence" docs/INTEROP.md
+grep -q "unresolved_discrepancy" docs/INTEROP.md
+grep -q "B4 multi-implementation evidence: pending" docs/TARGETS.md
+grep -q "A mock is not an independent implementation" docs/TARGETS.md
+grep -q "target_execution_id" docs/TARGETS.md
+grep -q "pub struct TargetIdentity" src/target.rs
+grep -q "pub fn build_matrix" src/interop.rs
+grep -q "CrossImpl::MustAgree" src/interop.rs
+grep -q "helix-interop-matrix-v1" schemas/helix-interop-matrix-v1.json
+if grep -qiE 'validated against multiple implementations' README.md docs/INTEROP.md; then
+  echo "must not claim completed multi-implementation validation" >&2
+  exit 1
+fi
+grep -q "known-bad target → FAIL" docs/MUTATION.md
+grep -q "correct failure reason" docs/MUTATION.md
+grep -q "Mutations missed" docs/MUTATION.md
+grep -q "pub const CATALOG" src/mutation.rs
+grep -q "fn known_bad_targets_fail_for_the_recorded_reason" tests/mutation.rs
+grep -q "fn missed_mutations_are_recorded_and_not_hidden" tests/mutation.rs
+grep -q "What is not reproducible" docs/INDEPENDENT_VERIFICATION.md
+grep -q "not bit-for-bit" docs/INDEPENDENT_VERIFICATION.md
+grep -q "make fetch" docs/INDEPENDENT_VERIFICATION.md
+grep -q "cargo test --locked --offline" Makefile
+grep -q "make independent-verify" .github/workflows/ci.yml
+grep -q "fn two_verifies_on_the_same_fixture_match_after_stripping_timestamp" tests/repro.rs
+normative_rows=$(grep -c 'kind: BindingKind::Normative' src/traceability.rs || true)
+if [[ "$normative_rows" -ne 1 ]]; then
+  echo "expected exactly one BindingKind::Normative catalog row, got $normative_rows" >&2
+  exit 1
+fi
+if ! grep -B1 'kind: BindingKind::Normative' src/traceability.rs | grep -q 'drs.object.schema.openapi'; then
+  echo "the shipped Normative catalog row must be drs.object.schema.openapi" >&2
+  exit 1
+fi
+if grep -q 'kind: BindingKind::Guidance' src/traceability.rs; then
+  echo "catalog must not ship BindingKind::Guidance rows without official GA4GH implementation guidance" >&2
+  exit 1
+fi
 if grep -R -qiE 'book a (demo|call)|start a trial|request a quote' docs/evaluator-pack; then
   echo "evaluator-pack must not contain a sales CTA" >&2
   exit 1
 fi
+grep -q "Who reviews normative mappings" docs/STANDARDS_REGISTRY.md
+grep -q "Recommended release classification" docs/PUBLIC_READINESS_AUDIT.md
+grep -q "External validation status" docs/PUBLIC_READINESS_AUDIT.md
+grep -q "Not shipped" docs/STANDARD_VERSIONING.md
+grep -F -q "A future contributor should have to **consciously violate**" docs/ARCHITECTURE_GUARDRAILS.md
+grep -q "pub fn check_run" src/guardrails.rs
+grep -q "CheckMode::Emit" src/guardrails.rs
+grep -q "fn src_must_not_use_mode_ferrum" tests/guardrails.rs
+grep -q "fn src_must_not_import_helios" tests/guardrails.rs
+grep -q "fn src_must_not_fetch_standard_sources_from_the_network" tests/guardrails.rs
+grep -q "fn emit_and_load_paths_call_check_run" tests/guardrails.rs
+grep -q "pub fn check_set" src/claims.rs
+grep -q '"const": false' schemas/helix-verification-v1.json
 
 echo "prove: docs OK"

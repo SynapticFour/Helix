@@ -6,6 +6,7 @@ No account. No cloud target required. Helix does not send telemetry.
 
 ```bash
 cd Helix
+make fetch    # once: Cargo.lock checksums; not a GA4GH download
 make prove
 ```
 
@@ -38,6 +39,14 @@ NO_COLOR=1 cargo run --quiet --locked --bin helix -- verify http://127.0.0.1:<po
 Replace `<port>` with an origin **you** started that implements [target.md](target.md) + [fixtures.md](fixtures.md). Do not assume port 8080 is listening.
 
 Stdout is `VerificationRun` ([example-verify.json](example-verify.json), schema `schemas/helix-verification-v1.json`). Stderr is logs (default `RUST_LOG=error`).
+
+## 4. Interop matrix (external validation pending)
+
+```bash
+NO_COLOR=1 helix matrix --format json
+```
+
+Same generic `helix verify` suite, compared later when you have two recorded JSON files. With no `--run`, slots `ferrum` and `independent` are **pending**. In-process fixtures are **not independent evidence**. Do not quote a pending matrix as multi-implementation validation. Details: [INTEROP.md](../INTEROP.md).
 
 ## Exit codes
 

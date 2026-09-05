@@ -8,3 +8,5 @@ pub mod mock_adversarial;
 pub mod mock_ga4gh_drs;
 #[allow(dead_code)]
 pub mod mock_ga4gh_wes;
+#[allow(dead_code)]
+pub mod mock_mutation;

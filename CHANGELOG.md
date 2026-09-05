@@ -2,6 +2,41 @@
 
 ## Unreleased
 
+**Current facts (2026-09-05).** Prefer [README.md](README.md) and [docs/TRUST.md](docs/TRUST.md) over older bullets in this section if they disagree.
+
+- `helix verify` executes **DRS and WES**. TES/TRS/htsget are discovery-only.
+- DRS 1.4.0 is **SUPPORTED** for technical verification within declared coverage. YAML `support_status` is not sufficient. Exactly one shipped check is `normative`. Default verify is **unversioned**. `verified_version` stays empty. Not GA4GH certification.
+- DRS 1.5.0 and WES remain AVAILABLE / non-executable as supported packs.
+- External multi-implementation validation is **pending**. Target identity and target-scoped execution ids are shipped ([docs/TARGETS.md](docs/TARGETS.md)). In-process mocks are not a second implementation.
+- No git tag. Cargo package version is `0.1.0`. Not crates.io (`publish = false`).
+- Older bullets below are chronological development notes. They are not the current claim set.
+
+- Public-readiness audit ([docs/PUBLIC_READINESS_AUDIT.md](docs/PUBLIC_READINESS_AUDIT.md)): stranger-facing review of README through licence. Replaced “tests behavior against the GA4GH spec” with the documented DRS/WES suite sentence. Named who reviews normative mappings (single steward; not a GA4GH board). Mode 2 labelled **not shipped**. Not a tagged release. Not certification.
+
+- Architecture guardrails ([docs/ARCHITECTURE_GUARDRAILS.md](docs/ARCHITECTURE_GUARDRAILS.md)): trust-model invariants encoded as schema, `src/guardrails.rs`, registry validation, and `tests/guardrails.rs`. SUPPORTED without provenance, development SUPPORTED, HEAD pins, fixture-as-normative, version substitution, unjustified VERIFIED, Ferrum/HELIOS crate leakage fail closed. A contributor should have to consciously violate the tests rather than accidentally weaken verification. Not a SUPPORTED pack. Not HELIOS. Not certification.
+
+- Target-neutral interop matrix ([docs/INTEROP.md](docs/INTEROP.md)): same generic `helix verify` against Ferrum and any other origin. `helix matrix` records standard / version / check / implementation / expected / observed / result. HTTP Range and scatter **may differ**; 404 must agree. In-process fixtures are not independent evidence. **External validation pending.** Not certification. Not HELIOS.
+
+- Explicit claim engine ([docs/CLAIMS.md](docs/CLAIMS.md)): every VERIFIED / NOT_VERIFIED sentence is generated from `claims[]`. Six kinds stay separate (`ga4gh_requirement`, `schema`, `behavior`, `interoperability`, `security`, `benchmark`). Empty normative sets are not vacuously verified. Fixture FAIL is not `normative_check_failed`. Honest DRS PASS is still `not_verified`. Not a PASS/FAIL string search. Not HELIOS. Not certification.
+
+- Adversarial client hardening ([docs/THREAT_MODEL.md](docs/THREAT_MODEL.md)): target-controlled strings are sanitized (ANSI/C0 stripped, newlines collapsed, length-capped). Helix-owned HTTP still no-redirect / 2 MiB / rustls / no gzip. HelixTest adapter wall 600s DRS / 1800s WES. Registry `vendor_path` cannot `..`. Discovery does not fetch `access_url` or pagination tokens. A malicious target can fail checks; it must not drive the TTY, forge report lines, or hang the CLI forever. Not a security scanner. Not HELIOS. Not certification.
+
+- Independent verification ([docs/INDEPENDENT_VERIFICATION.md](docs/INDEPENDENT_VERIFICATION.md)): `make fetch` then `cargo test --locked --offline`. Two fixture verifies match after stripping `timestamp` (not bit-for-bit raw files). Vendor SHA-256 via `helix standards validate`. CI runs `make independent-verify`. Authorship is irrelevant. Not HELIOS. Not certification.
+
+- Adversarial mutation corpus ([docs/MUTATION.md](docs/MUTATION.md)): 24 one-defect targets (`HLX-MUT-001`–`024`). Correct DRS+WES mock still PASS. Detected mutants FAIL the named check for the recorded diagnostic class. **Seven misses are listed with reasons** (500 swallowed by discovery, Content-Type ignored, pagination unprobed, extra fields allowed, version-field disagreement). Not a score. Not normative. Not certification.
+
+- Behavioural layers ([docs/BEHAVIOR.md](docs/BEHAVIOR.md)): `layer` is `schema` | `behavior` | `security` | `interoperability` | `benchmark`. Run-level `layer_summary` prints SCHEMA / BEHAVIOR / SECURITY / INTEROPERABILITY independently. **SCHEMA PASS is not BEHAVIOR PASS.** SECURITY NONE is not SECURITY PASS. No compliance percentage. Negative fixtures: schema-ok + wrong checksum; schema-ok + unknown-id HTTP 200. Not normative. Not certification.
+
+- Check taxonomy ([docs/TAXONOMY.md](docs/TAXONOMY.md)): every Helix check has `category` (claim taxonomy), `check_kind` (same value), `claim_scope`, and `authority`. `guidance` is official GA4GH implementation guidance only — HelixTest extras stay `fixture`. **No shipped check is `normative` or `guidance`.** A fixture row cannot be serialized as a GA4GH requirement. Security PASS is not conformance. Benchmarks are measurement only. Not certification.
+
+- Check traceability ([docs/TRACEABILITY.md](docs/TRACEABILITY.md)): every Helix check has machine-readable `check_kind`, `authority`, `expected_behavior`, `implementation`, and either a complete GA4GH locator or `untraceable_reason`. JSON `traceability` on `helix verify` rows; `helix standards trace CHECK_ID`. **No shipped check is `normative`** — HelixTest still does not load `standards/vendor` bytes; DRS `$ref` siblings are unvendored; mixed schema+fixture extras are labeled `fixture`. Related AVAILABLE locators are audit hints, not MUSTs. Not HELIOS. Not certification.
+
+- Trust principle ([docs/TRUST.md](docs/TRUST.md)): do not ask a reviewer to trust Helix or its authors. Map of the eleven inspectable questions; honest gaps (no SUPPORTED pack, unversioned default verify, HelixTest-vendored schema, no normative check bindings). Fail closed rather than guess. Not HELIOS. Not certification.
+
+- Standard-version execution on `helix verify` ([docs/STANDARD_VERSIONING.md](docs/STANDARD_VERSIONING.md)): `--standard` + `--version` (Mode 1) and `--all-supported-versions` (Mode 3). Default `helix verify TARGET` stays the unversioned HelixTest wrap. DRS 1.5.0 returns `AVAILABLE_BUT_NOT_SUPPORTED` (no silent downgrade). Every check records `standard`, `requested_version`, `detected_version`, `selected_version`, `verified_version`, `standards_registry_entry`, `standards_source_commit`. Not HELIOS. Not certification.
+
+- GA4GH standards registry (`standards/registry.yaml`, `helix standards list|show|validate`): official DRS 1.4.0 / 1.5.0 and WES 1.1.0 pinned to git commit + SHA-256 vendor copies. All rows **AVAILABLE**, none **SUPPORTED**. Default discovery is OFFICIAL ∩ SUPPORTED (empty). `show` never substitutes another version. Not HELIOS. Not certification.
+
 - Open-source quality review before announcement (`docs/OPEN_SOURCE_RELEASE_CHECKLIST.md`): LICENSE/SECURITY/CONTRIBUTING present; **no** CODE_OF_CONDUCT, issue templates, tags, or release workflow. `Cargo.lock` exists but `docs/DEPENDENCY.md` is stale. Report only — do not tag or publish from that review.
 - Lightweight verification-run identity so two `helix verify` JSON files can be compared (`docs/RUN_IDENTITY.md`, `src/run_identity.rs`): Helix version, HelixTest pin, profile, test ids, target, `fixture_version` (`helix-fixtures-v1`), schema version, timestamp, and (bench only) workload id/version. `helix compare` copies those into `previous_identity` / `current_identity` and sets `same_measurement` / `suite_changed`. Identity mismatch is not `NEW_FAIL`. Not a signed audit trail. Not scientific reproducibility. Not HELIOS (no signature, RO-Crate, PDF). Distinction: [docs/HELIX_VS_HELIOS.md](docs/HELIX_VS_HELIOS.md) §3.
 - Evaluator path (`docs/EVALUATOR_JOURNEY.md`, rewritten `docs/FOR-EVALUATORS.md`): sibling HelixTest pin, `make prove`, **`make verify-fixture`** (`examples/verify_fixture.rs`) so `helix verify` runs against the in-process DRS mock without Ferrum. Stale “not yet a runnable suite” text is gone. `scripts/require-helixtest.sh` explains a missing sibling. CI and pre-commit run verify-fixture after prove. Default `RUST_LOG=error` so HelixTest DEBUG traces do not hide `HELIX VERIFICATION`. Report failures via GitHub Issues.

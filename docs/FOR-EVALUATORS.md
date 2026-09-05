@@ -1,19 +1,19 @@
 # For evaluators
 
-Five minutes. Helix is HelixTest becoming a standalone VERIFY CLI (pin **v0.1.3**). It is not a new test platform. Results are not GA4GH certification. Standalone pack (install, contract summary, commands, example JSON, report template): [evaluator-pack/README.md](evaluator-pack/README.md). Confusion log of a first clone: [EVALUATOR_JOURNEY.md](EVALUATOR_JOURNEY.md). Install detail: [INSTALL.md](INSTALL.md).
+Five minutes. Helix is a CLI that wraps [HelixTest](https://github.com/SynapticFour/HelixTest) (existing engine, pin **v0.1.3**) as a standalone `helix` binary. It is not a new test platform. Results are not GA4GH certification. Standalone pack (install, contract summary, commands, example JSON, report template): [evaluator-pack/README.md](evaluator-pack/README.md). Confusion log of a first clone: [EVALUATOR_JOURNEY.md](EVALUATOR_JOURNEY.md). Install detail: [INSTALL.md](INSTALL.md).
 
 ## What Helix is
 
 A CLI (`helix`) you point at a GA4GH HTTP origin you already run. It discovers which APIs answer, then runs HelixTest **DRS** and **WES** checks when those services are TESTABLE. `make prove` / `make verify-fixture` use in-process mocks so you do not need Ferrum. An external origin: [EXTERNAL_TARGET_CONTRACT.md](EXTERNAL_TARGET_CONTRACT.md) (`helix verify <url>`; documented GA4GH HTTP + fixtures only).
 
-Helix tests behavior against the GA4GH spec, independent of implementation.
+Helix runs the same documented DRS and WES checks against any HTTP origin that implements those GA4GH paths. Ferrum is a reference target, not a dependency. Helix supports technical verification checks for GA4GH DRS 1.4.0 within the declared coverage boundary. A PASS is not a GA4GH-release VERIFIED claim ([TRUST.md](TRUST.md), [CLAIMS.md](CLAIMS.md)).
 
 ## What it is not
 
 - Not a server. It does not start Ferrum or any stack.
-- Not HELIOS. No signed trails, RO-Crate, PDF, or reproducibility envelope (`helios-audit` is a different repo).
-- Not GA4GH certification. Green prove / green verify is a technical signal.
-- Not a Ferrum production or clinical-pilot claim. Ferrum is a **reference target** (BUSL-1.1, on-prem). There is no DIZ / genomDE pilot. Demos and CI ≠ production.
+- Not HELIOS. No signed trails, RO-Crate, PDF, or reproducibility envelope (`helios-audit` is a different repo). Independent **technical** reproduction of Helix fixture results: [INDEPENDENT_VERIFICATION.md](INDEPENDENT_VERIFICATION.md) (not bit-for-bit JSON files).
+- Not GA4GH certification. Green prove / green verify is a technical signal. Inspect pins and JSON rather than trusting the authors ([TRUST.md](TRUST.md)).
+- Not a Ferrum production or clinical-pilot claim. Ferrum is a **reference target** (BUSL-1.1, on-prem). There is no clinical deployment with German hospital data-integration centres (DIZ) or the genomDE programme. Demos and CI ≠ production.
 - Not a pentest product. `helix security` is selected dummy-HMAC behaviour checks.
 
 ## How to run it
@@ -25,13 +25,16 @@ git clone https://github.com/SynapticFour/Helix.git
 git clone https://github.com/SynapticFour/HelixTest.git
 git -C HelixTest checkout "$(grep '^HELIXTEST_SHA=' Helix/VERSIONS.lock | cut -d= -f2)"
 cd Helix
+make fetch
 make prove
 make verify-fixture
 ```
 
 | Command | What happens |
 |---------|----------------|
-| `make prove` | Docs checks + `cargo test --locked --all-targets`. In-process fixtures. No Ferrum, Docker, or credentials. |
+| `make fetch` | `cargo fetch --locked`: crates.io at lockfile checksums. Explicit network. Not GA4GH. |
+| `make prove` | Docs checks + `cargo test --locked --offline --all-targets`. In-process fixtures. No Ferrum, Docker, or credentials. |
+| `make independent-verify` | Vendor SHA-256 + two-run fixture equality ([INDEPENDENT_VERIFICATION.md](INDEPENDENT_VERIFICATION.md)). Offline. |
 | `make verify-fixture` | Starts the deterministic mock DRS ([FIXTURES.md](FIXTURES.md) §1) and runs **`helix verify`** against it. Prints `HELIX VERIFICATION`. |
 | `make install` | `cargo install --path . --locked` (still needs the sibling at build time). |
 
@@ -63,3 +66,11 @@ Helix answers **whether** a running system behaves. HELIOS (`helios-audit`) answ
 2. Security vulnerabilities: [SECURITY.md](../SECURITY.md) (email; not a public issue).
 
 Do not claim the failure is a GA4GH certification result. Do not send production secrets.
+
+## AVAILABLE vs SUPPORTED
+
+`helix standards list` shows pinned GA4GH releases. `--supported-only` lists **ga4gh.drs.1.4.0**. YAML `support_status` is not sufficient; the executable gate in `src/standards/support.rs` must pass. SUPPORTED is not VERIFIED ([STANDARDS_REGISTRY.md](STANDARDS_REGISTRY.md)).
+
+## Who reviews a normative mapping
+
+There is no GA4GH-appointed board. A check may become `normative` only through a reviewed change that meets [TRACEABILITY.md](TRACEABILITY.md) §7. Until then the catalog must stay non-normative. The current steward is the single maintainer named in [IDENTITY.md](IDENTITY.md). A reviewer rejects the mapping by pointing at missing locators, hashes, or tests — not by trusting the steward.

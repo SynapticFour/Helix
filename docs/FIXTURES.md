@@ -17,7 +17,7 @@ Source: `tests/support/`, `test-fixtures/`. Tests: **`make prove`**. Human `heli
 | In-process HTTP | wiremock on `127.0.0.1`. No compose, no GHCR mock images (D2). |
 | Deterministic bytes | Same object id, blob, checksum, workflow URLs, and JWT claims every run. |
 | Valid and invalid | Passing fixtures prove the engine can pass. Invalid fixtures prove it can fail. Skip-only and unreachable are separate. |
-| CI uses the catalog | GitHub CI runs `make prove` (docs + `cargo test --locked --all-targets`) then `make verify-fixture`. Fixture tests are **not** `#[ignore]`. |
+| CI uses the catalog | GitHub CI runs `cargo fetch --locked`, `make prove` (docs + `cargo test --locked --offline --all-targets`), `make independent-verify`, then `make verify-fixture`. Fixture tests are **not** `#[ignore]`. |
 | Live stays live | `make prove` does not skip, exclude, or ignore tests. Pointing `helix` at Ferrum is **`make test-live`** (opt-in). Do not fold live HTTP into prove. |
 | Public interfaces | Fixtures speak published GA4GH HTTP. WES `name` never switches Helix to Ferrum mode ([PROFILES.md](PROFILES.md)). External origin: [EXTERNAL_TARGET_CONTRACT.md](EXTERNAL_TARGET_CONTRACT.md). |
 
@@ -34,11 +34,12 @@ git clone https://github.com/SynapticFour/Helix.git
 git clone https://github.com/SynapticFour/HelixTest.git
 git -C HelixTest checkout "$(grep '^HELIXTEST_SHA=' Helix/VERSIONS.lock | cut -d= -f2)"
 cd Helix
+make fetch
 make prove
 make verify-fixture
 ```
 
-Needs a sibling HelixTest checkout (path dependency, D1). Does **not** need Docker, Ferrum `make up`, hospital IdP, or network services beyond localhost wiremock.
+Needs a sibling HelixTest checkout (path dependency, D1). `make fetch` is crates.io at `Cargo.lock` checksums. Prove then runs **offline**. Does **not** need Docker, Ferrum `make up`, hospital IdP, or GA4GH downloads. Localhost wiremock only during tests.
 
 Live (you start the stack): [PROVE.md](PROVE.md) / `make test-live HELIX_LIVE_URL=http://127.0.0.1:8080`.
 
@@ -88,6 +89,28 @@ No `/service-info` on this mock (that path is the WES probe). HelixTest B1 still
 | Expected | `present: true`, `testable: true`, executed `fail`, exit 1. No `discovery.drs` check row. |
 | Target | **Intentionally invalid** DRS |
 | CI | **Yes** (`tests/verify_drs.rs`, `cli_discover.rs`) |
+| Credentials | **None** |
+
+### 2a. Schema-ok, checksum-wrong DRS
+
+| | |
+|--|--|
+| Source | `start_mock_schema_ok_checksum_wrong` |
+| Purpose | Prove SCHEMA PASS is not BEHAVIOR PASS: JSON extras pass; downloaded bytes do not match advertised sha256 |
+| Expected | `drs.object.schema` **pass**, `drs.object.checksum` **fail** (message contains checksum/mismatch). `layer_summary.schema.passed` ≥ 1, `layer_summary.behavior.failed` ≥ 1. Exit 1 |
+| Target | **Intentionally broken behaviour**, valid-looking schema |
+| CI | **Yes** (`tests/behavior.rs`) |
+| Credentials | **None** |
+
+### 2b. Schema-ok, unknown-id HTTP 200 DRS
+
+| | |
+|--|--|
+| Source | `start_mock_schema_ok_unknown_id_200` |
+| Purpose | Prove schema-valid object JSON does not imply error semantics: unknown id returns 200 |
+| Expected | `drs.object.schema` **pass**, `drs.object.not_found` **fail** with observed 200. Exit 1 |
+| Target | **Intentionally broken behaviour**, valid-looking schema |
+| CI | **Yes** (`tests/behavior.rs`) |
 | Credentials | **None** |
 
 ### 3. Valid mock WES
@@ -244,12 +267,26 @@ Source: `tests/support/mock_adversarial.rs`. Tests: `tests/adversarial.rs`. Heli
 | `start_unexpected_status` | HTTP 418 on DRS probes | NOT_DETECTED (not 2xx/401/403); `passed = 0` |
 | `start_malformed_service_info` | 200 JSON whose `id`/`name`/`type` are the wrong JSON types | DETECTED is not a pass; checks fail or skip, never a green run |
 | `start_extremely_long_strings` | DrsObject with a 32 KiB `name`, required fields missing | No panic; schema not pass |
+| `start_ansi_and_log_injection` | CSI green `PASS` plus forged `HELIX VERIFICATION` newlines in `name` | Schema not pass; no ESC in JSON/text; exactly one `HELIX VERIFICATION` header |
 
 `reachable` may still **pass** when the server returns HTTP 200 garbage (that check only asks whether the object URL answered). **Overall** verify is not pass. Schema/content checks must not pass.
 
 Decoy JWT / userinfo exist **only** so tests can assert Helix does not print them. They are not real credentials. No fixture here contacts an address other than the in-process mock (except a 302 `Location` Helix must **not** fetch).
 
 CI: **Yes**. Credentials: **None** (decoys only).
+
+### 17. Mutation corpus (one defect each)
+
+| | |
+|--|--|
+| Source | `tests/support/mock_mutation.rs` `start_mutant`; catalog `src/mutation.rs` |
+| Purpose | Prove known-bad targets fail for the **recorded** check and diagnostic; record misses instead of hiding them |
+| Expected | Detected mutants: overall not PASS; named check `fail` with the catalog diagnostic class. Missed mutants: hypothesized check does **not** fail; reason in [MUTATION.md](MUTATION.md). Honest DRS+WES control still PASS |
+| Target | **Intentionally broken** (one defect) or honest control |
+| CI | **Yes** (`tests/mutation.rs`) |
+| Credentials | Dummy HMAC for HLX-MUT-016/017 only |
+
+Not a pentest. Not certification. Do not weaken Helix so a mutant “passes.”
 
 ---
 
@@ -272,9 +309,9 @@ Repo-root target. Verifies Helix **core** on this catalog:
 
 1. `scripts/require-helixtest.sh` — sibling HelixTest must exist (exit 2 with clone commands if not)
 2. `scripts/prove.sh` — required docs (including this file) and honesty strings
-3. `cargo test --locked --all-targets` — **all** Helix tests (fixture-backed). No `--ignored` filter, no crate excludes
+3. `cargo test --locked --offline --all-targets` — **all** Helix tests (fixture-backed). No `--ignored` filter, no crate excludes. If the crate cache is empty, run `make fetch` first.
 
-Does not start Ferrum. Does not need network beyond localhost. Green prove is a technical signal, not certification.
+Does not start Ferrum. Does not download GA4GH files. Localhost wiremock only. Green prove is a technical signal, not certification. Clone-and-run procedure: [INDEPENDENT_VERIFICATION.md](INDEPENDENT_VERIFICATION.md).
 
 `make verify-fixture` is the human `helix verify` report against §1. It is not inside the prove test loop; CI runs it after prove. `make test-live` is **not** part of prove. It runs `helix verify` against `HELIX_LIVE_URL` when you already started a stack. Do not fold live HTTP into prove.
 

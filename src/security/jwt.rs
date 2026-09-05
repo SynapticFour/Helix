@@ -246,14 +246,8 @@ mod tests {
             ),
             200
         );
-        let flipped = {
-            let good = build_test_jwt(secret, TestJwtSpec::valid_drs()).unwrap();
-            let mut c: Vec<char> = good.chars().collect();
-            if let Some(last) = c.last_mut() {
-                *last = if *last == 'A' { 'B' } else { 'A' };
-            }
-            c.into_iter().collect::<String>()
-        };
+        let good = build_test_jwt(secret, TestJwtSpec::valid_drs()).unwrap();
+        let flipped = crate::security::profile::flip_sig(&good);
         assert_eq!(classify_bearer(&flipped, secret, "drs", "drs.read"), 401);
         assert_eq!(
             classify_bearer_with(

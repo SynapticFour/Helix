@@ -2,7 +2,7 @@
 
 A **run identity** is the small set of fields Helix records so two `helix verify` JSON files can be compared (`helix compare`).
 
-It is **not** a signed audit trail. It is **not** scientific reproducibility. It does **not** belong to HELIOS. No signature, RO-Crate, PDF, evidence pack, or hash chain.
+It is **not** a signed audit trail. It is **not** scientific reproducibility. It does **not** belong to HELIOS. No signature, RO-Crate, PDF, evidence pack, or hash chain. Fixture clone-and-run (not bit-for-bit JSON): [INDEPENDENT_VERIFICATION.md](INDEPENDENT_VERIFICATION.md).
 
 HelixTest already runs the checks. This document names which JSON fields identify a measurement. Distinction vs HELIOS: [HELIX_VS_HELIOS.md](HELIX_VS_HELIOS.md).
 
@@ -21,6 +21,7 @@ Source: `src/run_identity.rs` (`RunIdentity::from_verify`). Compare: [REGRESSION
 | Target identifier | `target.url` | Normalized origin. Not a Ferrum id |
 | Fixture version | `fixture_version` | Catalog `helix-fixtures-v1` ([FIXTURES.md](FIXTURES.md)) |
 | Schema version | `schema_version` | `helix-verification-v1` |
+| Selected pack | `standard_selection.standards_registry_entry` when `selected_version` is set | Compare identity. Empty on unversioned / selection-failed runs. `verified_version` is a claim field, not required to identify the selected pack. [STANDARD_VERSIONING.md](STANDARD_VERSIONING.md) |
 | Timestamp | `timestamp` | RFC3339 UTC seconds. Wall clock, not a signature |
 | Benchmark workload version | `helix bench` JSON `workload_id` / `workload_version` | `http.drs.smoke.v1` / `1`. **Not** on `helix verify`. [BENCHMARKS.md](BENCHMARKS.md) |
 
@@ -32,7 +33,7 @@ Source: `src/run_identity.rs` (`RunIdentity::from_verify`). Compare: [REGRESSION
 
 | Flag | True when | Effect on exit |
 |------|-----------|----------------|
-| `same_measurement` | schema, profile, `fixture_version`, target (and bench workload if present) match | None. Informational |
+| `same_measurement` | schema, profile, `fixture_version`, target, selected pack (and bench workload if present) match | None. Informational |
 | `suite_changed` | `helix_version` or HelixTest pin differs | None. Informational |
 | `identity_mismatches` | listed field pairs that differ | None. Informational |
 

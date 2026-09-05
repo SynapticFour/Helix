@@ -50,7 +50,7 @@ Pinned HelixTest crates live in the sibling git root `../HelixTest`. They are no
 
 | Does | Does not |
 |------|----------|
-| Invoke pinned HelixTest DRS and WES checks (`run_drs_checks`, `run_wes_checks`) | Merge or rewrite HelixTest |
+| Invoke pinned HelixTest DRS and WES checks (`run_drs_checks`, `run_drs_checks_with_spec`, `run_wes_checks`) | Merge or rewrite HelixTest |
 | Translate each `TestCaseResult` into a Helix `VerificationResult` | Import Ferrum implementation code |
 | Preserve original HelixTest test identity (`helixtest_name` + catalog map) | Rename HelixTest test names |
 | Preserve PASS / FAIL / SKIP; **never convert SKIP into PASS** | Read HelixTest `passed` (ignored; Skip cannot become Pass) |
@@ -64,7 +64,7 @@ Pinned HelixTest crates live in the sibling git root `../HelixTest`. They are no
 
 Allowed behind this adapter only:
 
-- `framework::drs::run_drs_checks` and `framework::wes::run_wes_checks` (TES / TRS / htsget later, same seam)
+- `framework::drs::run_drs_checks` (unversioned default verify) and `framework::drs::run_drs_checks_with_spec` (versioned DRS pack; caller supplies SpecSource bytes). `framework::wes::run_wes_checks` (TES / TRS / htsget later, same seam). The versioned path must not call bundled `run_drs_checks`.
 - `Features` from the Helix profile (`src/profile.rs`): `generic` has checksums on and scatter off; `ferrum` has both on. Never Ferrum mode.
 - `Mode::Generic` always (not Ferrum mode; not inferred from WES `name`)
 - `TestConfig` with `drs_url` / `wes_url` from Helix discovery (not Ferrum defaults)

@@ -213,3 +213,5 @@ Report a failure: [GitHub Issues](https://github.com/SynapticFour/Helix/issues) 
 ## Out of this contract
 
 TES, TRS, htsget, Beacon execution; `helix security`; `helix bench`; HELIOS; Ferrum as a dependency or profile; GA4GH certification; any requirement not in the DRS/WES OpenAPI or the fixture tables above.
+
+Cross-implementation recording of the **same** generic `helix verify` command: [INTEROP.md](INTEROP.md). That matrix does not add implementation-specific verify logic. External independent evidence is pending.

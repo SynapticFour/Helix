@@ -97,6 +97,8 @@ async fn format_text_matches_default_text() {
     assert!(text.contains("HELIX VERIFICATION"));
     assert!(text.contains("This is a technical verification signal."));
     assert!(text.contains("It is not GA4GH certification."));
+    assert!(text.contains("Claims (predicates; not GA4GH certification):"));
+    assert!(text.contains("No VERIFIED claim is justified by this run."));
     assert!(text.contains("NOT_DETECTED") || text.contains("DETECTED"));
     assert!(text.contains("DETECTED is not a pass"));
     assert!(text.contains("Target:"));

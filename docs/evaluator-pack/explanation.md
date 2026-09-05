@@ -2,19 +2,19 @@
 
 Helix is a **CLI**. You point it at a GA4GH HTTP origin you already run. It discovers which APIs answer, then runs HelixTest **DRS** and **WES** checks when those services are TESTABLE.
 
-HelixTest already exists (public repo, CI, pin **v0.1.3**). Helix productizes that engine as `helix`. It is not a new test platform.
+HelixTest already exists (public repo, CI, pin **v0.1.3**). Helix productizes that engine as `helix`. It is not a new test platform. Helix supports technical verification checks for GA4GH DRS 1.4.0 within the declared coverage boundary. A PASS is not a named-release VERIFIED claim.
 
 ```text
 your DRS/WES  →  helix verify <url>  →  text report + JSON + exit code
 ```
 
-`make prove` / `make verify-fixture` use in-process mocks so you do not need a live stack.
+`make fetch` then `make prove` / `make verify-fixture` use in-process mocks so you do not need a live stack. After fetch, prove is offline (`--locked --offline`).
 
 ## What it is not
 
 - Not a server. It does not start Ferrum or any stack.
-- Not HELIOS. No signed trails, RO-Crate, PDF, or reproducibility envelope (`helios-audit` is a different repo).
-- Not GA4GH certification. Green prove / green verify is a technical signal.
+- Not HELIOS. No signed trails, RO-Crate, PDF, or scientific-reproducibility envelope (`helios-audit` is a different repo). Helix fixture procedure: [INDEPENDENT_VERIFICATION.md](../INDEPENDENT_VERIFICATION.md) (not bit-for-bit JSON).
+- Not GA4GH certification. Green prove / green verify is a technical signal. [TRUST.md](../TRUST.md): inspect the repo; do not take Helix on trust.
 - Not a Ferrum production or clinical-pilot claim. Ferrum is a **reference** live target only (BUSL-1.1, on-prem). There is no DIZ / genomDE pilot. `--profile ferrum` is not required.
 - Not a pentest product. `helix security` is out of this pack.
 - Not a Synaptic Four-hosted service. No account, no telemetry.

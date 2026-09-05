@@ -37,9 +37,9 @@ Still unsure → default **neither**, or two artefacts that stay file-compatible
 
 ## 3. Helix run identity is not HELIOS evidence
 
-Helix records a **lightweight verification-run identity** so two `helix verify` JSON files can be compared (`helix compare`). Fields: Helix version, HelixTest version, profile, test ids, target URL, fixture version, schema version, timestamp, and (for `helix bench` only) workload id/version. Spec: [RUN_IDENTITY.md](RUN_IDENTITY.md).
+Helix records a **lightweight verification-run identity** so two `helix verify` JSON files can be compared (`helix compare`). Fields: Helix version, HelixTest version, profile, test ids, target URL, fixture version, schema version, timestamp, and (for `helix bench` only) workload id/version. Spec: [RUN_IDENTITY.md](RUN_IDENTITY.md). That identity is not a signed trail. Inspectability of a Helix result is [TRUST.md](TRUST.md), not HELIOS.
 
-That identity answers: *are these two technical signals the same kind of measurement?* It does **not** answer: *what pipeline ran, who signed it, or how to reproduce it.*
+That identity answers: *are these two technical signals the same kind of measurement?* It does **not** answer: *what pipeline ran, who signed it, or how to reproduce it.* Clone-and-run of Helix fixture results is [INDEPENDENT_VERIFICATION.md](INDEPENDENT_VERIFICATION.md): not bit-for-bit JSON, not a HELIOS envelope.
 
 | | Helix run identity | HELIOS |
 |--|--------------------|--------|

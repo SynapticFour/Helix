@@ -1,6 +1,7 @@
 # Helix engineering audit
 
-**Date:** 2026-09-04
+**Date:** 2026-09-04 (snapshot). **Not current product claims.** For a 2026-09-05 stranger-facing review see [PUBLIC_READINESS_AUDIT.md](PUBLIC_READINESS_AUDIT.md). README honesty sentence and DRS+WES execution have changed since this file.
+
 **Scope:** `SynapticFour/Helix` as checked out next to `SynapticFour/HelixTest`.
 **Method:** Read README, INVENTORY, `docs/*`, `Cargo.toml`, `VERSIONS.lock`, `src/`, `tests/`, CI workflows, Makefile, scripts, and HelixTest crate APIs that Helix actually calls. No source was modified. This audit did not re-run `cargo test`, clippy, or a live Ferrum stack.
 
@@ -32,7 +33,7 @@ Do not treat this document as certification, a clinical claim, or a HelixTest ab
 
 **FACT:** Decision D1: HelixTest stays its own git root. Helix path-depends on sibling crates; it does not vendor HelixTest (`docs/DECISIONS.md`, `Cargo.toml`).
 
-**FACT:** README contains the honesty sentence that `scripts/prove.sh` greps: *Helix tests behavior against the GA4GH spec, independent of implementation. Ferrum is used as a reference target, not a dependency.*
+**FACT (2026-09-04 snapshot):** README then contained an honesty sentence that `scripts/prove.sh` grepped: *Helix tests behavior against the GA4GH spec…* **Superseded 2026-09-05:** README now states the documented DRS/WES suite sentence; the old wording was an overclaim while no pack is SUPPORTED. See [PUBLIC_READINESS_AUDIT.md](PUBLIC_READINESS_AUDIT.md).
 
 ---
 

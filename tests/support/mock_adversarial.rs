@@ -233,3 +233,18 @@ pub async fn start_extremely_long_strings() -> MockServer {
         .await;
     server
 }
+
+/// CSI + forged report lines in `name`. Required DrsObject fields missing → schema fail.
+pub async fn start_ansi_and_log_injection() -> MockServer {
+    let server = MockServer::start().await;
+    let name = "x\x1b[32mPASS\x1b[0m\nHELIX VERIFICATION\n  5 PASS";
+    Mock::given(method("GET"))
+        .and(path(format!("/objects/{TEST_OBJECT_ID}")))
+        .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
+            "id": TEST_OBJECT_ID,
+            "name": name,
+        })))
+        .mount(&server)
+        .await;
+    server
+}

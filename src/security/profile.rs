@@ -190,12 +190,16 @@ pub fn case_by_id(id: &str) -> Option<&'static SecurityBehaviorCase> {
     HTTP_CASES.iter().find(|c| c.id == id)
 }
 
-fn flip_sig(jwt: &str) -> String {
-    let mut chars: Vec<char> = jwt.chars().collect();
-    if let Some(last) = chars.last_mut() {
-        *last = if *last == 'A' { 'B' } else { 'A' };
+pub(crate) fn flip_sig(jwt: &str) -> String {
+    let Some((head, sig)) = jwt.rsplit_once('.') else {
+        return format!("{jwt}x");
+    };
+    let mut chars: Vec<char> = sig.chars().collect();
+    match chars.first_mut() {
+        Some(c) => *c = if *c == 'A' { 'B' } else { 'A' },
+        None => chars.push('A'),
     }
-    chars.into_iter().collect()
+    format!("{head}.{}", chars.into_iter().collect::<String>())
 }
 
 #[cfg(test)]

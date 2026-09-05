@@ -66,6 +66,29 @@ struct WesInner {
 #[derive(Clone)]
 struct WesStore {
     inner: Arc<Mutex<WesInner>>,
+    lifecycle: WesLifecycleMut,
+}
+
+/// Lifecycle defect for mutation tests. Default is the honest fixture.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum WesLifecycleMut {
+    #[default]
+    Honest,
+    /// First GetRunStatus for echo is already COMPLETE.
+    EchoImmediateComplete,
+    /// fail/1.0 ends COMPLETE.
+    FailAsComplete,
+}
+
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum WesInfoMut {
+    #[default]
+    Honest,
+    Incomplete,
+    VersionsOnly2,
+    MalformedTypes,
+    ContradictoryVersions,
+    TypeVersion999,
 }
 
 /// `name` is a WES service-info field only. Helix must not switch profile from it.
@@ -89,6 +112,40 @@ fn wes_service_info_json_named(name: &str) -> Value {
         "auth_instructions_url": "https://example.invalid/auth",
         "tags": {}
     })
+}
+
+fn wes_service_info_mutated(name: &str, info: WesInfoMut) -> Value {
+    match info {
+        WesInfoMut::Honest => wes_service_info_json_named(name),
+        WesInfoMut::Incomplete => json!({
+            "name": "wes",
+            "type": { "artifact": "wes", "version": "1.0.0" }
+        }),
+        WesInfoMut::VersionsOnly2 => {
+            let mut v = wes_service_info_json_named(name);
+            v["supported_wes_versions"] = json!(["2.0"]);
+            v
+        }
+        WesInfoMut::MalformedTypes => json!({
+            "id": true,
+            "name": ["not", "a", "string"],
+            "type": "wes",
+            "organization": { "name": "Synaptic Four", "url": "https://example.invalid/" },
+            "version": "1.1.0",
+            "supported_wes_versions": ["1.1"],
+        }),
+        WesInfoMut::ContradictoryVersions => {
+            let mut v = wes_service_info_json_named(name);
+            v["type"]["version"] = json!("1.0.0");
+            v["supported_wes_versions"] = json!(["1.1"]);
+            v
+        }
+        WesInfoMut::TypeVersion999 => {
+            let mut v = wes_service_info_json_named(name);
+            v["type"]["version"] = json!("9.9.9");
+            v
+        }
+    }
 }
 
 /// HelixTest `wes.rs` fixture table. Echo and scatter-gather COMPLETE; others EXECUTOR_ERROR.
@@ -177,12 +234,32 @@ impl wiremock::Respond for WesStatus {
             return ResponseTemplate::new(404);
         };
         run.polls += 1;
-        let state = if run.polls == 1 {
-            "RUNNING".to_string()
-        } else {
-            let (term, outputs) = terminal_for(run);
-            run.outputs = outputs;
-            term
+        let is_echo = run.workflow_url == "trs://test-tool/echo/1.0"
+            && run.workflow_type.eq_ignore_ascii_case("CWL");
+        let is_fail = run.workflow_url == "trs://test-tool/fail/1.0";
+        let state = match self.store.lifecycle {
+            WesLifecycleMut::EchoImmediateComplete if is_echo => {
+                let (_term, outputs) = terminal_for(run);
+                run.outputs = outputs;
+                "COMPLETE".to_string()
+            }
+            WesLifecycleMut::FailAsComplete if is_fail => {
+                if run.polls == 1 {
+                    "RUNNING".to_string()
+                } else {
+                    run.outputs = json!({});
+                    "COMPLETE".to_string()
+                }
+            }
+            _ => {
+                if run.polls == 1 {
+                    "RUNNING".to_string()
+                } else {
+                    let (term, outputs) = terminal_for(run);
+                    run.outputs = outputs;
+                    term
+                }
+            }
         };
         ResponseTemplate::new(200).set_body_json(json!({
             "run_id": run_id,
@@ -239,16 +316,37 @@ pub async fn mount_ga4gh_wes(server: &MockServer) {
 }
 
 pub async fn mount_ga4gh_wes_named(server: &MockServer, name: &str) {
+    mount_ga4gh_wes_mutated(
+        server,
+        name,
+        WesInfoMut::Honest,
+        WesLifecycleMut::Honest,
+        false,
+    )
+    .await;
+}
+
+/// WES fixture with one controlled defect. Runs stay mounted so other checks can pass.
+pub async fn mount_ga4gh_wes_mutated(
+    server: &MockServer,
+    name: &str,
+    info: WesInfoMut,
+    lifecycle: WesLifecycleMut,
+    list_runs_broken: bool,
+) {
     let store = WesStore {
         inner: Arc::new(Mutex::new(WesInner {
             next_id: 0,
             runs: HashMap::new(),
         })),
+        lifecycle,
     };
 
     Mock::given(method("GET"))
         .and(path("/ga4gh/wes/v1/service-info"))
-        .respond_with(ResponseTemplate::new(200).set_body_json(wes_service_info_json_named(name)))
+        .respond_with(
+            ResponseTemplate::new(200).set_body_json(wes_service_info_mutated(name, info)),
+        )
         .mount(server)
         .await;
 
@@ -273,11 +371,40 @@ pub async fn mount_ga4gh_wes_named(server: &MockServer, name: &str) {
         .respond_with(WesRunGet { store })
         .mount(server)
         .await;
+
+    if list_runs_broken {
+        Mock::given(method("GET"))
+            .and(path("/ga4gh/wes/v1/runs"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+                "runs": "not-an-array",
+                "next_page_token": 1
+            })))
+            .mount(server)
+            .await;
+    }
 }
 
 pub async fn start_mock_ga4gh_drs_and_wes() -> MockGa4ghDrsWes {
     let server = MockServer::start().await;
     super::mock_ga4gh_drs::mount_ga4gh_drs(&server).await;
     mount_ga4gh_wes(&server).await;
+    MockGa4ghDrsWes { server }
+}
+
+pub async fn start_mock_ga4gh_drs_and_wes_mutated(
+    info: WesInfoMut,
+    lifecycle: WesLifecycleMut,
+    list_runs_broken: bool,
+) -> MockGa4ghDrsWes {
+    let server = MockServer::start().await;
+    super::mock_ga4gh_drs::mount_ga4gh_drs(&server).await;
+    mount_ga4gh_wes_mutated(
+        &server,
+        "Helix in-process WES fixture",
+        info,
+        lifecycle,
+        list_runs_broken,
+    )
+    .await;
     MockGa4ghDrsWes { server }
 }

@@ -13,8 +13,8 @@ use helix::verify::VerifyOutcome;
 mod support;
 
 use support::mock_adversarial::{
-    start_connection_reset, start_extremely_long_strings, start_huge_json,
-    start_invalid_content_type, start_invalid_headers, start_malformed_json,
+    start_ansi_and_log_injection, start_connection_reset, start_extremely_long_strings,
+    start_huge_json, start_invalid_content_type, start_invalid_headers, start_malformed_json,
     start_malformed_service_info, start_redirect, start_slow_response, start_unexpected_status,
     ADVERSARIAL_JWT, ADVERSARIAL_USERINFO, SLOW_DELAY,
 };
@@ -225,6 +225,21 @@ async fn extremely_long_strings_do_not_panic_or_pass_schema() {
         .find(|r| r.id == "drs.object.schema")
         .expect("schema");
     assert_ne!(schema.status, VerificationStatus::Pass);
+}
+
+#[tokio::test]
+async fn ansi_and_forged_newlines_do_not_control_the_report() {
+    let server = start_ansi_and_log_injection().await;
+    let outcome = twice(&server.uri(), "ansi / log injection").await;
+    let json = verify_json(&outcome.run).expect("json");
+    let text = helix::report::format_verify_text(&outcome.run, false);
+    assert!(!json.contains('\u{1b}'), "{json}");
+    assert!(!text.contains('\u{1b}'), "{text:?}");
+    assert!(text.starts_with("HELIX VERIFICATION\n"));
+    assert!(
+        !text.contains("\nHELIX VERIFICATION\n"),
+        "target must not inject a second report header:\n{text}"
+    );
 }
 
 #[tokio::test]

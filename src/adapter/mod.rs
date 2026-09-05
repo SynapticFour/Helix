@@ -14,12 +14,20 @@ use anyhow::Result;
 use common::config::{AuthChecksConfig, ServiceConfig, SubsetConfig, TestConfig};
 use common::http::HttpClient;
 use common::report::ServiceReport;
-use framework::drs::run_drs_checks;
+use framework::drs::{run_drs_checks, run_drs_checks_with_spec};
 use framework::wes::run_wes_checks;
 use framework::{Features, Mode};
 
 use crate::model::{Target, VerificationResult, VerificationRun, HELIXTEST_PIN, HELIXTEST_SHA};
 use crate::profile::Capabilities;
+use std::time::Duration;
+use tokio::time::timeout;
+
+/// Wall-clock cap around HelixTest DRS checks. Per-request timeout stays HelixTest (30s).
+/// Sized so a slow-but-valid target is not cut off; a hung client cannot run forever.
+pub const DRS_ADAPTER_WALL_SECS: u64 = 600;
+/// Wall-clock cap around HelixTest WES checks. HelixTest polls each run up to 300s.
+pub const WES_ADAPTER_WALL_SECS: u64 = 1800;
 
 mod translate;
 
@@ -106,6 +114,8 @@ impl AdapterOutcome {
 
 /// Intended seam ([ARCHITECTURE.md](../../docs/ARCHITECTURE.md) §5).
 /// Only production impl is [`HelixTestAdapter`].
+/// Target identity lives in [`crate::target`] (`HttpDrsTarget`). This adapter
+/// takes a public HTTP base URL only. Ferrum types cannot be passed in.
 pub trait ConformanceAdapter: Send + Sync {
     fn pin(&self) -> HelixTestPin;
 
@@ -141,6 +151,41 @@ impl HelixTestAdapter {
         self.capabilities = capabilities;
         self
     }
+
+    /// Versioned DRS path. Compiles `spec` only. Never calls bundled `run_drs_checks`.
+    pub async fn run_drs_with_spec(
+        &self,
+        base_url: &str,
+        spec: &common::spec_source::SpecSource,
+    ) -> Result<(AdapterOutcome, common::spec_source::SpecCompileResult)> {
+        let mut services = empty_services();
+        services.drs_url = base_url.trim_end_matches('/').to_string();
+        let cfg = TestConfig {
+            services,
+            subset: SubsetConfig::default(),
+            auth_checks: AuthChecksConfig::default(),
+        };
+        let (service_report, compile) = with_wall_timeout(
+            DRS_ADAPTER_WALL_SECS,
+            run_drs_checks_with_spec(
+                Mode::Generic,
+                &features_from(self.capabilities),
+                &cfg,
+                &HttpClient::new(),
+                spec,
+            ),
+        )
+        .await?;
+        let results = translate_service_report(&service_report);
+        Ok((
+            AdapterOutcome {
+                pin: self.pin,
+                service_report,
+                results,
+            },
+            compile,
+        ))
+    }
 }
 
 impl ConformanceAdapter for HelixTestAdapter {
@@ -157,11 +202,14 @@ impl ConformanceAdapter for HelixTestAdapter {
             auth_checks: AuthChecksConfig::default(),
         };
         // Always Generic: do not switch on WES `name`. Not Ferrum mode.
-        let service_report = run_drs_checks(
-            Mode::Generic,
-            &features_from(self.capabilities),
-            &cfg,
-            &HttpClient::new(),
+        let service_report = with_wall_timeout(
+            DRS_ADAPTER_WALL_SECS,
+            run_drs_checks(
+                Mode::Generic,
+                &features_from(self.capabilities),
+                &cfg,
+                &HttpClient::new(),
+            ),
         )
         .await?;
         let results = translate_service_report(&service_report);
@@ -182,11 +230,14 @@ impl ConformanceAdapter for HelixTestAdapter {
         };
         // Public HTTP only. Mode is unused in HelixTest `run_wes_checks`.
         // Scatter/gather follows profile capabilities, not Ferrum mode.
-        let service_report = run_wes_checks(
-            Mode::Generic,
-            &features_from(self.capabilities),
-            &cfg,
-            &HttpClient::new(),
+        let service_report = with_wall_timeout(
+            WES_ADAPTER_WALL_SECS,
+            run_wes_checks(
+                Mode::Generic,
+                &features_from(self.capabilities),
+                &cfg,
+                &HttpClient::new(),
+            ),
         )
         .await?;
         let results = translate_service_report(&service_report);
@@ -196,6 +247,24 @@ impl ConformanceAdapter for HelixTestAdapter {
             results,
         })
     }
+}
+
+async fn with_wall_timeout<F, T>(secs: u64, fut: F) -> Result<T>
+where
+    F: std::future::Future<Output = Result<T>>,
+{
+    with_wall_duration(Duration::from_secs(secs), secs, fut).await
+}
+
+async fn with_wall_duration<F, T>(d: Duration, secs_for_msg: u64, fut: F) -> Result<T>
+where
+    F: std::future::Future<Output = Result<T>>,
+{
+    timeout(d, fut).await.map_err(|_| {
+        anyhow::anyhow!(
+            "HelixTest adapter exceeded {secs_for_msg}s wall clock (target hung or never reached a terminal WES state)"
+        )
+    })?
 }
 
 #[cfg(test)]
@@ -209,5 +278,17 @@ mod tests {
         assert_eq!(pin.sha, "1832c043e1679ec283cb2113510ee33684317cce");
         assert_eq!(pin.tag, HELIXTEST_PIN);
         assert_eq!(pin.sha, HELIXTEST_SHA);
+    }
+
+    #[tokio::test]
+    async fn wall_timeout_fails_closed_without_waiting_the_future() {
+        let err = with_wall_duration(Duration::from_millis(20), 0, async {
+            tokio::time::sleep(Duration::from_secs(30)).await;
+            Ok::<(), anyhow::Error>(())
+        })
+        .await
+        .unwrap_err();
+        let msg = err.to_string();
+        assert!(msg.contains("wall clock"), "{msg}");
     }
 }

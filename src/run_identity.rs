@@ -26,6 +26,9 @@ pub struct RunIdentity {
     pub fixture_version: String,
     pub schema_version: String,
     pub timestamp: String,
+    /// Registry pack that actually ran (`selected` = `verified`). Empty when unversioned or selection failed.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub selected_pack: Option<String>,
     /// Bench only (`http.drs.smoke.v1`). Omitted on `helix verify`.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub workload_id: Option<String>,
@@ -68,6 +71,7 @@ impl RunIdentity {
                 run.schema_version.clone()
             },
             timestamp: run.timestamp.clone(),
+            selected_pack: selected_pack_id(run),
             workload_id: None,
             workload_version: None,
         }
@@ -87,6 +91,7 @@ impl RunIdentity {
             fixture_version: FIXTURE_VERSION.to_string(),
             schema_version: SCHEMA_VERSION.to_string(),
             timestamp: String::new(),
+            selected_pack: None,
             workload_id: Some(outcome.workload_id.clone()),
             workload_version: Some(outcome.workload_version.clone()),
         }
@@ -102,6 +107,7 @@ impl RunIdentity {
             && self.target == other.target
             && self.workload_id == other.workload_id
             && self.workload_version == other.workload_version
+            && self.selected_pack == other.selected_pack
     }
 
     pub fn suite_changed(&self, other: &Self) -> bool {
@@ -167,7 +173,22 @@ impl RunIdentity {
             &self.workload_version,
             &other.workload_version,
         );
+        push_opt(
+            &mut out,
+            "selected_pack",
+            &self.selected_pack,
+            &other.selected_pack,
+        );
         out
+    }
+}
+
+fn selected_pack_id(run: &VerificationRun) -> Option<String> {
+    let sel = run.standard_selection.as_ref()?;
+    if sel.selected_version.is_some() {
+        sel.standards_registry_entry.clone()
+    } else {
+        None
     }
 }
 
@@ -267,5 +288,62 @@ mod tests {
         assert!(ia.catalog_changed(&ib));
         a.profile = Some("ferrum".into());
         assert!(!RunIdentity::from_verify(&a).same_measurement(&ib));
+    }
+
+    #[test]
+    fn different_selected_pack_is_not_same_measurement() {
+        let mut a = run_at("http://127.0.0.1:9");
+        let mut b = a.clone();
+        a.standard_selection = Some(crate::model::StandardSelection {
+            mode: "explicit".into(),
+            selection_status: "SELECTED".into(),
+            substituted: false,
+            standard: Some("drs".into()),
+            requested_version: Some("1.4.0".into()),
+            detected_version: None,
+            selected_version: Some("1.4.0".into()),
+            verified_version: Some("1.4.0".into()),
+            standards_registry_entry: Some("ga4gh.drs.1.4.0".into()),
+            standards_source_commit: Some("abc".into()),
+            other_rows_not_selected: Vec::new(),
+            note: None,
+            integrity_validated: false,
+            integrity_ok: None,
+            pack_integrity_sha256: None,
+            schema_document_sha256: None,
+            schema_component_sha256: None,
+            execution_id: None,
+            schema_entry: None,
+            ..crate::model::StandardSelection::unversioned()
+        });
+        b.standard_selection = Some(crate::model::StandardSelection {
+            mode: "explicit".into(),
+            selection_status: "SELECTED".into(),
+            substituted: false,
+            standard: Some("drs".into()),
+            requested_version: Some("1.5.0".into()),
+            detected_version: None,
+            selected_version: Some("1.5.0".into()),
+            verified_version: Some("1.5.0".into()),
+            standards_registry_entry: Some("ga4gh.drs.1.5.0".into()),
+            standards_source_commit: Some("def".into()),
+            other_rows_not_selected: Vec::new(),
+            note: None,
+            integrity_validated: false,
+            integrity_ok: None,
+            pack_integrity_sha256: None,
+            schema_document_sha256: None,
+            schema_component_sha256: None,
+            execution_id: None,
+            schema_entry: None,
+            ..crate::model::StandardSelection::unversioned()
+        });
+        let ia = RunIdentity::from_verify(&a);
+        let ib = RunIdentity::from_verify(&b);
+        assert!(!ia.same_measurement(&ib));
+        assert!(ia
+            .mismatches(&ib)
+            .iter()
+            .any(|m| m.field == "selected_pack"));
     }
 }

@@ -1,12 +1,16 @@
 # Helix architecture
 
-Intended architecture for Stages 1–4. Not a capability claim. Not certification.
+**As-built (2026-09-05):** `helix verify` discovers DRS → WES → TES → TRS → htsget and **executes DRS and WES**. Also shipped: `helix security`, `helix bench`, `helix compare`, `helix matrix`, `helix standards`. `make prove` does not require Ferrum, Docker, or HELIOS. DRS 1.4.0 is **SUPPORTED** for technical verification within declared coverage. Exactly one shipped check is `normative`. Default verify is unversioned. Target identity is first-class (`src/target.rs`, [TARGETS.md](TARGETS.md)). External multi-implementation validation is **pending**.
 
-Helix is HelixTest becoming a standalone VERIFY product. HelixTest already runs (public repo, CI, Ferrum pin, SF-TR-2026-001 / 002). This document does not invent a second suite. It names the layers Helix owns, the adapter HelixTest occupies, and the rules later work must keep.
+If you are new: [FOR-EVALUATORS.md](FOR-EVALUATORS.md), then [TRUST.md](TRUST.md). Ferrum is an optional live HTTP target. HELIOS (`helios-audit`) is a different product.
 
-**As-built snapshot:** [ENGINEERING_AUDIT.md](ENGINEERING_AUDIT.md). **Decisions:** [DECISIONS.md](DECISIONS.md) (D1–D4). **CLI/JSON/exit codes:** [CLI_CONTRACT.md](CLI_CONTRACT.md). **Stage exits:** [HELIX_ROADMAP.md](HELIX_ROADMAP.md). **HELIOS gate:** [HELIX_VS_HELIOS.md](HELIX_VS_HELIOS.md).
+This file also describes **intended** later layers. Do not treat “intended”, “Stage n exit”, or a dated engineering snapshot as already done. Dated snapshots: [ENGINEERING_AUDIT.md](ENGINEERING_AUDIT.md) (2026-09-04), [OPEN_SOURCE_RELEASE_CHECKLIST.md](OPEN_SOURCE_RELEASE_CHECKLIST.md) (2026-09-04). Current stranger-facing verdict: [PUBLIC_READINESS_AUDIT.md](PUBLIC_READINESS_AUDIT.md).
 
-This file is the target shape. Adapter isolation is as-built (`src/adapter`); remaining gaps are called out. Do not treat “intended” as already implemented.
+**Decisions:** [DECISIONS.md](DECISIONS.md) (D1–D4). **CLI/JSON/exit codes:** [CLI_CONTRACT.md](CLI_CONTRACT.md). **Stage exits:** [HELIX_ROADMAP.md](HELIX_ROADMAP.md). **HELIOS gate:** [HELIX_VS_HELIOS.md](HELIX_VS_HELIOS.md).
+
+Helix is HelixTest becoming a standalone VERIFY product. HelixTest already runs (public repo, CI, pin **v0.1.3**). This document does not invent a second suite.
+
+Adapter isolation is as-built (`src/adapter`). Remaining gaps are called out.
 
 ---
 
@@ -28,11 +32,13 @@ human report / machine report / CI
 
 Ferrum is the **reference target** used to prove Stage 1 exit (`make up` / demo stack). It is never a Helix runtime crate, never started by Helix, and never required for `make prove` in this repo.
 
-Helix must be able to test **non-Ferrum** implementations. Stage 0 already proved generic DRS against an in-tree HTTP mock (D2). Helix CI uses the same idea (B1 mock in `tests/support/`; catalog [FIXTURES.md](FIXTURES.md)).
+Helix must be able to test **non-Ferrum** implementations. Stage 0 already proved generic DRS against an in-tree HTTP mock (D2). Helix CI uses the same idea (B1 mock in `tests/support/`; catalog [FIXTURES.md](FIXTURES.md); one-defect mutants [MUTATION.md](MUTATION.md)).
 
-**HELIOS is not part of this architecture.** Reproducibility, signed trails, RO-Crate, PDF, and ISO/AI-Act checklists stay in HELIOS (`helios-audit`). Helix answers *whether* a running system behaves. HELIOS answers *what* ran and *how* to reproduce it.
+**HELIOS is not part of this architecture.** Scientific reproducibility, signed trails, RO-Crate, PDF, and ISO/AI-Act checklists stay in HELIOS (`helios-audit`). Helix answers *whether* a running system behaves. HELIOS answers *what* ran and *how* to reproduce a pipeline. Helix’s clone-and-run fixture procedure ([INDEPENDENT_VERIFICATION.md](INDEPENDENT_VERIFICATION.md)) is not a HELIOS evidence pack and does not claim bit-for-bit JSON identity.
 
-Helix does not become a server. Helix does not issue authentication credentials (no IdP, no Passport broker, no production secrets). Dummy HS256 fixtures in `test-fixtures/` are test-only (NICHT FÜR PRODUKTION). Helix does not claim GA4GH certification. Green CI and a green `helix verify` are a technical signal.
+Helix does not become a server. Helix does not issue authentication credentials (no IdP, no Passport broker, no production secrets). Dummy HS256 fixtures in `test-fixtures/` are test-only (not for production). Helix does not claim GA4GH certification. Green CI and a green `helix verify` are a technical signal.
+
+**Trust:** do not ask a reviewer to believe Helix. Pins, tests, schemas, and recorded fields must be enough to accept or reject a result ([TRUST.md](TRUST.md)). Signed envelopes stay in HELIOS. **Enforcement:** [ARCHITECTURE_GUARDRAILS.md](ARCHITECTURE_GUARDRAILS.md) — a contributor should have to consciously violate the trust model rather than accidentally doing so.
 
 ---
 
@@ -131,7 +137,9 @@ Discovery does not run checks. It does not score. It does not start servers.
 
 **Helix-owned orchestration.** Check *bodies* currently live in HelixTest (`framework::drs::run_drs_checks`, `framework::wes::run_wes_checks`). Helix must call them only through the **conformance adapter** (§5).
 
-Stage 1 exit still requires DRS **and** WES against Ferrum local. TES/TRS/htsget may follow in the same stage if cheap; they are not the exit. Beacon / africa / infra wait.
+Stage 1 **CLI** ships DRS and WES execution. The roadmap **exit** (recorded DRS **and** WES against Ferrum local) is not a public artefact in this repo. TES/TRS/htsget may follow; they are not executed today. Beacon / africa / infra wait.
+
+`make prove` in this repo must keep working without Ferrum.
 
 If a service is missing, verification records a Fail or Skip according to the test definitions — it does not pretend the service passed. Today, missing DRS is a synthetic Fail on the first DRS name.
 
@@ -202,7 +210,7 @@ Rules:
 
 **Job:** Thin argv → layer call → print → exit.
 
-Surfaces: `helix verify`, `helix security`, `helix bench`. Binary name is `helix`. Never `helios`. HelixTest’s `helixtest` remains the tagged Ferrum-pin CLI until Stage 2 explicitly moves Ferrum’s pin.
+Surfaces: `helix verify`, `helix security`, `helix bench`, `helix compare`, `helix matrix`, `helix standards`. Binary name is `helix`. Never `helios`. HelixTest’s `helixtest` remains the tagged Ferrum-pin CLI until Stage 2 explicitly moves Ferrum’s pin.
 
 CLI does not start targets, does not open a server, does not bundle HELIOS.
 
@@ -212,7 +220,7 @@ Three consumers, different jobs:
 
 | Consumer | Role |
 |----------|------|
-| **This repo** (`.github/workflows/ci.yml`) | Checkout Helix + HelixTest at `VERSIONS.lock` SHA. `make prove`, `make verify-fixture`, clippy `-D warnings`, rustfmt. Secret-scan. Dependency-review (non-fatal). Proves Helix against in-process fixtures ([FIXTURES.md](FIXTURES.md)). No Ferrum required. Live `make test-live` is not CI. |
+| **This repo** (`.github/workflows/ci.yml`) | Checkout Helix + HelixTest at `VERSIONS.lock` SHA. `cargo fetch --locked`, `make prove` (`--offline`), `make independent-verify`, `make verify-fixture`, clippy `-D warnings`, rustfmt. Secret-scan. Dependency-review (non-fatal). Proves Helix against in-process fixtures ([FIXTURES.md](FIXTURES.md), [INDEPENDENT_VERIFICATION.md](INDEPENDENT_VERIFICATION.md)). No Ferrum required. Live `make test-live` is not CI. Not HELIOS. |
 | **helix-action** (sibling repo) | Optional PR comments at stable Helix `id` (`NEW_FAIL` / `FIXED` / `UNCHANGED_FAIL`). Fail only on new verification regressions vs last successful run of that workflow, or runtime errors. Bench warnings may be comments; they must not change that compare exit. Pilot on Ferrum `ci/helix-verify-pilot` only until Stage 2 exit. Not a required Ferrum `main` check. |
 | **Ferrum `main`** | Still clones tagged **HelixTest**, not Helix, until Stage 2 says otherwise. Not a Helix runtime dependency. |
 
@@ -253,13 +261,13 @@ pinned HelixTest crates (separate git root)
 
 Later, a second impl (in-tree cases, another engine) can sit behind the same trait. `helix verify` prints `VerificationRun`. Operators still run `helix verify <url>`.
 
-**As-built:** `src/adapter` invokes `run_drs_checks` / `run_wes_checks` and translates into Helix `VerificationResult`. `src/verify.rs` orchestrates discovery → testable → adapter. `helix verify --format json` prints `VerificationRun`. Details: [HELIXTEST_ADAPTER.md](HELIXTEST_ADAPTER.md), [DRS_PROFILE.md](DRS_PROFILE.md), [WES.md](WES.md). This is not a HelixTest merge, and not a new product.
+**As-built:** `src/adapter` invokes `run_drs_checks` (unversioned default verify), `run_drs_checks_with_spec` (versioned DRS pack, caller-supplied SpecSource), and `run_wes_checks`, and translates into Helix `VerificationResult`. `src/verify.rs` orchestrates discovery → testable → adapter. Versioned DRS execution loads local vendor bytes, compares returned schema identity, and still does not set `verified_version`. `helix verify --format json` prints `VerificationRun`. Details: [HELIXTEST_ADAPTER.md](HELIXTEST_ADAPTER.md), [DRS_PROFILE.md](DRS_PROFILE.md), [WES.md](WES.md). This is not a HelixTest merge, and not a new product.
 
 ### 5.3 What the adapter may use from HelixTest
 
 Allowed behind the adapter (current pin):
 
-- `run_drs_checks` and `run_wes_checks` (TES/TRS/htsget check functions as stages wire them)
+- `run_drs_checks` (unversioned), `run_drs_checks_with_spec` (versioned DRS SpecSource), and `run_wes_checks` (TES/TRS/htsget check functions as stages wire them)
 - `Features`, `Mode::Generic`
 - `TestConfig` / service URLs **filled from discovery**, not from Ferrum defaults
 - `HttpClient` for those checks (timeout/retry differences vs Helix discovery client are known; do not “fix” by importing Ferrum)
@@ -342,8 +350,10 @@ Rules for future Cursor agents and humans. Violating one is a defect, not a shor
 
 13. **Do not start Stage *n+1* product work in place of Stage *n* exit.** Stage 1 still needs DRS and WES against Ferrum local. Do not make helix-action a required Ferrum `main` check before Stage 2 exit. Do not use unverified `ghcr.io/example/mock-*` as proof (D2).
 
-14. **Keep the README honesty sentence** that prove greps: Helix tests behavior against the GA4GH spec, independent of implementation. Ferrum is used as a reference target, not a dependency.
+14. **Keep the README honesty sentence** that prove greps: Helix runs the same documented DRS and WES checks against any HTTP origin that implements those GA4GH paths. Ferrum is used as a reference target, not a dependency. Do not restore “tests behavior against the GA4GH spec” while no pack is SUPPORTED.
 
 15. **Do not change DRS (and later WES) case names** without treating it as a contract break for helix-action and HelixTest JSON consumers.
+
+16. **Trust-model guardrails are encoded**, not remembered. Schemas, `src/guardrails.rs`, `src/standards/validate.rs`, `src/claims.rs` `check_set`, and `tests/guardrails.rs` must fail closed. Do not weaken them to match a convenient implementation. Map: [ARCHITECTURE_GUARDRAILS.md](ARCHITECTURE_GUARDRAILS.md).
 
 If a request conflicts with these invariants, stop and say so. Do not “just add it.”

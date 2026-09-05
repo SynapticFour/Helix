@@ -53,6 +53,17 @@ impl Ga4ghService {
             Ga4ghService::Htsget => "htsget",
         }
     }
+
+    pub fn from_json_name(name: &str) -> Option<Self> {
+        match name {
+            "drs" => Some(Self::Drs),
+            "wes" => Some(Self::Wes),
+            "tes" => Some(Self::Tes),
+            "trs" => Some(Self::Trs),
+            "htsget" => Some(Self::Htsget),
+            _ => None,
+        }
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
@@ -160,6 +171,23 @@ impl ServiceDiscovery {
             http_status: None,
             service_info: ServiceInfoSnapshot::default(),
         }
+    }
+
+    /// Standard version Helix will treat as detected: 2xx service-info `type.version` only.
+    /// Never the URL path (`/v1`), never root `version` (implementation build).
+    pub fn detected_standard_version(&self) -> Option<String> {
+        if self.detection != Detection::Detected {
+            return None;
+        }
+        if !self.service_info.available {
+            return None;
+        }
+        self.service_info
+            .type_version
+            .as_deref()
+            .map(str::trim)
+            .filter(|s| !s.is_empty())
+            .map(str::to_string)
     }
 
     pub fn is_detected(&self) -> bool {
@@ -284,6 +312,12 @@ fn testability_for(kind: Ga4ghService) -> (Testability, Option<String>) {
     }
 }
 
+fn json_str_capped(v: Option<&Value>) -> Option<String> {
+    v.and_then(|x| x.as_str()).map(|s| {
+        crate::sanitize::sanitize_untrusted_n(s, crate::sanitize::MAX_UNTRUSTED_SHORT_CHARS)
+    })
+}
+
 fn snapshot_from_http(status: u16, body: &[u8]) -> ServiceInfoSnapshot {
     let mut snap = ServiceInfoSnapshot {
         available: (200..300).contains(&status),
@@ -299,21 +333,12 @@ fn snapshot_from_http(status: u16, body: &[u8]) -> ServiceInfoSnapshot {
     let Some(obj) = v.as_object() else {
         return snap;
     };
-    snap.id = obj.get("id").and_then(|x| x.as_str()).map(str::to_string);
-    snap.name = obj.get("name").and_then(|x| x.as_str()).map(str::to_string);
-    snap.version = obj
-        .get("version")
-        .and_then(|x| x.as_str())
-        .map(str::to_string);
+    snap.id = json_str_capped(obj.get("id"));
+    snap.name = json_str_capped(obj.get("name"));
+    snap.version = json_str_capped(obj.get("version"));
     if let Some(t) = obj.get("type").and_then(|x| x.as_object()) {
-        snap.type_artifact = t
-            .get("artifact")
-            .and_then(|x| x.as_str())
-            .map(str::to_string);
-        snap.type_version = t
-            .get("version")
-            .and_then(|x| x.as_str())
-            .map(str::to_string);
+        snap.type_artifact = json_str_capped(t.get("artifact"));
+        snap.type_version = json_str_capped(t.get("version"));
     }
     snap
 }
@@ -505,8 +530,9 @@ pub fn format_discovery_report(d: &Discovery) -> String {
     let mut out = String::new();
     out.push_str("Helix verify — GA4GH discovery (not conformance, not certification)\n");
     out.push_str(&format!("endpoint: {}\n", d.endpoint));
-    out.push_str("Helix tests behavior against the GA4GH spec, independent of implementation.\n");
+    out.push_str("Helix discovers published GA4GH HTTP paths, then runs documented checks.\n");
     out.push_str("Ferrum is used as a reference target, not a dependency.\n");
+    out.push_str("This is not a verification against a SUPPORTED GA4GH release.\n");
     out.push_str(
         "DETECTED is not a pass. TESTABLE means Helix will run checks, not that they passed.\n",
     );
@@ -592,6 +618,7 @@ mod tests {
             "https://example.org/ga4gh"
         );
         assert!(normalize_endpoint("ftp://x").is_err());
+        assert!(normalize_endpoint("file:///etc/passwd").is_err());
         assert!(normalize_endpoint("not-a-url").is_err());
         assert!(normalize_endpoint("").is_err());
         let with_userinfo = normalize_endpoint("http://alice:s3cret@example.org/ga4gh")
@@ -896,5 +923,70 @@ mod tests {
             d.record(Ga4ghService::Drs).unwrap().detection,
             Detection::NotDetected
         );
+    }
+
+    #[tokio::test]
+    async fn discovery_does_not_fetch_target_advertised_access_url() {
+        let bait = MockServer::start().await;
+        Mock::given(method("GET"))
+            .respond_with(ResponseTemplate::new(200).set_body_string("ssrf-bait"))
+            .expect(0)
+            .mount(&bait)
+            .await;
+
+        let server = MockServer::start().await;
+        Mock::given(method("GET"))
+            .and(path("/objects/test-object-1"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
+                "id": "test-object-1",
+                "access_methods": [{
+                    "type": "https",
+                    "access_url": { "url": format!("{}/metadata", bait.uri()) }
+                }]
+            })))
+            .mount(&server)
+            .await;
+
+        let d = discover(&server.uri(), &client()).await.unwrap();
+        assert_eq!(
+            d.record(Ga4ghService::Drs).unwrap().detection,
+            Detection::Detected
+        );
+    }
+
+    #[tokio::test]
+    async fn service_info_name_is_capped_and_ansi_stripped() {
+        let server = MockServer::start().await;
+        let name = format!("\x1b[32m{}\x1b[0m", "N".repeat(2000));
+        Mock::given(method("GET"))
+            .and(path("/ga4gh/drs/v1/objects/test-object-1"))
+            .respond_with(ResponseTemplate::new(404))
+            .mount(&server)
+            .await;
+        Mock::given(method("GET"))
+            .and(path("/ga4gh/drs/v1/service-info"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
+                "id": "org.example.drs",
+                "name": name,
+                "type": { "group": "org.ga4gh", "artifact": "drs", "version": "1.2.0" },
+                "next_page_token": "P".repeat(8000),
+                "version": "impl-1"
+            })))
+            .mount(&server)
+            .await;
+
+        let d = discover(&server.uri(), &client()).await.unwrap();
+        let snap = &d.get(Ga4ghService::Drs).unwrap().service_info;
+        let n = snap.name.as_deref().unwrap();
+        assert!(!n.contains('\u{1b}'), "{n:?}");
+        assert!(
+            n.chars().count() <= crate::sanitize::MAX_UNTRUSTED_SHORT_CHARS + 1,
+            "{}",
+            n.len()
+        );
+        assert_eq!(snap.type_version.as_deref(), Some("1.2.0"));
+        let row = format_discovery_row(d.get(Ga4ghService::Drs).unwrap());
+        assert!(!row.contains('\u{1b}'));
+        assert!(!row.contains("next_page_token"), "{row}");
     }
 }

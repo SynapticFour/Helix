@@ -224,7 +224,11 @@ pub fn parse_verification_run(raw: &str) -> Result<VerificationRun> {
     if value.get("passed").is_some() && value.get("executed").is_none() {
         bail!("JSON is not a Helix VerificationRun (has `passed`, no `executed`)");
     }
-    serde_json::from_value(value).context("JSON is not a Helix VerificationRun")
+    crate::guardrails::forbid_helios_keys(&value)?;
+    let run: VerificationRun =
+        serde_json::from_value(value).context("JSON is not a Helix VerificationRun")?;
+    crate::guardrails::check_run_with(&run, crate::guardrails::CheckMode::Load)?;
+    Ok(run)
 }
 
 pub fn compare_files(previous: &Path, current: &Path) -> Result<CompareReport> {

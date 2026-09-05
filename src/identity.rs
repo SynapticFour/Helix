@@ -16,7 +16,12 @@ pub enum Severity {
     Error,
 }
 
-/// Helix category. Not HelixTest `ComplianceLevel` or `TestCategory`.
+/// Helix domain category (schema, lifecycle, robustness, …).
+///
+/// This is **not** the claim taxonomy (`traceability.category`: normative /
+/// guidance / fixture / interoperability / security / benchmark). See
+/// docs/TAXONOMY.md. Domain `security` here means the check sits in the
+/// security family; it still cannot imply GA4GH conformance.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum CheckCategory {
@@ -138,6 +143,15 @@ pub const SPECS: &[CheckSpec] = &[
         Severity::Error,
         &["DRS invalid object id returns 404"],
     ),
+    s(
+        "drs.object.schema.openapi",
+        "HLX-DRS-006",
+        "DRS object matches the selected SpecSource DrsObject schema (no HelixTest extras)",
+        "drs",
+        CheckCategory::Schema,
+        Severity::Error,
+        &["DRS DrsObject OpenAPI SpecSource"],
+    ),
     // WES 001–008
     s(
         "wes.service_info.reachable",
@@ -151,7 +165,7 @@ pub const SPECS: &[CheckSpec] = &[
     s(
         "wes.service_info.schema",
         "HLX-WES-002",
-        "WES service-info matches GA4GH schema",
+        "WES service-info matches HelixTest-vendored ServiceInfo schema",
         "wes",
         CheckCategory::Schema,
         Severity::Error,
@@ -767,6 +781,7 @@ mod tests {
         ("drs.object.checksum", "HLX-DRS-003"),
         ("drs.object.range", "HLX-DRS-004"),
         ("drs.object.not_found", "HLX-DRS-005"),
+        ("drs.object.schema.openapi", "HLX-DRS-006"),
         ("wes.service_info.reachable", "HLX-WES-001"),
         ("wes.service_info.schema", "HLX-WES-002"),
         ("wes.run.lifecycle_success", "HLX-WES-003"),
@@ -839,6 +854,10 @@ mod tests {
         ("DRS checksum correctness", "drs.object.checksum"),
         ("DRS HTTP Range support", "drs.object.range"),
         ("DRS invalid object id returns 404", "drs.object.not_found"),
+        (
+            "DRS DrsObject OpenAPI SpecSource",
+            "drs.object.schema.openapi",
+        ),
         ("WES service-info reachable", "wes.service_info.reachable"),
         (
             "WES service-info schema (GA4GH official)",

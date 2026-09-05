@@ -23,6 +23,9 @@ pub const MAX_COMPARE_FILE_BYTES: u64 = 8 * 1024 * 1024;
 pub const MAX_SECRET_FILE_BYTES: u64 = 64 * 1024;
 pub const MAX_CRYPT4GH_FILE_BYTES: u64 = 1024 * 1024;
 
+/// Helix-owned client: rustls (default webpki roots), no redirect follow, no gzip/brotli
+/// (reqwest `default-features = false`). Invalid certificates fail the request (not DETECTED).
+/// Helix does not pin certificates and does not disable TLS verification.
 pub fn http_client() -> Result<Client> {
     Client::builder()
         .timeout(Duration::from_secs(HTTP_REQUEST_TIMEOUT_SECS))

@@ -1,6 +1,7 @@
 # Open-source release checklist (Helix)
 
-**Date:** 2026-09-04
+**Date:** 2026-09-04 (snapshot). Follow-up stranger-facing audit: [PUBLIC_READINESS_AUDIT.md](PUBLIC_READINESS_AUDIT.md) (2026-09-05). Do not treat this checklist as the current README claim set.
+
 **Scope:** `SynapticFour/Helix` working tree as reviewed (VERIFY CLI around HelixTest).
 **This document is a report.** It is not a release, a tag, a GitHub Release, a crates.io publish, or a public announcement.
 
@@ -205,7 +206,7 @@ Do not add a “sales / demo” issue type.
 
 **Gaps**
 
-- [DEPENDENCY.md](DEPENDENCY.md) still says “Until this repo contains a Rust lockfile” and “Docs-only `make prove`”. That is false today.
+- [DEPENDENCY.md](DEPENDENCY.md) records the lockfile, `--locked --offline` after `make fetch`, and Dependabot off. (Stale “no lockfile / docs-only prove” sentences are gone.)
 - HelixTest is not a `git = … rev = SHA` Cargo dependency. Two clones with different sibling HEADs compile different engines. `require-helixtest.sh` warns; it does not fail on SHA mismatch.
 - Transitive tree includes HelixTest’s `age` and friends even though Helix does not call that path. Supply-chain surface is HelixTest’s, not a Helix feature.
 

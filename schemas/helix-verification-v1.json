@@ -54,6 +54,10 @@
       "$ref": "#/$defs/target",
       "description": "What was tested against."
     },
+    "standard_selection": {
+      "$ref": "#/$defs/standardSelection",
+      "description": "How Helix chose or refused a GA4GH registry pack. Optional on files produced before this field. Producers always emit it. selected_version is Helix's choice, not a target declaration. substituted is always false. Not HELIOS."
+    },
     "discovery": {
       "type": "array",
       "description": "Services under the target. JSON name is `discovery`, not `services` (HelixTest OverallReport uses `services` and must not be emitted here). present=DETECTED, testable=TESTABLE. Neither is a pass.",
@@ -100,6 +104,17 @@
     "summary": {
       "$ref": "#/$defs/summary",
       "description": "Counts derived from executed and skipped. Not a score, not certification."
+    },
+    "layer_summary": {
+      "$ref": "#/$defs/layerSummary",
+      "description": "SCHEMA / BEHAVIOR / SECURITY / INTEROPERABILITY counts. SCHEMA PASS is not BEHAVIOR PASS. No percentage. Optional on old files. Producers always emit."
+    },
+    "claims": {
+      "type": "array",
+      "description": "Explicit verification claims computed from recorded fields. Human VERIFIED/NOT_VERIFIED text is generated only from this array. Not a score. Not GA4GH certification. Optional on old files. Producers always emit six items. SCHEMA PASS is not a schema VERIFIED claim.",
+      "items": {
+        "$ref": "#/$defs/claim"
+      }
     }
   },
   "$defs": {
@@ -112,7 +127,73 @@
           "type": "string",
           "minLength": 1,
           "description": "Normalized gateway-style origin (http or https, no trailing slash)."
+        },
+        "identity": {
+          "$ref": "#/$defs/targetIdentity",
+          "description": "First-class target identity. Distinct from pack/checker/catalog. Optional on files produced before B4. Producers always emit. Declared metadata is untrusted and never becomes verified_version."
         }
+      }
+    },
+    "nullableString": {
+      "type": ["string", "null"]
+    },
+    "standardSelection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode", "selection_status", "substituted"],
+      "description": "Pack selection for this run. requested_version is the operator instruction. detected_version is copied from 2xx service-info type.version only. selected_version and verified_version are Helix choices and must not be filled from a mere lookup of an AVAILABLE row. Not a claim the target declared the selected version.",
+      "properties": {
+        "mode": {
+          "type": "string",
+          "enum": ["unversioned", "explicit", "automatic", "compatibility"]
+        },
+        "selection_status": {
+          "type": "string",
+          "minLength": 1,
+          "description": "UNVERSIONED, SELECTED, AVAILABLE_BUT_NOT_SUPPORTED, NOT_SUPPORTED, UNKNOWN_TO_HELIX, NO_OFFICIAL_SUPPORTED, DEVELOPMENT_NOT_SELECTABLE, AMBIGUOUS, NEEDS_RELEASE_CLASS, INSUFFICIENT, MULTIPLE_PACKS_NOT_EXECUTABLE"
+        },
+        "substituted": {
+          "type": "boolean",
+          "const": false,
+          "description": "Silent substitution is forbidden. Always false. A true value is invalid JSON for this schema and is rejected by src/guardrails.rs."
+        },
+        "standard": { "$ref": "#/$defs/nullableString" },
+        "requested_version": { "$ref": "#/$defs/nullableString" },
+        "detected_version": { "$ref": "#/$defs/nullableString" },
+        "selected_version": { "$ref": "#/$defs/nullableString" },
+        "verified_version": { "$ref": "#/$defs/nullableString" },
+        "standards_registry_entry": { "$ref": "#/$defs/nullableString" },
+        "standards_source_commit": { "$ref": "#/$defs/nullableString" },
+        "other_rows_not_selected": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "note": { "type": "string" },
+        "integrity_validated": {
+          "type": "boolean",
+          "description": "True only when this verify run hashed the selected vendor tree. Default verify does not. Missing deserializes as false."
+        },
+        "integrity_ok": {
+          "type": "boolean",
+          "description": "Recorded hash result when integrity_validated. Omitted means not recorded (fail closed)."
+        },
+        "pack_integrity_sha256": { "$ref": "#/$defs/nullableString" },
+        "schema_document_sha256": { "$ref": "#/$defs/nullableString" },
+        "schema_component_sha256": { "$ref": "#/$defs/nullableString" },
+        "execution_id": { "$ref": "#/$defs/nullableString" },
+        "target_execution_id": {
+          "$ref": "#/$defs/nullableString",
+          "description": "sha256 of target identity plus pack/checker/catalog join fields. Distinct from execution_id (spec-join only). Target A and Target B must differ even when pack hashes match."
+        },
+        "schema_entry": { "$ref": "#/$defs/nullableString" },
+        "catalog_id": { "$ref": "#/$defs/nullableString" },
+        "binding_id": { "$ref": "#/$defs/nullableString" },
+        "checker_id": { "$ref": "#/$defs/nullableString" },
+        "support_status": { "$ref": "#/$defs/nullableString" },
+        "coverage_schema": { "$ref": "#/$defs/nullableString" },
+        "coverage_behavior": { "$ref": "#/$defs/nullableString" },
+        "coverage_security": { "$ref": "#/$defs/nullableString" },
+        "coverage_interoperability": { "$ref": "#/$defs/nullableString" }
       }
     },
     "discoveredService": {
@@ -141,6 +222,85 @@
         }
       }
     },
+    "targetIdentity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["target_id", "target_kind", "endpoint", "declared", "verified"],
+      "description": "What was verified. Declared and detected metadata are untrusted. verified is the executed origin+id, not a GA4GH version claim.",
+      "properties": {
+        "target_id": { "type": "string", "minLength": 1 },
+        "target_kind": {
+          "type": "string",
+          "enum": [
+            "mock",
+            "fixture",
+            "synthetic_target",
+            "reference_implementation",
+            "real_independent_local_implementation",
+            "real_external_implementation",
+            "unspecified"
+          ]
+        },
+        "implementation_name": { "type": "string" },
+        "implementation_version": { "type": "string" },
+        "endpoint": { "type": "string", "minLength": 1 },
+        "declared": { "$ref": "#/$defs/declaredTarget" },
+        "detected": { "$ref": "#/$defs/detectedTarget" },
+        "verified": { "$ref": "#/$defs/verifiedTargetIdentity" }
+      }
+    },
+    "declaredTarget": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "target_id": { "type": "string" },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "mock",
+            "fixture",
+            "synthetic_target",
+            "reference_implementation",
+            "real_independent_local_implementation",
+            "real_external_implementation",
+            "unspecified"
+          ]
+        },
+        "implementation_name": { "type": "string" },
+        "implementation_version": { "type": "string" },
+        "standard_version": { "type": "string" }
+      }
+    },
+    "detectedTarget": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "implementation_name": { "type": "string" },
+        "implementation_version": { "type": "string" },
+        "standard_version": { "type": "string" }
+      }
+    },
+    "verifiedTargetIdentity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["target_id", "endpoint", "target_kind"],
+      "properties": {
+        "target_id": { "type": "string", "minLength": 1 },
+        "endpoint": { "type": "string", "minLength": 1 },
+        "target_kind": {
+          "type": "string",
+          "enum": [
+            "mock",
+            "fixture",
+            "synthetic_target",
+            "reference_implementation",
+            "real_independent_local_implementation",
+            "real_external_implementation",
+            "unspecified"
+          ]
+        }
+      }
+    },
     "status": {
       "type": "string",
       "enum": ["pass", "fail", "skip", "error"],
@@ -161,6 +321,169 @@
         "security",
         "performance",
         "other"
+      ]
+    },
+    "checkKind": {
+      "type": "string",
+      "enum": [
+        "normative",
+        "guidance",
+        "fixture",
+        "interoperability",
+        "security",
+        "benchmark"
+      ],
+      "description": "Claim taxonomy. Same values as traceability.category. normative = locator in pinned GA4GH bytes Helix loaded. guidance = official GA4GH implementation guidance, not HelixTest policy. All other kinds are Helix or HelixTest behaviour. Do not label fixture extras as normative. Not VerificationResult.category (schema, lifecycle, …)."
+    },
+    "claimScope": {
+      "type": "string",
+      "enum": [
+        "ga4gh_requirement",
+        "guidance_not_requirement",
+        "helix_fixture",
+        "interoperability_observation",
+        "security_behavior",
+        "performance_measurement"
+      ],
+      "description": "What a PASS is allowed to mean. Must match category. Only ga4gh_requirement may support a conformance sentence, and only with category=normative."
+    },
+    "checkLayer": {
+      "type": "string",
+      "enum": [
+        "schema",
+        "behavior",
+        "security",
+        "interoperability",
+        "benchmark"
+      ],
+      "description": "Evidence layer. SCHEMA PASS is not BEHAVIOR PASS. SECURITY PASS is not GA4GH conformance. INTEROPERABILITY PASS is not a MUST. benchmark is not a conformance layer. Not a score."
+    },
+    "authority": {
+      "type": "string",
+      "enum": ["ga4gh", "helix", "helixtest"]
+    },
+    "relatedSource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "registry_entry",
+        "standard",
+        "version",
+        "release_class",
+        "source_repository",
+        "source_commit",
+        "source_file",
+        "locator_type",
+        "locator",
+        "limitation"
+      ],
+      "description": "AVAILABLE pin a reviewer can open. Not a claim Helix executed that pin. Not a MUST.",
+      "properties": {
+        "registry_entry": { "type": "string", "minLength": 1 },
+        "standard": { "type": "string", "minLength": 1 },
+        "version": { "type": "string", "minLength": 1 },
+        "release_class": {
+          "type": "string",
+          "enum": ["official", "ballot", "snapshot", "development"]
+        },
+        "source_repository": { "type": "string", "minLength": 1 },
+        "source_commit": { "type": "string", "minLength": 1 },
+        "source_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "source_file": { "type": "string", "minLength": 1 },
+        "locator_type": {
+          "type": "string",
+          "enum": [
+            "operation_id",
+            "schema_name",
+            "json_pointer",
+            "http_path",
+            "status_code",
+            "quote"
+          ]
+        },
+        "locator": { "type": "string", "minLength": 1 },
+        "limitation": { "type": "string", "minLength": 1 }
+      }
+    },
+    "traceability": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "check_id",
+        "category",
+        "check_kind",
+        "claim_scope",
+        "authority",
+        "expected_behavior",
+        "implementation",
+        "layer"
+      ],
+      "description": "Independent-audit chain for one check. category is the claim taxonomy (not result.category). check_kind must equal category. claim_scope must match category. Pack identity fields are filled only for kind=normative. related_source is optional and is not verified-against.",
+      "properties": {
+        "check_id": { "type": "string", "minLength": 1 },
+        "category": { "$ref": "#/$defs/checkKind" },
+        "check_kind": { "$ref": "#/$defs/checkKind" },
+        "claim_scope": { "$ref": "#/$defs/claimScope" },
+        "authority": { "$ref": "#/$defs/authority" },
+        "expected_behavior": { "type": "string", "minLength": 1 },
+        "implementation": { "type": "string", "minLength": 1 },
+        "layer": { "$ref": "#/$defs/checkLayer" },
+        "request": { "type": "string" },
+        "untraceable_reason": { "type": "string" },
+        "standard": { "$ref": "#/$defs/nullableString" },
+        "version": { "$ref": "#/$defs/nullableString" },
+        "release_class": { "$ref": "#/$defs/nullableString" },
+        "registry_entry": { "$ref": "#/$defs/nullableString" },
+        "source_repository": { "$ref": "#/$defs/nullableString" },
+        "source_commit": { "$ref": "#/$defs/nullableString" },
+        "source_sha256": { "$ref": "#/$defs/nullableString" },
+        "source_file": { "$ref": "#/$defs/nullableString" },
+        "source_location": { "$ref": "#/$defs/nullableString" },
+        "related_source": { "$ref": "#/$defs/relatedSource" }
+      },
+      "oneOf": [
+        {
+          "properties": {
+            "category": { "const": "normative" },
+            "check_kind": { "const": "normative" },
+            "claim_scope": { "const": "ga4gh_requirement" }
+          }
+        },
+        {
+          "properties": {
+            "category": { "const": "guidance" },
+            "check_kind": { "const": "guidance" },
+            "claim_scope": { "const": "guidance_not_requirement" }
+          }
+        },
+        {
+          "properties": {
+            "category": { "const": "fixture" },
+            "check_kind": { "const": "fixture" },
+            "claim_scope": { "const": "helix_fixture" }
+          }
+        },
+        {
+          "properties": {
+            "category": { "const": "interoperability" },
+            "check_kind": { "const": "interoperability" },
+            "claim_scope": { "const": "interoperability_observation" }
+          }
+        },
+        {
+          "properties": {
+            "category": { "const": "security" },
+            "check_kind": { "const": "security" },
+            "claim_scope": { "const": "security_behavior" }
+          }
+        },
+        {
+          "properties": {
+            "category": { "const": "benchmark" },
+            "check_kind": { "const": "benchmark" },
+            "claim_scope": { "const": "performance_measurement" }
+          }
+        }
       ]
     },
     "failure": {
@@ -262,6 +585,34 @@
           "type": "string",
           "minLength": 1
         },
+        "standard": {
+          "$ref": "#/$defs/nullableString",
+          "description": "GA4GH standard this check belongs to (usually the same as service). Not a declared version."
+        },
+        "requested_version": {
+          "$ref": "#/$defs/nullableString",
+          "description": "Operator --version for this standard. Null when unversioned or this service was not requested."
+        },
+        "detected_version": {
+          "$ref": "#/$defs/nullableString",
+          "description": "Copied from 2xx service-info type.version only. Never inferred from URL /v1. Never copied from selected_version."
+        },
+        "selected_version": {
+          "$ref": "#/$defs/nullableString",
+          "description": "Registry version Helix chose to load. Null when selection failed or the row is AVAILABLE-only. Not a target declaration."
+        },
+        "verified_version": {
+          "$ref": "#/$defs/nullableString",
+          "description": "Version claim permitted by the complete claim predicates. Null when those predicates do not hold. Join success alone does not populate this field. Requires selected_version and join hashes when set."
+        },
+        "standards_registry_entry": {
+          "$ref": "#/$defs/nullableString",
+          "description": "Registry pack_id involved in this decision. Presence of a looked-up AVAILABLE row is not selection."
+        },
+        "standards_source_commit": {
+          "$ref": "#/$defs/nullableString",
+          "description": "Pinned GA4GH git commit for standards_registry_entry."
+        },
         "category": {
           "$ref": "#/$defs/category"
         },
@@ -282,9 +633,72 @@
         },
         "diagnostic": {
           "$ref": "#/$defs/diagnostic"
+        },
+        "traceability": {
+          "$ref": "#/$defs/traceability",
+          "description": "Kind, authority, claim_scope, expected behaviour, implementation, layer, and optional related AVAILABLE pin. Producers always emit. Missing on old files. category is the claim taxonomy (not result.category). kind=normative requires source_commit and source_file. Fixture cannot be serialized as normative. Not certification. See docs/TAXONOMY.md, docs/BEHAVIOR.md and docs/TRACEABILITY.md."
+        },
+        "layer": {
+          "$ref": "#/$defs/checkLayer",
+          "description": "Evidence layer copied from the catalog. SCHEMA PASS is not BEHAVIOR PASS."
+        },
+        "observed_response": {
+          "type": "string",
+          "description": "Observed body/status summary on fail/error when a diagnostic exists. Absent on pass."
+        },
+        "target_id": {
+          "type": "string",
+          "description": "Target identity id this row was executed against. Not a version claim."
+        },
+        "attribution": {
+          "type": "string",
+          "enum": [
+            "spec_failure",
+            "target_failure",
+            "transport_failure",
+            "target_configuration_failure",
+            "helix_execution_failure",
+            "unsupported_test",
+            "unknown"
+          ],
+          "description": "Whether a fail/error is target behavior, transport, configuration, or Helix execution. Absent on pass. Skip is unsupported_test."
         }
       },
       "allOf": [
+        {
+          "if": {
+            "properties": {
+              "traceability": {
+                "properties": {
+                  "check_kind": {
+                    "const": "normative"
+                  }
+                },
+                "required": ["check_kind"]
+              }
+            },
+            "required": ["traceability"]
+          },
+          "then": {
+            "properties": {
+              "traceability": {
+                "required": [
+                  "source_commit",
+                  "source_file",
+                  "source_location",
+                  "version",
+                  "release_class",
+                  "registry_entry",
+                  "source_repository"
+                ],
+                "properties": {
+                  "authority": { "const": "ga4gh" },
+                  "untraceable_reason": false
+                }
+              }
+            }
+          }
+        },
         {
           "if": {
             "properties": {
@@ -340,6 +754,134 @@
         "total": {
           "type": "integer",
           "minimum": 0
+        }
+      }
+    },
+    "layerCounts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["passed", "failed", "skipped", "errors", "total"],
+      "properties": {
+        "passed": { "type": "integer", "minimum": 0 },
+        "failed": { "type": "integer", "minimum": 0 },
+        "skipped": { "type": "integer", "minimum": 0 },
+        "errors": { "type": "integer", "minimum": 0 },
+        "total": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "layerSummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema", "behavior", "security", "interoperability", "note"],
+      "description": "Not a score. Must not contain percent, compliant, or score.",
+      "properties": {
+        "schema": { "$ref": "#/$defs/layerCounts" },
+        "behavior": { "$ref": "#/$defs/layerCounts" },
+        "security": { "$ref": "#/$defs/layerCounts" },
+        "interoperability": { "$ref": "#/$defs/layerCounts" },
+        "note": { "type": "string", "minLength": 1 }
+      }
+    },
+    "claimKind": {
+      "type": "string",
+      "enum": [
+        "ga4gh_requirement",
+        "schema",
+        "behavior",
+        "interoperability",
+        "security",
+        "benchmark"
+      ]
+    },
+    "claimStatus": {
+      "type": "string",
+      "enum": ["verified", "not_verified"]
+    },
+    "claimPredicate": {
+      "type": "string",
+      "enum": [
+        "exact_standard_identified",
+        "supported_release_selected",
+        "pinned_specification_source",
+        "integrity_validation_successful",
+        "selected_equals_tested",
+        "required_normative_checks_executed",
+        "required_normative_checks_passed",
+        "no_blocking_normative_failures",
+        "coverage_requirements_satisfied",
+        "evidence_recorded",
+        "no_substitution"
+      ]
+    },
+    "claimBlockCode": {
+      "type": "string",
+      "enum": [
+        "unversioned_run",
+        "no_version_selected",
+        "standard_not_identified",
+        "available_but_not_supported",
+        "not_supported",
+        "unknown_version",
+        "no_official_supported",
+        "development_not_selectable",
+        "ambiguous_selection",
+        "needs_release_class",
+        "insufficient_selection",
+        "multiple_packs_not_executable",
+        "selected_ne_verified",
+        "substitution_detected",
+        "provenance_missing",
+        "integrity_validation_not_recorded",
+        "integrity_mismatch",
+        "no_normative_checks",
+        "incomplete_normative_coverage",
+        "normative_check_failed",
+        "normative_check_error",
+        "no_checks_recorded",
+        "interoperability_is_not_a_ga4gh_requirement",
+        "benchmark_is_measurement_only"
+      ]
+    },
+    "claimEvidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["field"],
+      "description": "Recorded field or check that blocks a claim. Not a HELIOS evidence pack.",
+      "properties": {
+        "field": { "type": "string", "minLength": 1 },
+        "check_id": { "type": "string", "minLength": 1 },
+        "observed": { "type": "string" },
+        "expected": { "type": "string" },
+        "value": { "type": "string" }
+      }
+    },
+    "claimBlock": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code"],
+      "properties": {
+        "code": { "$ref": "#/$defs/claimBlockCode" },
+        "evidence": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/claimEvidence" }
+        }
+      }
+    },
+    "claim": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "status", "satisfied", "blocks"],
+      "description": "One verification claim. status=verified only when every required predicate holds. Not certification.",
+      "properties": {
+        "kind": { "$ref": "#/$defs/claimKind" },
+        "status": { "$ref": "#/$defs/claimStatus" },
+        "satisfied": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/claimPredicate" }
+        },
+        "blocks": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/claimBlock" }
         }
       }
     }

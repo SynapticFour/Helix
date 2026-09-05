@@ -18,10 +18,12 @@ This is not certification, not HELIOS, not a compliance score.
 | `code` | Failure / catalog code, `HLX-<FAMILY>-NNN` | `HLX-DRS-005` |
 | `name` | Helix human-readable title (may differ from HelixTest) | `Unknown DRS object returns 404` |
 | `service` | Open string (`drs`, `wes`, …) | `drs` |
-| `category` | Helix category (not a HelixTest level) | `robustness` |
+| `category` | Helix **domain** (not a HelixTest level; not the claim taxonomy) | `robustness` |
 | `severity` | Default severity if the check **fails** (`info` / `warn` / `error`) | `error` |
 
 HelixTest wrap (optional): one or more exact `TestCaseResult.name` strings. Empty for Helix-native checks (discovery, `helix security`, `helix bench`).
+
+Every assigned id also has a **traceability** row (`src/traceability.rs`, JSON `traceability`, `helix standards trace`): `category` (claim taxonomy), `check_kind` (same value), `claim_scope`, `authority`, `expected_behavior`, `implementation`, `layer` (schema / behavior / security / interoperability / benchmark), optional `request`, and either a complete GA4GH locator or `untraceable_reason`. None of the shipped rows are `kind=normative` or `guidance`. Domain `category` (this table) is not `traceability.category`. `layer` is a third axis: SCHEMA PASS is not BEHAVIOR PASS ([BEHAVIOR.md](BEHAVIOR.md)). Follow-back: [TAXONOMY.md](TAXONOMY.md), [TRACEABILITY.md](TRACEABILITY.md). Not certification.
 
 `code` is the stable failure code. A result’s `failure.code` repeats it on FAIL/ERROR. Do not invent a second numbering system. Fail/error rows for assigned DRS and WES ids may also carry a deterministic `diagnostic` that repeats `id` / `code` plus expected/observed text ([DIAGNOSTICS.md](DIAGNOSTICS.md)). That is not a new family of codes.
 
@@ -112,7 +114,7 @@ HelixTest already runs these eight names. Helix executes them through the generi
 | id | code | Helix name | HelixTest test name |
 |----|------|------------|---------------------|
 | `wes.service_info.reachable` | `HLX-WES-001` | WES service-info is reachable | `WES service-info reachable` |
-| `wes.service_info.schema` | `HLX-WES-002` | WES service-info matches GA4GH schema | `WES service-info schema (GA4GH official)` |
+| `wes.service_info.schema` | `HLX-WES-002` | WES service-info matches HelixTest-vendored ServiceInfo schema | `WES service-info schema (GA4GH official)` |
 | `wes.run.lifecycle_success` | `HLX-WES-003` | WES echo workflow reaches success | `WES lifecycle success echo (API may show QUEUED/INITIALIZING/RUNNING before COMPLETE)` |
 | `wes.run.failure_state` | `HLX-WES-004` | WES reports failure for a bad workflow | `WES failure state for bad workflow` |
 | `wes.run.missing_inputs` | `HLX-WES-005` | WES errors when inputs are missing | `WES missing inputs leads to error state` |

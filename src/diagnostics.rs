@@ -73,7 +73,7 @@ const SPECS: &[Spec] = &[
     },
     Spec {
         id: "drs.object.schema",
-        expected: "DrsObject JSON that validates against the GA4GH schema and includes id, self_uri, name, and a non-empty access_methods array",
+        expected: "DrsObject JSON that validates against the HelixTest-vendored schema (not a Helix registry pin) and includes id, self_uri, name, and a non-empty access_methods array",
         category: DiagnosticCategory::Schema,
         hint: "The object body did not match the documented DrsObject shape. Helix does not infer which field the implementer intended.",
         possible_causes: &[
@@ -268,7 +268,7 @@ fn observed_for(id: &str, message: &str) -> String {
             return format!("sha256 digest {got} (object advertised {exp})");
         }
     }
-    crate::redact::redact_text(&format!("{NOT_DETERMINED} Check output: {message}"))
+    crate::sanitize::sanitize_untrusted(&format!("{NOT_DETERMINED} Check output: {message}"))
 }
 
 fn hint_for(spec: &Spec, id: &str, observed: &str) -> String {

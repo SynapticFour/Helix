@@ -51,7 +51,7 @@ Repos that run a local Docker stack share `up` / `down` / `destroy`. Helix does 
 
 ```bash
 # No stack: in-process DRS fixture
-cd ../Helix && make prove && make verify-fixture
+cd ../Helix && make fetch && make prove && make verify-fixture
 
 # Target you started (example)
 cd ../Ferrum && make up
@@ -61,4 +61,4 @@ cd ../Helix && make test-live HELIX_LIVE_URL=http://127.0.0.1:8080
 
 ## CI
 
-GitHub Actions check out HelixTest at [VERSIONS.lock](../VERSIONS.lock) SHA `1832c043…`, then `make prove`, `make verify-fixture`, clippy `-D warnings`, rustfmt. Ferrum **`main`** still runs **HelixTest**, not helix-action. helix-action is only on Ferrum `ci/helix-verify-pilot`. Dependabot/Renovate off — [DEPENDENCY.md](DEPENDENCY.md).
+GitHub Actions check out HelixTest at [VERSIONS.lock](../VERSIONS.lock) SHA `1832c043…`, then `cargo fetch --locked`, `make prove` (`--offline`), `make independent-verify`, `make verify-fixture`, clippy `-D warnings`, rustfmt. Ferrum **`main`** still runs **HelixTest**, not helix-action. helix-action is only on Ferrum `ci/helix-verify-pilot`. Dependabot/Renovate off — [DEPENDENCY.md](DEPENDENCY.md). Procedure: [INDEPENDENT_VERIFICATION.md](INDEPENDENT_VERIFICATION.md).

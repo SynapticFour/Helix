@@ -21,7 +21,7 @@ Full contract (spec vs fixtures vs optional vs current-runner extras): [../EXTER
 
 - No sales call, demo booking, or mailing list.
 - No Synaptic Four account. Cloning the public GitHub repositories does not require a GitHub account.
-- No Helix Cloud or other hosted service. After the first crate download from crates.io (public, no account), `make prove` / `make verify-fixture` run on your machine.
+- No Helix Cloud or other hosted service. `make fetch` downloads crates from crates.io (public, no account) at `Cargo.lock` checksums. After that, `make prove` / `make independent-verify` / `make verify-fixture` run offline from pinned material ([../INDEPENDENT_VERIFICATION.md](../INDEPENDENT_VERIFICATION.md)).
 - Helix does not send telemetry, usage pings, or crash reports.
 
 GitHub Issues (optional, for filing a bug) uses a GitHub account, not a Synaptic Four account. You can fill [FAILURE_REPORT.md](FAILURE_REPORT.md) and keep it locally.

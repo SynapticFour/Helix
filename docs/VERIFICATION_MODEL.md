@@ -35,7 +35,8 @@ code: HLX-DRS-005
 | `Severity` | `info` / `warn` / `error` — not a score |
 | `FailureCode` | Why a fail/error happened (`code`, optional `detail`) |
 | `FailureDiagnostic` | Optional structured explanation on fail/error for catalogued DRS/WES ids ([DIAGNOSTICS.md](DIAGNOSTICS.md)). Possible causes, not a cause. Absent on pass/skip |
-| `VerificationResult` | One executed or skipped check |
+| `StandardSelection` | How Helix chose or refused a registry pack. `selected_version` is not a target declaration |
+| `VerificationResult` | One executed or skipped check. Always records the seven standard-version fields (null when empty) |
 
 Translated rows may include `helixtest_name`: the original HelixTest `TestCaseResult.name`. Helix `id` / `code` / `name` still come from the catalog. The adapter never converts SKIP into PASS and does not read HelixTest `passed`.
 | `VerificationSummary` | Counts: passed, failed, skipped, errors, total |
@@ -56,6 +57,7 @@ Translated rows may include `helixtest_name`: the original HelixTest `TestCaseRe
 | `helixtest_sha` | HelixTest git SHA from the lockfile |
 | `profile` | Helix profile id: `generic` (default) or `ferrum`. Not HelixTest Mode. Not inferred from the target. Each result has `service` |
 | `fixture_version` | Fixture catalog id `helix-fixtures-v1` ([FIXTURES.md](FIXTURES.md), [RUN_IDENTITY.md](RUN_IDENTITY.md)). Compare identity, not HELIOS |
+| `standard_selection` | Pack selection for this run ([STANDARD_VERSIONING.md](STANDARD_VERSIONING.md)) |
 | `timestamp` | RFC3339 UTC (wall clock). Identical inputs differ only here |
 | `discovery` | Present / missing services (discovery is not a pass) |
 | `executed` | Results with status pass, fail, or error |
@@ -141,7 +143,7 @@ TES / TRS / htsget catalog rows exist; `helix verify` does not execute them. DET
 }
 ```
 
-This **is** what `helix verify --format json` prints. `present` / `testable` on discovery are not passes. Skip cannot be stored or serialized as pass. WES scatter/gather appears in `skipped` on profile `generic` and in `executed` on profile `ferrum`. Run-level `profile` is the Helix profile id; per-check `profile: "generic"` is HelixTest Mode::Generic. `diagnostic` is optional and omitted on pass/skip; it is not a new check and does not change status or exit codes ([DIAGNOSTICS.md](DIAGNOSTICS.md)).
+This **is** what `helix verify --format json` prints. `present` / `testable` on discovery are not passes. Skip cannot be stored or serialized as pass. WES scatter/gather appears in `skipped` on profile `generic` and in `executed` on profile `ferrum`. Run-level `profile` is the Helix profile id; per-check `profile: "generic"` is HelixTest Mode::Generic. `diagnostic` is optional and omitted on pass/skip; it is not a new check and does not change status or exit codes ([DIAGNOSTICS.md](DIAGNOSTICS.md)). `traceability` is always emitted by producers: `category` / `check_kind` is not `normative` in the shipped catalog; `claim_scope` is never `ga4gh_requirement` ([TAXONOMY.md](TAXONOMY.md), [TRACEABILITY.md](TRACEABILITY.md)). `layer` / `layer_summary` classify SCHEMA vs BEHAVIOR vs SECURITY vs INTEROPERABILITY independently; SCHEMA PASS is not BEHAVIOR PASS; there is no compliance percentage ([BEHAVIOR.md](BEHAVIOR.md)). `claims[]` is always emitted by producers and is the only source of VERIFIED / NOT_VERIFIED sentences; an honest DRS PASS is still `not_verified` ([CLAIMS.md](CLAIMS.md)).
 
 ---
 
