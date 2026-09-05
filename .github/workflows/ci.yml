@@ -29,7 +29,7 @@ jobs:
           path: HelixTest
           ref: 1832c043e1679ec283cb2113510ee33684317cce
       - name: Install Rust
-        uses: dtolnay/rust-toolchain@master
+        uses: dtolnay/rust-toolchain@d1031067263f94b142dd6c0ce24c5eb9d02d52a0 # 2026-09-05
         with:
           toolchain: 1.91.1
           components: rustfmt, clippy
