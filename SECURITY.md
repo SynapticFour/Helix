@@ -13,4 +13,4 @@ We will acknowledge receipt as quickly as possible, triage severity, and coordin
 
 ## Scope and Guarantees
 
-This project is maintained on a best-effort basis (single-steward). Security documentation and test coverage improve over time, but no absolute security guarantee is provided.
+This project is maintained on a best-effort basis. Security documentation and test coverage improve over time, but no absolute security guarantee is provided.

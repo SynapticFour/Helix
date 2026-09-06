@@ -1,6 +1,6 @@
 # Helix roadmap
 
-Scope stages, not calendar dates. Capacity is single-steward; a stage is done when its exit criterion is met, not when a month ends.
+Scope stages, not calendar dates. A stage is done when its exit criterion is met, not when a month ends.
 
 **Synaptic Four builds the infrastructure. Helix proves it works.** Positioning: [HELIX_VISION.md](HELIX_VISION.md). What the suite actually runs today: [INVENTORY.md](../INVENTORY.md). HELIOS is not on this ladder.
 
