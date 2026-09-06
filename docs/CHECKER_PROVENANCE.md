@@ -23,19 +23,29 @@ HelixTest already runs. Helix productizes that engine as a path dependency (`../
 
 ## 2. How executed identity is computed
 
-Compile-time (HelixTest `crates/framework/build.rs` and Helix `build.rs`, same manifest):
+Compile-time (HelixTest `crates/framework/build.rs` and Helix `build.rs`, same `helix-drs-checker-v2` manifest):
 
 ```text
-helix-drs-checker-v1
+helix-drs-checker-v2
+file=crates/framework/checker_source_v2.txt
+sha256=<list file>
 file=crates/framework/src/drs.rs
+sha256=<file>
+file=crates/framework/src/level0.rs
 sha256=<file>
 file=crates/common/src/ga4gh_schemas.rs
 sha256=<file>
 file=crates/common/src/spec_source.rs
 sha256=<file>
+file=crates/common/src/http.rs
+sha256=<file>
+file=crates/common/src/util.rs
+sha256=<file>
+file=schemas/ga4gh/drs-openapi.yaml
+sha256=<file>
 ```
 
-SHA-256 of that UTF-8 is `HELIXTEST_CHECKER_SOURCE_SHA256`. HelixTest embeds it as `HELIXTEST_DRS_CHECKER_SOURCE_SHA256`. Helix panics at build if [VERSIONS.lock](../VERSIONS.lock) disagrees with the sibling files Cargo will compile.
+SHA-256 of that UTF-8 is `HELIXTEST_CHECKER_SOURCE_SHA256`. The list is the DRS verifier, not the HelixTest repository. Bundled WES/TES/Beacon schemas are excluded. Cargo.lock pins `reqwest` / `sha2`. Helix `build.rs` panics if the lock digest disagrees with the sibling files, or if sibling `HEAD` disagrees with `HELIXTEST_SHA`.
 
 Runtime: `framework::drs::executed_checker_id()` returns `helixtest-drs:` plus that digest. `helix verify` records it. Callers cannot supply a checker id. YAML cannot supply it. The report serializer does not invent it.
 

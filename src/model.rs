@@ -23,7 +23,7 @@ pub const HELIXTEST_PIN: &str = "v0.1.3";
 
 /// Git commit CI should check out ([VERSIONS.lock](../../VERSIONS.lock) `HELIXTEST_SHA`).
 /// Not the executed checker. Executed identity is `crate::checker::executed_checker_id()`.
-pub const HELIXTEST_SHA: &str = "58958fd9f8afd3e72367ead46f96fc3e0fb636dc";
+pub const HELIXTEST_SHA: &str = "1baddfd3d75f01dc7c149074a785616fa014c725";
 
 /// Frozen machine-readable document id for `helix verify --format json`.
 /// File: `schemas/helix-verification-v1.json`. Not a HELIOS evidence schema.
@@ -572,8 +572,12 @@ pub struct VerificationRun {
     pub helix_version: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub helixtest_version: Option<String>,
+    /// SHA-256 of the compiled DRS checker source closure. Not a git SHA.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub helixtest_sha: Option<String>,
+    /// VERSIONS.lock HELIXTEST_SHA (40-char git checkout pin). Not the executed checker.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub helixtest_git_sha: Option<String>,
     /// Helix profile id (`generic` or `ferrum`). Not HelixTest Mode.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub profile: Option<String>,
@@ -607,6 +611,7 @@ impl VerificationRun {
             helix_version: helix_version().to_string(),
             helixtest_version: Some(HELIXTEST_PIN.to_string()),
             helixtest_sha: Some(crate::checker::executed_checker_source_sha256().to_string()),
+            helixtest_git_sha: Some(HELIXTEST_SHA.to_string()),
             profile: None,
             fixture_version: FIXTURE_VERSION.to_string(),
             timestamp: Utc::now().to_rfc3339_opts(SecondsFormat::Secs, true),
@@ -631,6 +636,7 @@ impl VerificationRun {
     pub fn without_helixtest(mut self) -> Self {
         self.helixtest_version = None;
         self.helixtest_sha = None;
+        self.helixtest_git_sha = None;
         self
     }
 
@@ -964,6 +970,7 @@ mod tests {
         let v = serde_json::to_value(&run).unwrap();
         assert!(v.get("helixtest_version").is_none());
         assert!(v.get("helixtest_sha").is_none());
+        assert!(v.get("helixtest_git_sha").is_none());
         assert_eq!(v["helix_version"].as_str(), Some(helix_version()));
         assert_eq!(v["schema_version"].as_str(), Some(SCHEMA_VERSION));
         assert_eq!(v["fixture_version"].as_str(), Some(FIXTURE_VERSION));

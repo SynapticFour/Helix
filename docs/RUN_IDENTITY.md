@@ -15,7 +15,7 @@ Source: `src/run_identity.rs` (`RunIdentity::from_verify`). Compare: [REGRESSION
 | Fact | JSON | Notes |
 |------|------|--------|
 | Helix version | `helix_version` | Crate version (`0.1.0`) |
-| HelixTest version | `helixtest_version`, `helixtest_sha` | Pin **v0.1.3** / SHA from [VERSIONS.lock](../VERSIONS.lock) |
+| HelixTest version | `helixtest_version`, `helixtest_sha`, `helixtest_git_sha` | Tag **v0.1.3**; `helixtest_sha` is the executed checker source digest; `helixtest_git_sha` is `HELIXTEST_SHA` |
 | Profile | `profile` | `generic` or `ferrum`. Not HelixTest Mode |
 | Test IDs | `executed[].id` + `skipped[].id` | Stable Helix ids ([TEST_IDENTITY.md](TEST_IDENTITY.md)) |
 | Target identifier | `target.url` | Normalized origin. Not a Ferrum id |

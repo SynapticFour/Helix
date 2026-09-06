@@ -317,7 +317,9 @@ pub fn format_verify_text(run: &VerificationRun, color: bool) -> String {
             out.push_str(&format!("  HelixTest tag {tag}\n"));
             out.push_str(&format!(
                 "  git checkout pin: {}\n",
-                crate::model::HELIXTEST_SHA
+                run.helixtest_git_sha
+                    .as_deref()
+                    .unwrap_or(crate::model::HELIXTEST_SHA)
             ));
             out.push_str(&format!("  executed checker: helixtest-drs:{sha}\n"));
         }

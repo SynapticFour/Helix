@@ -53,9 +53,14 @@ pub fn require_checker_pin() -> anyhow::Result<()> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::sync::Mutex as TestMutex;
+
+    static TEST_LIE_GUARD: TestMutex<()> = TestMutex::new(());
 
     #[test]
     fn executed_digest_is_sha256_hex() {
+        let _g = TEST_LIE_GUARD.lock().expect("test lie guard");
+        set_lie_lock_checker_digest(None);
         let d = executed_checker_source_sha256();
         assert_eq!(d.len(), 64);
         assert!(d.chars().all(|c| c.is_ascii_hexdigit()));
@@ -65,6 +70,7 @@ mod tests {
 
     #[test]
     fn lie_lock_digest_is_detected() {
+        let _g = TEST_LIE_GUARD.lock().expect("test lie guard");
         set_lie_lock_checker_digest(Some(&"0".repeat(64)));
         let msg = checker_pin_mismatch().expect("mismatch");
         set_lie_lock_checker_digest(None);

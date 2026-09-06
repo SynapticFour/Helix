@@ -1,15 +1,14 @@
 // SPDX-License-Identifier: Apache-2.0
-//! Fail closed if VERSIONS.lock checker digest is not the sibling sources Cargo compiles.
+//! Fail closed if VERSIONS.lock checker digest is not the sibling DRS closure
+//! Cargo compiles. Same algorithm as HelixTest `checker_identity.rs`.
 
 use sha2::{Digest, Sha256};
 use std::env;
 use std::path::Path;
+use std::process::Command;
 
-const FILES: &[&str] = &[
-    "crates/framework/src/drs.rs",
-    "crates/common/src/ga4gh_schemas.rs",
-    "crates/common/src/spec_source.rs",
-];
+const MANIFEST_VERSION: &str = "helix-drs-checker-v2";
+const LIST_REL: &str = "crates/framework/checker_source_v2.txt";
 
 fn sha256_hex(bytes: &[u8]) -> String {
     let mut h = Sha256::new();
@@ -17,9 +16,34 @@ fn sha256_hex(bytes: &[u8]) -> String {
     format!("{:x}", h.finalize())
 }
 
+fn parse_listed_paths(list: &str) -> Vec<&str> {
+    list.lines()
+        .map(str::trim)
+        .filter(|l| !l.is_empty() && !l.starts_with('#'))
+        .collect()
+}
+
+fn lock_value(lock: &str, key: &str) -> String {
+    let prefix = format!("{key}=");
+    for line in lock.lines() {
+        if let Some(v) = line.strip_prefix(&prefix) {
+            return v.trim().to_string();
+        }
+    }
+    panic!("VERSIONS.lock missing {key}");
+}
+
 fn checker_source_sha256(helixtest_root: &Path) -> String {
-    let mut buf = String::from("helix-drs-checker-v1\n");
-    for rel in FILES {
+    let list_path = helixtest_root.join(LIST_REL);
+    println!("cargo:rerun-if-changed={}", list_path.display());
+    let list_bytes =
+        std::fs::read(&list_path).unwrap_or_else(|e| panic!("read {}: {e}", list_path.display()));
+    let list_text = String::from_utf8(list_bytes.clone()).expect("checker_source_v2.txt utf-8");
+    let mut buf = format!(
+        "{MANIFEST_VERSION}\nfile={LIST_REL}\nsha256={}\n",
+        sha256_hex(&list_bytes)
+    );
+    for rel in parse_listed_paths(&list_text) {
         let path = helixtest_root.join(rel);
         let bytes = std::fs::read(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()));
         buf.push_str(&format!("file={rel}\nsha256={}\n", sha256_hex(&bytes)));
@@ -28,13 +52,15 @@ fn checker_source_sha256(helixtest_root: &Path) -> String {
     sha256_hex(buf.as_bytes())
 }
 
-fn lock_checker_digest(lock: &str) -> String {
-    for line in lock.lines() {
-        if let Some(hex) = line.strip_prefix("HELIXTEST_CHECKER_SOURCE_SHA256=") {
-            return hex.trim().to_string();
-        }
+fn sibling_git_head(repo: &Path) -> Option<String> {
+    let out = Command::new("git")
+        .args(["-C", repo.to_str()?, "rev-parse", "HEAD"])
+        .output()
+        .ok()?;
+    if !out.status.success() {
+        return None;
     }
-    panic!("VERSIONS.lock missing HELIXTEST_CHECKER_SOURCE_SHA256");
+    Some(String::from_utf8_lossy(&out.stdout).trim().to_string())
 }
 
 fn main() {
@@ -42,12 +68,22 @@ fn main() {
     let lock_path = manifest.join("VERSIONS.lock");
     println!("cargo:rerun-if-changed={}", lock_path.display());
     let lock = std::fs::read_to_string(&lock_path).expect("VERSIONS.lock");
-    let expected = lock_checker_digest(&lock);
-    let actual = checker_source_sha256(&manifest.join("../HelixTest/helixtest"));
+    let expected = lock_value(&lock, "HELIXTEST_CHECKER_SOURCE_SHA256");
+    let want_git = lock_value(&lock, "HELIXTEST_SHA");
+    let helixtest_repo = manifest.join("../HelixTest");
+    let helixtest_root = helixtest_repo.join("helixtest");
+    let actual = checker_source_sha256(&helixtest_root);
     if actual != expected {
         panic!(
-            "VERSIONS.lock HELIXTEST_CHECKER_SOURCE_SHA256={expected} but compiled HelixTest DRS checker sources hash to {actual}. Update the lock to the digest of the sources Cargo compiles. Do not report a git SHA as the executed checker."
+            "VERSIONS.lock HELIXTEST_CHECKER_SOURCE_SHA256={expected} but compiled HelixTest DRS checker closure hashes to {actual}. Update the lock to the digest of the sources Cargo compiles. Do not report a git SHA as the executed checker."
         );
+    }
+    if let Some(head) = sibling_git_head(&helixtest_repo) {
+        if head != want_git {
+            panic!(
+                "VERSIONS.lock HELIXTEST_SHA={want_git} but sibling HelixTest HEAD is {head}. Checkout the pinned commit. Git SHA is the checkout pin, not the executed checker identity."
+            );
+        }
     }
     println!("cargo:rustc-env=HELIX_EXPECTED_CHECKER_SOURCE_SHA256={expected}");
 }

@@ -404,6 +404,7 @@ async fn execute_selected_pack(
                     }
                     outcome.run.helixtest_version = Some(out.pin.tag.to_string());
                     outcome.run.helixtest_sha = Some(out.pin.sha.to_string());
+                    outcome.run.helixtest_git_sha = Some(crate::model::HELIXTEST_SHA.to_string());
                     for r in out.results {
                         outcome.run.push_executed(r);
                     }
@@ -771,6 +772,8 @@ async fn execute_profile(endpoint: &str, options: &VerifyOptions) -> Result<Veri
                     Ok(out) => {
                         outcome.run.helixtest_version = Some(out.pin.tag.to_string());
                         outcome.run.helixtest_sha = Some(out.pin.sha.to_string());
+                        outcome.run.helixtest_git_sha =
+                            Some(crate::model::HELIXTEST_SHA.to_string());
                         for r in out.results {
                             outcome.run.push_executed(r);
                         }
@@ -820,6 +823,7 @@ async fn discover_only(
     run.profile = Some(profile.id.as_str().to_string());
     run.helixtest_version = Some(HELIXTEST_PIN.to_string());
     run.helixtest_sha = Some(crate::checker::executed_checker_source_sha256().to_string());
+    run.helixtest_git_sha = Some(crate::model::HELIXTEST_SHA.to_string());
     run.drs_fixture = Some(fixture.clone());
 
     if !target_connectable(&endpoint) {

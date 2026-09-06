@@ -77,7 +77,7 @@ The published **git** pin is the tag / SHA CI clones. The **executed** checker i
 |-------|---------|--------------|
 | Tag (`HELIXTEST_PIN` / `HELIXTEST_REF`) | HelixTest git tag | `v0.1.3` |
 | Git SHA (`HELIXTEST_SHA`) | Commit CI should check out | [VERSIONS.lock](../VERSIONS.lock) |
-| Executed checker (`HELIXTEST_CHECKER_SOURCE_SHA256`) | SHA-256 of compiled DRS checker sources | `framework::drs::executed_checker_id()` |
+| Executed checker (`HELIXTEST_CHECKER_SOURCE_SHA256`) | SHA-256 of helix-drs-checker-v2 closure | `framework::drs::executed_checker_id()` |
 
 `HelixTestAdapter::pinned()` stamps `pin.sha` with the **executed** digest, not the git SHA. Do not bump the git pin unless HelixTest has a tag Ferrum / Lab Kit / ga4gh-infra can take. Uncommitted checker edits change the source digest immediately.
 

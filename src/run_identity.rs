@@ -19,6 +19,8 @@ pub struct RunIdentity {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub helixtest_sha: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub helixtest_git_sha: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub profile: Option<String>,
     /// Stable Helix check `id`s from this run (executed + skipped), sorted.
     pub check_ids: Vec<String>,
@@ -57,6 +59,7 @@ impl RunIdentity {
             helix_version: run.helix_version.clone(),
             helixtest_version: run.helixtest_version.clone(),
             helixtest_sha: run.helixtest_sha.clone(),
+            helixtest_git_sha: run.helixtest_git_sha.clone(),
             profile: run.profile.clone(),
             check_ids,
             target: run.target.url.clone(),
@@ -82,6 +85,7 @@ impl RunIdentity {
             helix_version: outcome.baseline.metadata.helix_version.clone(),
             helixtest_version: None,
             helixtest_sha: None,
+            helixtest_git_sha: None,
             profile: None,
             check_ids: Vec::new(),
             target: format!(
@@ -114,6 +118,7 @@ impl RunIdentity {
         self.helix_version != other.helix_version
             || self.helixtest_version != other.helixtest_version
             || self.helixtest_sha != other.helixtest_sha
+            || self.helixtest_git_sha != other.helixtest_git_sha
     }
 
     pub fn catalog_changed(&self, other: &Self) -> bool {
@@ -145,6 +150,12 @@ impl RunIdentity {
             "helixtest_sha",
             &self.helixtest_sha,
             &other.helixtest_sha,
+        );
+        push_opt(
+            &mut out,
+            "helixtest_git_sha",
+            &self.helixtest_git_sha,
+            &other.helixtest_git_sha,
         );
         push_opt(&mut out, "profile", &self.profile, &other.profile);
         push_mis(&mut out, "target", &self.target, &other.target);

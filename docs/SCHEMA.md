@@ -27,7 +27,7 @@ The operator questions use “services” and “checks”. v1 **does not** use 
 |---------|---------|--------|
 | Schema version | `schema_version` | const `helix-verification-v1` |
 | Helix version | `helix_version` | crate version |
-| HelixTest pin | `helixtest_version` (git tag) / `helixtest_sha` (executed checker source digest, not git SHA) | optional; [CHECKER_PROVENANCE.md](CHECKER_PROVENANCE.md) |
+| HelixTest pin | `helixtest_version` (git tag) / `helixtest_sha` (executed checker source digest) / `helixtest_git_sha` (git checkout pin) | optional; [CHECKER_PROVENANCE.md](CHECKER_PROVENANCE.md) |
 | Profile | `profile` | `generic` or `ferrum` |
 | Fixture catalog | `fixture_version` | `helix-fixtures-v1`; compare identity only ([RUN_IDENTITY.md](RUN_IDENTITY.md)). Not HELIOS |
 | Target | `target.url` plus optional `target.identity` | origin; identity is B4 ([TARGETS.md](TARGETS.md)). Optional on old files |

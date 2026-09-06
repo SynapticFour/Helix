@@ -95,6 +95,10 @@ async fn t3_t4_result_and_json_preserve_executed_checker() {
         v["helixtest_sha"].as_str(),
         Some(helix::checker::executed_checker_source_sha256())
     );
+    assert_eq!(
+        v["helixtest_git_sha"].as_str(),
+        Some(helix::model::HELIXTEST_SHA)
+    );
 }
 
 /// T5 — checker identity is an ingredient of execution_id; fixture is not.
@@ -146,5 +150,70 @@ fn t22_no_hidden_starter_kit_branch() {
             !src.contains("127.0.0.1:4500"),
             "{name} must not hard-code starter-kit listen address"
         );
+    }
+}
+
+/// T7/T20 — sibling git pin and recorded digest match the compiled checker.
+#[test]
+fn git_pin_and_source_digest_match_lock_and_sibling() {
+    let lock = include_str!("../VERSIONS.lock");
+    let git = lock
+        .lines()
+        .find_map(|l| l.strip_prefix("HELIXTEST_SHA="))
+        .expect("HELIXTEST_SHA");
+    let digest = lock
+        .lines()
+        .find_map(|l| l.strip_prefix("HELIXTEST_CHECKER_SOURCE_SHA256="))
+        .expect("digest");
+    assert_eq!(git, helix::model::HELIXTEST_SHA);
+    assert_eq!(git.len(), 40);
+    assert_ne!(digest, git);
+    assert_eq!(digest, helix::checker::executed_checker_source_sha256());
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../HelixTest");
+    let head = std::process::Command::new("git")
+        .args(["-C", root.to_str().unwrap(), "rev-parse", "HEAD"])
+        .output()
+        .expect("git");
+    assert!(head.status.success());
+    let head = String::from_utf8_lossy(&head.stdout).trim().to_string();
+    assert_eq!(head, git);
+    let porcelain = std::process::Command::new("git")
+        .args(["-C", root.to_str().unwrap(), "status", "--porcelain"])
+        .output()
+        .expect("git status");
+    assert!(
+        String::from_utf8_lossy(&porcelain.stdout).trim().is_empty(),
+        "HelixTest working tree must be clean for the pin"
+    );
+}
+
+/// T6 — README is outside the DRS checker source closure.
+#[test]
+fn t6_readme_is_not_in_checker_closure() {
+    let paths = framework::checker_identity::listed_paths();
+    assert!(!paths.iter().any(|p| p.contains("README")));
+    let root = framework::checker_identity::helixtest_root_from_framework_manifest();
+    let base = framework::checker_identity::digest_from_helixtest_root(&root);
+    assert_eq!(base, helix::checker::executed_checker_source_sha256());
+}
+
+/// T1–T5 via HelixTest hasher: relevant overrides change identity.
+#[test]
+fn relevant_closure_overrides_change_identity() {
+    let root = framework::checker_identity::helixtest_root_from_framework_manifest();
+    let base = framework::checker_identity::digest_from_helixtest_root(&root);
+    for rel in [
+        "crates/framework/src/drs.rs",
+        "crates/framework/src/level0.rs",
+        "crates/common/src/ga4gh_schemas.rs",
+        "crates/common/src/spec_source.rs",
+        "crates/common/src/http.rs",
+        "crates/common/src/util.rs",
+        "schemas/ga4gh/drs-openapi.yaml",
+    ] {
+        let mut b = std::fs::read(root.join(rel)).unwrap();
+        b.extend_from_slice(b"\n");
+        let changed = framework::checker_identity::digest_with_override(&root, rel, &b);
+        assert_ne!(base, changed, "{rel}");
     }
 }

@@ -54,7 +54,8 @@ Translated rows may include `helixtest_name`: the original HelixTest `TestCaseRe
 | `target.url` | Gateway-style origin |
 | `helix_version` | Helix crate version (`0.1.0` today) |
 | `helixtest_version` | HelixTest **tag** (`v0.1.3` from [VERSIONS.lock](../VERSIONS.lock)) |
-| `helixtest_sha` | HelixTest git SHA from the lockfile |
+| `helixtest_sha` | SHA-256 of the compiled DRS checker source closure (`helix-drs-checker-v2`). Not `HELIXTEST_SHA` |
+| `helixtest_git_sha` | HelixTest git checkout pin from [VERSIONS.lock](../VERSIONS.lock) (`HELIXTEST_SHA`) |
 | `profile` | Helix profile id: `generic` (default) or `ferrum`. Not HelixTest Mode. Not inferred from the target. Each result has `service` |
 | `fixture_version` | Fixture catalog id `helix-fixtures-v1` ([FIXTURES.md](FIXTURES.md), [RUN_IDENTITY.md](RUN_IDENTITY.md)). Compare identity, not HELIOS |
 | `standard_selection` | Pack selection for this run ([STANDARD_VERSIONING.md](STANDARD_VERSIONING.md)) |

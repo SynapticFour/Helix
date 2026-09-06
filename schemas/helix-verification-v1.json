@@ -33,7 +33,12 @@
     "helixtest_sha": {
       "type": "string",
       "minLength": 1,
-      "description": "SHA-256 of the compiled DRS checker sources (helix-drs-checker-v1). Not VERSIONS.lock HELIXTEST_SHA (git checkout pin). Combined with prefix helixtest-drs: this is standard_selection.checker_id. Optional with helixtest_version."
+      "description": "SHA-256 of the compiled DRS checker source closure (helix-drs-checker-v2). Not VERSIONS.lock HELIXTEST_SHA. Combined with prefix helixtest-drs: this is standard_selection.checker_id. Optional with helixtest_version."
+    },
+    "helixtest_git_sha": {
+      "type": "string",
+      "minLength": 1,
+      "description": "HelixTest git commit from VERSIONS.lock HELIXTEST_SHA (40 hex). Checkout pin only. Not the executed checker. Optional on files produced before B7.1A."
     },
     "profile": {
       "type": "string",

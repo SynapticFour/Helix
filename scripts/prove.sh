@@ -100,8 +100,9 @@ grep -q "compatibility change" docs/TEST_IDENTITY.md
 grep -q "HLX-DRS-005" docs/TEST_IDENTITY.md
 grep -q "DRS invalid object id returns 404" docs/TEST_IDENTITY.md
 grep -q "pub const SPECS" src/identity.rs
-grep -q "HELIXTEST_SHA=0d3f148b7fb99d653723d6cd917255ae72c17bac" VERSIONS.lock
-grep -q "HELIXTEST_CHECKER_SOURCE_SHA256=d5d4329e69e4e46504d6e7b96f75a8ec9b4395515275c74306b6f9812f5cccb4" VERSIONS.lock
+grep -q "HELIXTEST_SHA=1baddfd3d75f01dc7c149074a785616fa014c725" VERSIONS.lock
+grep -q "HELIXTEST_CHECKER_SOURCE_SHA256=18bf4a445ac5cf7ae9a45a331834dc13da3a21528f5b29eb1a72bddfbc42a05a" VERSIONS.lock
+grep -q "helix-drs-checker-v2" docs/CHECKER_PROVENANCE.md
 grep -q "pub fn executed_checker_id" src/checker.rs
 grep -q "fn discover" src/discover.rs
 grep -q "NOT_DETECTED" docs/DISCOVERY.md
@@ -385,7 +386,7 @@ grep -q "fn emit_and_load_paths_call_check_run" tests/guardrails.rs
 grep -q "pub fn check_set" src/claims.rs
 grep -q '"const": false' schemas/helix-verification-v1.json
 grep -q "executed checker identity" docs/CHECKER_PROVENANCE.md
-grep -q "HELIXTEST_CHECKER_SOURCE_SHA256" docs/CHECKER_PROVENANCE.md
+grep -q "helix-drs-checker-v2" docs/CHECKER_PROVENANCE.md
 grep -q "Starter Kit is NOT VERIFIED" docs/EXTERNAL_EVIDENCE.md
 grep -q "pub fn executed_checker_id" src/checker.rs
 grep -q "require_checker_pin" src/verify.rs

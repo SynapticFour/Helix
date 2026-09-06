@@ -4,7 +4,7 @@
 
 **Current facts (2026-09-05).** Prefer [README.md](README.md) and [docs/TRUST.md](docs/TRUST.md) over older bullets in this section if they disagree.
 
-- Executed DRS checker identity ([docs/CHECKER_PROVENANCE.md](docs/CHECKER_PROVENANCE.md)): `checker_id` is `helixtest-drs:` plus SHA-256 of the HelixTest sources Cargo compiles (`drs.rs`, `ga4gh_schemas.rs`, `spec_source.rs`). `VERSIONS.lock` `HELIXTEST_SHA` is the git checkout pin, not proof of the executed checker. Stale lock digest fails closed. Live Starter Kit evidence is reproduced, not stored in `/tmp` ([docs/EXTERNAL_EVIDENCE.md](docs/EXTERNAL_EVIDENCE.md)). Not HELIOS. Not certification.
+- Executed DRS checker identity ([docs/CHECKER_PROVENANCE.md](docs/CHECKER_PROVENANCE.md)): `checker_id` is `helixtest-drs:` plus SHA-256 of the helix-drs-checker-v2 closure (checker, SpecSource, HTTP, sha256_bytes, bundled DRS OpenAPI, Level-0 reachable). `HELIXTEST_SHA` is the git checkout pin. JSON `helixtest_sha` is the source digest; `helixtest_git_sha` is the git pin. Not HELIOS. Not certification.
 
 - Target-scoped DRS fixture contract ([docs/TARGETS.md](docs/TARGETS.md) §11): `--drs-object-id` / `--drs-object-sha256`. Default catalog remains `test-object-1`. A 404 on the configured object is `fixture_unavailable`, not DRS non-conformance. Spec-join `execution_id` unchanged. Not automatic object discovery. Not HELIOS. Not certification.
 

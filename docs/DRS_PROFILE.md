@@ -49,7 +49,8 @@ Helix `VerificationRun` (not HelixTest `OverallReport`). Field order is struct o
 | `target.url` | Origin that was tested |
 | `helix_version` | Helix crate version |
 | `helixtest_version` | HelixTest tag (`v0.1.3`) |
-| `helixtest_sha` | HelixTest git SHA from [VERSIONS.lock](../VERSIONS.lock) |
+| `helixtest_sha` | SHA-256 of the compiled DRS checker source closure. Not git. [CHECKER_PROVENANCE.md](CHECKER_PROVENANCE.md) |
+| `helixtest_git_sha` | HelixTest git checkout pin (`HELIXTEST_SHA` in [VERSIONS.lock](../VERSIONS.lock)) |
 | `fixture_version` | Catalog id `helix-fixtures-v1` ([RUN_IDENTITY.md](RUN_IDENTITY.md)). Not HELIOS |
 | `discovery[]` | Per-service `present` (DETECTED) and `testable` (TESTABLE). **Not a pass.** |
 | `executed[]` | Checks that ran: `pass` / `fail` / `error`, with `id`, `code`, `failure` |
