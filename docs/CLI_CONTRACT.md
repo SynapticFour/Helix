@@ -260,6 +260,8 @@ helix bench --baseline <url> --candidate <url>
 helix bench --baseline <url> --candidate <url> --format json --threshold 10 --warmup 1 --repetitions 5
 helix compare <previous.json> <current.json>
 helix compare <previous.json> <current.json> --format json
+helix differential <first.json> <second.json>
+helix differential <first.json> <second.json> --format json
 helix matrix
 helix matrix --format json
 helix matrix --run ferrum=ferrum.json --kind ferrum=reference_target --run other=other.json --kind other=independent_implementation
@@ -268,6 +270,10 @@ helix matrix --run ferrum=ferrum.json --kind ferrum=reference_target --run other
 ### `helix compare <previous.json> <current.json>`
 
 Compares two `helix verify --format json` files at stable Helix `id`. A **regression** is PASS→FAIL (`NEW_FAIL`). Fail→fail is `UNCHANGED_FAIL` (existing failure), not a new regression. SKIP→PASS is `FIXED_SKIP`, never a silent pass. JSON includes `previous_identity` / `current_identity` / `same_measurement` ([RUN_IDENTITY.md](RUN_IDENTITY.md)); identity mismatch is not `NEW_FAIL`. Text: [REPORT.md](REPORT.md) (`HELIX VERIFICATION COMPARE`). Exit 0 if no `NEW_FAIL`; exit 1 on regression or unreadable JSON; exit 2 on usage. Not a score. Not HELIOS. Details: [REGRESSION.md](REGRESSION.md).
+
+### `helix differential <first.json> <second.json>`
+
+Check-level comparison of two `helix verify --format json` files against the same specification identity ([DIFFERENTIAL.md](DIFFERENTIAL.md), [TARGETS.md](TARGETS.md) §12). JSON is `helix-differential-v1`, not `VerificationRun`. Does **not** create verification, stamp `verified_version`, rank implementations, or compute a compliance percentage. Exit 0 after a successful comparison even when both targets are NOT VERIFIED; exit 1 on unreadable JSON; exit 2 on usage. Not HELIOS. Not certification.
 
 ### `helix matrix`
 

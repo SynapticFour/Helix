@@ -118,5 +118,6 @@ Identical inputs (same binary, target, HelixTest pin, fixture catalog) produce i
 - Certification, scoring, ISO 15189 / AI Act
 - `helix security` JSON (still HelixTest `OverallReport`)
 - `helix bench` / `helix compare` JSON (separate documents)
+- `helix differential` JSON (`schemas/helix-differential-v1.json`; descriptive; does not create verification)
 
 CI: `tests/schema_verify.rs` validates generated `helix verify` JSON against this file. Integrity constraints that schema cannot express (`verified_version` requires `selected_version` and join hashes; VERIFIED predicates) are enforced by `src/guardrails.rs` ([ARCHITECTURE_GUARDRAILS.md](ARCHITECTURE_GUARDRAILS.md)).

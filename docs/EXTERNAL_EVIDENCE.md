@@ -66,3 +66,63 @@ Expected honest outcome (do not weaken checks to green this):
 **Starter Kit is NOT VERIFIED.**
 
 Record from the JSON you produced: standard commit, pack/schema hashes, `checker_id`, fixture object id, results. That file is the evidence. Copy it somewhere durable if you need it; Helix does not commit live captures.
+
+---
+
+## 3. Reproduce the Bento DRS observation (B9 Target B)
+
+Pinned source release (not `main` / `latest`):
+
+```text
+repository: https://github.com/bento-platform/bento_drs
+tag: v0.21.5
+commit: 1dc55ebea90185b1fec2c78c8c52909dd0ca889e
+license: LGPL-3.0
+lineage: C3G Bento platform (not GA4GH starter-kit, not Ferrum, not HelixTest)
+```
+
+`AUTHZ_ENABLED=false` is operator configuration of the target so Helix can exercise the public DRS HTTP API without credentials. Helix still does not send or record credentials. This is not a Helix catalog special-case.
+
+```bash
+git clone --branch v0.21.5 --depth 1 https://github.com/bento-platform/bento_drs.git
+cd bento_drs
+# confirm: git rev-parse HEAD == 1dc55ebea90185b1fec2c78c8c52909dd0ca889e
+poetry env use python3.12
+poetry install --without dev
+
+mkdir -p /tmp/b9-bento-data
+python3 -c "open('/tmp/b9-bento-data/helix-b9.bin','wb').write(b'A'*4096)"
+export AUTHZ_ENABLED=false
+export BENTO_DEBUG=true
+export SERVICE_BASE_URL=http://127.0.0.1:5000
+export DATABASE=/tmp/b9-bento-data
+export DATA=/tmp/b9-bento-data
+export FLASK_APP=wsgi:application
+
+poetry run flask db upgrade
+poetry run flask ingest /tmp/b9-bento-data/helix-b9.bin
+# note the printed object UUID, then:
+poetry run flask run --host 127.0.0.1 --port 5000
+```
+
+```bash
+cd Helix
+RUST_LOG=error cargo run --locked --bin helix -- verify http://127.0.0.1:5000 \
+  --standard drs --version 1.4.0 --release-class official \
+  --drs-object-id <ingested-uuid> \
+  --target-id bento-drs-0.21.5 \
+  --target-kind real-independent-local-implementation \
+  --implementation-name bento_drs \
+  --implementation-version 0.21.5 \
+  --format json
+```
+
+Do not infer DRS version from the git tag or README. Record `detected_version` from service-info. `selected_version` is 1.4.0 because the operator selected the Helix support contract. `verified_version` is stamped only from executed predicates.
+
+Then:
+
+```text
+helix differential starter-kit.json bento.json --format json
+```
+
+CI does **not** clone or start Bento. Live JSON is not committed.

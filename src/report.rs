@@ -13,6 +13,7 @@ use common::report::{OverallReport, ServiceKind, TestStatus};
 
 use crate::bench::BenchOutcome;
 use crate::compare::{CompareKind, CompareReport};
+use crate::differential::DifferentialReport;
 use crate::layer::{CheckLayer, LayerSummary};
 use crate::model::{VerificationResult, VerificationRun, VerificationStatus};
 use crate::security::SecurityOutcome;
@@ -89,6 +90,15 @@ pub fn print_compare_json(report: &CompareReport) -> anyhow::Result<()> {
 
 pub fn print_compare_text(report: &CompareReport) {
     print!("{}", format_compare_text(report, color_enabled()));
+}
+
+pub fn print_differential_json(report: &DifferentialReport) -> anyhow::Result<()> {
+    println!("{}", crate::differential::differential_json(report)?);
+    Ok(())
+}
+
+pub fn print_differential_text(report: &DifferentialReport) {
+    print!("{}", crate::differential::format_differential_text(report));
 }
 
 /// Human compare report. Same facts as [`CompareReport`] JSON. Not a score.

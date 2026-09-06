@@ -36,10 +36,12 @@ If a rule can be a schema or a test, it is. If it cannot, it is listed in §4 so
 | 9 | A standard source cannot silently be fetched from HEAD / `main` / `master` / `develop` | pin `commit` is 40 hex chars; `release_ref` lock above | `is_mutable_source_url`; `source_url` must contain `commit`; **Helix does not fetch spec URLs** | `source_url_cannot_be_branch_head`; `src_must_not_fetch_standard_sources_from_the_network` |
 | 10 | Ferrum-specific dependencies must not enter the generic verifier | — | — | `Cargo.toml` has no `ferrum` crate; `src` has no `Mode::Ferrum`; adapter stays `Mode::Generic`; `framework::` imports only under `src/adapter` |
 | 11 | HELIOS functionality must not enter Helix verification semantics | verification + registry `additionalProperties: false`; HELIOS keys are not properties | `forbid_helios_keys` on **raw** JSON before serde (unknown keys would otherwise be dropped) | `helios_key_on_run_json_is_rejected`; `load_rejects_helios_ro_crate`; `helios_field_on_registry_record_is_rejected`; `src_must_not_import_helios` |
+| 12 | Operator `--target-kind` cannot turn a mock or reference implementation into independent evidence | reviewed `targets/independence.yaml` | `run_counts_as_independent` | `tests/b9_independent_differential.rs` B9-T1–T3 |
+| 13 | A differential artifact cannot create verification or ranking semantics | `helix-differential-v1.json` `creates_verification: false`, `ranking_semantics: absent` | `differential_json` / `contains_ranking_semantics` | B9-T17, B9-T21 |
 
 Emit path (`helix verify` JSON and text, `bind_run`): `CheckMode::Emit` — every executed/skipped row must have valid traceability.
 
-Load path (`helix compare`, `helix matrix`): `CheckMode::Load` — HELIOS keys, substitution, and version mismatch still fail; **missing** traceability on old example JSON is allowed so compare does not rewrite history.
+Load path (`helix compare`, `helix matrix`, `helix differential`): `CheckMode::Load` — HELIOS keys, substitution, and version mismatch still fail; **missing** traceability on old example JSON is allowed so compare does not rewrite history.
 
 ---
 

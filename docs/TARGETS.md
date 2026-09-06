@@ -2,7 +2,7 @@
 
 Helix is HelixTest becoming a standalone VERIFY CLI. This document describes **target identity** for GA4GH DRS 1.4.0 technical verification. It is not GA4GH certification. HELIOS still owns signed evidence / RO-Crate / PDF. Trust: [TRUST.md](TRUST.md).
 
-**B4 architecture: present. B4 multi-implementation evidence: pending a real second implementation.**
+**B4 architecture: present. B9 adds reviewed independence records and check-level differential evidence. Mocks remain non-independent. Ferrum remains reference.**
 
 ---
 
@@ -64,15 +64,26 @@ Helix does **not** cache verification results. If a cache is added, the key must
 
 ## 5. What qualifies as an independent implementation
 
-| `target_kind` | Independent implementation evidence? |
-|---------------|--------------------------------------|
-| `real_external_implementation` | Yes (operator-declared) |
-| `real_independent_local_implementation` | Yes (operator-declared) |
-| `reference_implementation` | No (e.g. Ferrum). Real, not a second independent impl by itself |
-| `mock` / `fixture` / `synthetic_target` | **No** |
-| `unspecified` | **No** (fail closed) |
+Operator `--target-kind` is untrusted metadata. Independence is decided by a reviewed record in `targets/independence.yaml` **and** a matching `real_*` operator kind.
 
-A mock is not an independent implementation. A fixture is not an independent implementation. A hand-written test server (`synthetic_target`) is not an implementation. Helix does not invent a second server and call it independent.
+| Reviewed classification | Operator `--target-kind` | Independent evidence? |
+|-------------------------|--------------------------|------------------------|
+| `real_external_implementation` / `real_independent_local_implementation` | same `real_*` family | Yes |
+| `reference_implementation` (Ferrum) | any, including `real_*` | **No** |
+| `mock` / `fixture` / `synthetic_target` | any, including `real_*` | **No** |
+| (no reviewed record for `target_id`) | `real_*` | **No** (fail closed) |
+| reviewed independent | `mock` / `unspecified` / `reference_implementation` | **No** |
+
+A mock is not an independent implementation. A fixture is not an independent implementation. A hand-written test server (`synthetic_target`) is not an implementation. Helix does not invent a second server and call it independent. Changing `--target-kind` cannot upgrade a mock or Ferrum into independent evidence.
+
+Helix does **not** cryptographically authenticate the process behind a URL. Reviewed records bind a `target_id` to reviewed lineage and artifact identity; they do not prove the live TCP endpoint is that artifact.
+
+Shipped reviewed independent local targets:
+
+- `ga4gh-starter-kit-drs-0.3.2` — GA4GH starter-kit Java
+- `bento-drs-0.21.5` — C3G Bento Python (`bento-platform/bento_drs` tag `v0.21.5`, commit `1dc55ebea90185b1fec2c78c8c52909dd0ca889e`)
+
+Ferrum remains `reference_implementation`. HelixTest wiremock remains `mock`.
 
 ---
 
@@ -107,9 +118,9 @@ A broken checker must not be recorded as target non-conformance. Skip is never p
 
 ## 8. Why mocks are not implementation evidence
 
-`compare_target_runs` sets `independent_implementation_evidence` only when both kinds are usable (not mock/fixture/synthetic/unspecified) **and** at least one is `real_*`. Two mocks with identical packs still produce separate `target_execution_id` values. That proves the harness, not multi-implementation validation.
+`compare_target_runs` and `helix differential` set `independent_implementation_evidence` only when **both** runs `run_counts_as_independent` (reviewed record + operator `real_*`). Two mocks with identical packs still produce separate `target_execution_id` values. That proves the harness, not multi-implementation validation. Relabeling `--target-kind` on a mock or on Ferrum does not count.
 
-The interop matrix (`helix matrix`) remains the operator-labeled comparison harness. [INTEROP.md](INTEROP.md).
+The interop matrix (`helix matrix`) remains a separate operator-labeled comparison harness. It is not the B9 reviewed-independence gate. [INTEROP.md](INTEROP.md). [DIFFERENTIAL.md](DIFFERENTIAL.md).
 
 ---
 
@@ -166,4 +177,14 @@ A 404 on the **configured** existing-object id is `fixture_unavailable` (SKIP, a
 
 A fixture does **not** establish DRS 1.4.0 compliance. Mocks remain mocks. Ferrum remains an optional `reference_implementation` using the default catalog id unless the operator overrides it.
 
-B4 multi-implementation evidence remains pending a real second implementation **with a valid fixture contract**. B5’s starter-kit run against `test-object-1` stays historically a missing-fixture result, not a rewritten PASS.
+B5’s starter-kit run against `test-object-1` stays historically a missing-fixture result, not a rewritten PASS. B9 uses `--drs-object-id` against each independent target’s real object without catalog forks or implementation-name branches.
+
+---
+
+## 12. Independent differential (B9)
+
+`helix differential <run-a.json> <run-b.json>` compares two already-executed `VerificationRun` documents at check id. It does not stamp `verified_version`. It does not manufacture claims. Each target’s claim stays derived from its own run.
+
+Difference classes: `same_behavior`, `target_behavior_difference`, `fixture_capability_difference`, `target_configuration_difference`, `environment_difference`, `verification_execution_difference`, `insufficient_evidence`. Not every difference is a spec-compliance difference. SKIP `fixture_unavailable` vs PASS is a fixture-capability difference.
+
+Ranking, scores, leaderboards, and “best implementation” semantics are absent. JSON schema: `schemas/helix-differential-v1.json`. Details: [DIFFERENTIAL.md](DIFFERENTIAL.md).

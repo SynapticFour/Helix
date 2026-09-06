@@ -1,0 +1,75 @@
+# Reviewed target identity for Helix B9.
+# Operator --target-kind / --target-id cannot create independence.
+# A live HTTP process is not cryptographically bound to these records.
+# Not certification. Not ranking. Not HELIOS.
+schema_version: helix-independence-v1
+records:
+  - target_id: ga4gh-starter-kit-drs-0.3.2
+    classification: real_independent_local_implementation
+    implementation_name: ga4gh-starter-kit-drs
+    implementation_version: "0.3.2"
+    repository: https://github.com/ga4gh/ga4gh-starter-kit-drs
+    license: Apache-2.0
+    lineage: >
+      GA4GH starter-kit Java DRS. Distinct project lineage from Ferrum,
+      Bento/C3G, ELIXIR Cloud drs-filer, and HelixTest in-process mocks.
+    artifact_kind: container_image
+    artifact: ga4gh/ga4gh-starter-kit-drs:0.3.2
+    artifact_identity: "sha256:e680096c0f7406f51fceca3812e3e68f5c7c701bc20f2f0fd07bb85fe972b4b1"
+    platform: linux/amd64
+    source_commit: null
+    declared_standard_version_in_project: null
+    notes: >
+      Runtime service-info type.version observed as 1.3.0experimental in prior
+      Helix live runs. A Docker tag is an artifact id, not a DRS version claim.
+      Helix selected_version 1.4.0 is the operator-selected support contract.
+
+  - target_id: bento-drs-0.21.5
+    classification: real_independent_local_implementation
+    implementation_name: bento_drs
+    implementation_version: "0.21.5"
+    repository: https://github.com/bento-platform/bento_drs
+    license: LGPL-3.0
+    lineage: >
+      C3G Bento platform DRS (Montreal). Python/Flask. Distinct project lineage
+      from GA4GH starter-kit, Ferrum, ELIXIR Cloud drs-filer, and HelixTest mocks.
+    artifact_kind: source_release
+    artifact: github.com/bento-platform/bento_drs@v0.21.5
+    artifact_identity: "1dc55ebea90185b1fec2c78c8c52909dd0ca889e"
+    platform: local-source
+    source_commit: "1dc55ebea90185b1fec2c78c8c52909dd0ca889e"
+    declared_standard_version_in_project: "1.4.0"
+    notes: >
+      constants.py DRS_SPEC_VERSION is project-declared, not Helix verified_version.
+      README links to DRS 1.4.0 docs; that is not a Helix claim. Auth can be
+      disabled via AUTHZ_ENABLED=false for credential-free local testing.
+
+  - target_id: ferrum
+    classification: reference_implementation
+    implementation_name: Ferrum
+    implementation_version: null
+    repository: https://github.com/SynapticFour/Ferrum
+    license: BUSL-1.1
+    lineage: Synaptic Four reference gateway. Real, not a second independent implementation.
+    artifact_kind: local_image
+    artifact: ferrum-gateway
+    artifact_identity: null
+    platform: local
+    source_commit: null
+    declared_standard_version_in_project: null
+    notes: Ferrum remains reference_implementation. Operator --target-kind cannot reclassify it as independent.
+
+  - target_id: helix-in-process-mock
+    classification: mock
+    implementation_name: helix-wiremock
+    implementation_version: null
+    repository: null
+    license: Apache-2.0
+    lineage: HelixTest/wiremock in-process fixture. Not an implementation.
+    artifact_kind: mock
+    artifact: tests/support/mock_ga4gh_drs.rs
+    artifact_identity: null
+    platform: in-process
+    source_commit: null
+    declared_standard_version_in_project: null
+    notes: A caller cannot turn this record into independent evidence by changing --target-kind.

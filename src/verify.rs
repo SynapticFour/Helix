@@ -446,6 +446,7 @@ async fn execute_selected_pack(
 }
 
 /// Pack bytes verified; checker did not return a matching SpecCompileResult.
+/// Spec-join hashes stay unset so identity mismatch cannot look like a successful join.
 fn join_pack_loaded(loaded: &crate::standards::LoadedPack) -> JoinRecord {
     JoinRecord {
         integrity_validated: true,

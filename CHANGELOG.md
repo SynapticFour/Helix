@@ -11,8 +11,9 @@
 - `helix verify` executes **DRS and WES**. TES/TRS/htsget are discovery-only.
 - DRS 1.4.0 is **SUPPORTED** for technical verification within declared coverage. YAML `support_status` is not sufficient. Exactly one shipped check is `normative`. Default verify is **unversioned**. `verified_version` is stamped only when `ga4gh_requirement` is derived as VERIFIED (`src/claim_integrity.rs`). Detected/declared/`--implementation-version` never stamp it. Not GA4GH certification.
 - Claim integrity join (`claim_join`): a verification claim is bound to spec/checker/target/fixture identities and executed check statuses. Forged VERIFIED is rejected. Not HELIOS.
+- Independent-implementation differential (`helix differential`, [docs/DIFFERENTIAL.md](docs/DIFFERENTIAL.md), `targets/independence.yaml`): the same DRS 1.4.0 pack/checker/catalog can be applied to reviewed independent targets. Operator `--target-kind` cannot upgrade a mock or Ferrum into independent evidence. Check-level difference classes are causal, not a ranking. Not certification.
 - DRS 1.5.0 and WES remain AVAILABLE / non-executable as supported packs.
-- External multi-implementation validation is **pending**. Target identity and target-scoped execution ids are shipped ([docs/TARGETS.md](docs/TARGETS.md)). In-process mocks are not a second implementation.
+- External multi-implementation **ranking / certification** is not a Helix product. B9 records reviewed independent targets and check-level differentials. `helix matrix` remains operator-labeled ([docs/INTEROP.md](docs/INTEROP.md)). In-process mocks are not a second implementation.
 - No git tag. Cargo package version is `0.1.0`. Not crates.io (`publish = false`).
 - Older bullets below are chronological development notes. They are not the current claim set.
 

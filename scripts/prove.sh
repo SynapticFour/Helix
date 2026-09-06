@@ -333,8 +333,14 @@ fi
 grep -q "External validation: pending" docs/INTEROP.md
 grep -q "not independent evidence" docs/INTEROP.md
 grep -q "unresolved_discrepancy" docs/INTEROP.md
-grep -q "B4 multi-implementation evidence: pending" docs/TARGETS.md
+grep -q "reviewed independence" docs/TARGETS.md
 grep -q "A mock is not an independent implementation" docs/TARGETS.md
+grep -q "b9_t1_independent_classification_cannot_be_forged_by_cli_metadata" tests/b9_independent_differential.rs
+grep -q "b9_t24_helios_remains_absent" tests/b9_independent_differential.rs
+grep -q "helix-differential-v1" schemas/helix-differential-v1.json
+grep -q "pub fn differential_from_runs" src/differential.rs
+grep -q "run_counts_as_independent" src/independence.rs
+grep -q "ranking_semantics" src/differential.rs
 grep -q "target_execution_id" docs/TARGETS.md
 grep -q "DRS test fixture (B6)" docs/TARGETS.md
 grep -q "fixture_unavailable" docs/TARGETS.md

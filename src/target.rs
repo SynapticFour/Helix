@@ -389,14 +389,8 @@ pub fn compare_target_runs(
         && sa.and_then(|s| s.checker_id.as_ref()) == sb.and_then(|s| s.checker_id.as_ref())
         && sa.and_then(|s| s.binding_id.as_ref()) == sb.and_then(|s| s.binding_id.as_ref())
         && sa.and_then(|s| s.catalog_id.as_ref()) == sb.and_then(|s| s.catalog_id.as_ref());
-    let ka = kind_of(a);
-    let kb = kind_of(b);
-    let usable =
-        |k: TargetKind| !k.is_mock_or_fixture_or_synthetic() && k != TargetKind::Unspecified;
-    let independent_implementation_evidence = usable(ka)
-        && usable(kb)
-        && (ka.qualifies_as_independent_implementation()
-            || kb.qualifies_as_independent_implementation());
+    let independent_implementation_evidence = crate::independence::run_counts_as_independent(a)
+        && crate::independence::run_counts_as_independent(b);
     TargetComparison {
         standard: sa.and_then(|s| s.standard.clone()),
         version: sa.and_then(|s| s.selected_version.clone()),
@@ -410,14 +404,6 @@ pub fn compare_target_runs(
         independent_implementation_evidence,
         targets: vec![row(a), row(b)],
     }
-}
-
-fn kind_of(run: &crate::model::VerificationRun) -> TargetKind {
-    run.target
-        .identity
-        .as_ref()
-        .map(|i| i.target_kind)
-        .unwrap_or(TargetKind::Unspecified)
 }
 
 fn row(run: &crate::model::VerificationRun) -> TargetComparisonRow {

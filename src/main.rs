@@ -6,6 +6,7 @@ use helix::bench::{
     DEFAULT_WARMUP,
 };
 use helix::compare::compare_files;
+use helix::differential::differential_files;
 use helix::profile::ProfileId;
 use helix::report::{
     print_bench_json, print_bench_text, print_compare_json, print_compare_text, print_json,
@@ -42,6 +43,8 @@ enum Commands {
     Bench(BenchArgs),
     /// Compare two helix verify JSON runs at stable check id (PASS→FAIL = regression).
     Compare(CompareArgs),
+    /// Check-level differential of two verify JSON runs. Descriptive. Does not create verification or rank targets.
+    Differential(DifferentialArgs),
     /// Target-neutral interop matrix from zero or more verify JSON files. External validation pending without independent runs.
     Matrix(MatrixArgs),
     /// Inspect pinned GA4GH specification provenance. Does not run verify. No network fetch.
@@ -260,6 +263,17 @@ struct CompareArgs {
 }
 
 #[derive(Parser, Debug)]
+struct DifferentialArgs {
+    /// First `helix verify --format json` file.
+    first: PathBuf,
+    /// Second `helix verify --format json` file.
+    second: PathBuf,
+    /// text (default) or json (`helix-differential-v1`). `--report` is an alias.
+    #[arg(long, visible_alias = "report", value_enum, default_value_t = OutputFormat::Text)]
+    format: OutputFormat,
+}
+
+#[derive(Parser, Debug)]
 struct MatrixArgs {
     /// Recorded `helix verify --format json` as `id=path`. Repeatable. Omit for pending slots only.
     #[arg(long = "run", value_name = "ID=PATH")]
@@ -337,6 +351,7 @@ async fn dispatch(cli: Cli) -> Result<()> {
         Commands::Security(args) => security_cmd(args).await,
         Commands::Bench(args) => bench_cmd(args).await,
         Commands::Compare(args) => compare_cmd(args),
+        Commands::Differential(args) => differential_cmd(args),
         Commands::Matrix(args) => matrix_cmd(args),
         Commands::Standards(args) => standards_cmd(args),
     }
@@ -605,6 +620,15 @@ async fn bench_cmd(args: BenchArgs) -> Result<()> {
         OutputFormat::Text => print_bench_text(&outcome),
     }
     // Warnings are for humans / helix-action comments. Never fail the build.
+    Ok(())
+}
+
+fn differential_cmd(args: DifferentialArgs) -> Result<()> {
+    let report = differential_files(&args.first, &args.second)?;
+    match args.format {
+        OutputFormat::Json => helix::report::print_differential_json(&report)?,
+        OutputFormat::Text => helix::report::print_differential_text(&report),
+    }
     Ok(())
 }
 
