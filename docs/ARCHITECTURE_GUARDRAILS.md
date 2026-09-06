@@ -38,6 +38,7 @@ If a rule can be a schema or a test, it is. If it cannot, it is listed in §4 so
 | 11 | HELIOS functionality must not enter Helix verification semantics | verification + registry `additionalProperties: false`; HELIOS keys are not properties | `forbid_helios_keys` on **raw** JSON before serde (unknown keys would otherwise be dropped) | `helios_key_on_run_json_is_rejected`; `load_rejects_helios_ro_crate`; `helios_field_on_registry_record_is_rejected`; `src_must_not_import_helios` |
 | 12 | Operator `--target-kind` cannot turn a mock or reference implementation into independent evidence | reviewed `targets/independence.yaml` | `run_counts_as_independent` | `tests/b9_independent_differential.rs` B9-T1–T3 |
 | 13 | A differential artifact cannot create verification or ranking semantics | `helix-differential-v1.json` `creates_verification: false`, `ranking_semantics: absent` | `differential_json` / `contains_ranking_semantics` | B9-T17, B9-T21 |
+| 14 | A target mutation must not change verifier identity or preserve a stale VERIFIED claim | — | `claim_integrity::validate_claim_integrity`; `MutationEvidence` does not stamp `verified_version` | `tests/b10_negative_control.rs` B10-T8–T17, B10-T20 |
 
 Emit path (`helix verify` JSON and text, `bind_run`): `CheckMode::Emit` — every executed/skipped row must have valid traceability.
 

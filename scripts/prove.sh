@@ -27,6 +27,7 @@ for f in \
   docs/CHECKER_PROVENANCE.md \
   docs/EXTERNAL_EVIDENCE.md \
   docs/MUTATION.md \
+  docs/NEGATIVE_CONTROL.md \
   docs/INDEPENDENT_VERIFICATION.md \
   docs/PUBLIC_READINESS_AUDIT.md \
   docs/ARCHITECTURE_GUARDRAILS.md \
@@ -362,6 +363,12 @@ grep -q "Mutations missed" docs/MUTATION.md
 grep -q "pub const CATALOG" src/mutation.rs
 grep -q "fn known_bad_targets_fail_for_the_recorded_reason" tests/mutation.rs
 grep -q "fn missed_mutations_are_recorded_and_not_hidden" tests/mutation.rs
+grep -q "b10_t1_golden_baseline_verifies" tests/b10_negative_control.rs
+grep -q "b10_t20_mutation_outside_closure_is_explicitly_identified" tests/b10_negative_control.rs
+grep -q "b10_t28_no_external_network_and_harness_is_not_tautological" tests/b10_negative_control.rs
+grep -q "pub struct MutationEvidence" src/negative_control.rs
+grep -q "mutation_outside_closure" docs/NEGATIVE_CONTROL.md
+grep -q "Do not mix those catalogs" docs/MUTATION.md
 grep -q "What is not reproducible" docs/INDEPENDENT_VERIFICATION.md
 grep -q "not bit-for-bit" docs/INDEPENDENT_VERIFICATION.md
 grep -q "make fetch" docs/INDEPENDENT_VERIFICATION.md

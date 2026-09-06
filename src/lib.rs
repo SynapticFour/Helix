@@ -20,6 +20,7 @@ pub mod interop;
 pub mod layer;
 pub mod model;
 pub mod mutation;
+pub mod negative_control;
 pub mod profile;
 pub mod redact;
 pub mod report;

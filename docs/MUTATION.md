@@ -4,6 +4,8 @@
 
 Helix is HelixTest becoming a standalone VERIFY CLI. This corpus productizes **known-bad targets** so Helix is shown to detect incorrect implementations, not merely accept correct ones. It is **not** GA4GH certification, not a pentest suite, and not HELIOS.
 
+Versioned DRS 1.4.0 claim-revocation mutations (M1–M6, outside-closure honesty) are a **separate** gate: [NEGATIVE_CONTROL.md](NEGATIVE_CONTROL.md). Do not mix those catalogs. Do not treat `HLX-MUT-*` counts as a `verified_version` matrix.
+
 Trust: [TRUST.md](TRUST.md). Layers: [BEHAVIOR.md](BEHAVIOR.md). Diagnostics: [DIAGNOSTICS.md](DIAGNOSTICS.md). Fixtures: [FIXTURES.md](FIXTURES.md).
 
 A **SCHEMA PASS is not a BEHAVIOR PASS.** A mutation PASS (honest control) is not certification. There is no “mutations detected %” compliance score.

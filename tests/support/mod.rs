@@ -5,6 +5,8 @@
 #[allow(dead_code)]
 pub mod mock_adversarial;
 #[allow(dead_code)]
+pub mod mock_b10;
+#[allow(dead_code)]
 pub mod mock_ga4gh_drs;
 #[allow(dead_code)]
 pub mod mock_ga4gh_wes;

@@ -292,6 +292,19 @@ CI: **Yes**. Credentials: **None** (decoys only).
 
 Not a pentest. Not certification. Do not weaken Helix so a mutant “passes.”
 
+### 18. Versioned DRS 1.4.0 negative controls (B10)
+
+| | |
+|--|--|
+| Source | `tests/support/mock_b10.rs`; evidence `src/negative_control.rs` |
+| Purpose | Prove in-scope target mutations revoke `verified_version` without changing verifier identity; name at least one outside-closure mutation honestly |
+| Expected | Golden mock: all six `HLX-DRS-*` PASS, `verified_version=1.4.0`. M1–M6: named check FAIL (or causally related SKIP), claim NOT VERIFIED. P1–P4: still VERIFIED. O1: result unchanged, classified `mutation_outside_closure`. Localhost only |
+| Target | **Controlled one-behavior HTTP mutants** of the golden mock. Not a live Bento fork. Not ranking |
+| CI | **Yes** (`tests/b10_negative_control.rs`) |
+| Credentials | **None** |
+
+See [NEGATIVE_CONTROL.md](NEGATIVE_CONTROL.md). Distinct from §17.
+
 ---
 
 ## What is not a Helix fixture
