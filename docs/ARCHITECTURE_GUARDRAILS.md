@@ -39,6 +39,9 @@ If a rule can be a schema or a test, it is. If it cannot, it is listed in §4 so
 | 12 | Operator `--target-kind` cannot turn a mock or reference implementation into independent evidence | reviewed `targets/independence.yaml` | `run_counts_as_independent` | `tests/b9_independent_differential.rs` B9-T1–T3 |
 | 13 | A differential artifact cannot create verification or ranking semantics | `helix-differential-v1.json` `creates_verification: false`, `ranking_semantics: absent` | `differential_json` / `contains_ranking_semantics` | B9-T17, B9-T21 |
 | 14 | A target mutation must not change verifier identity or preserve a stale VERIFIED claim | — | `claim_integrity::validate_claim_integrity`; `MutationEvidence` does not stamp `verified_version` | `tests/b10_negative_control.rs` B10-T8–T17, B10-T20 |
+| 15 | A verification claim cannot exceed the compiled coverage contract. `UNEVALUATED` ≠ `OUT_OF_SCOPE`. Target metadata cannot expand or shrink required rows. `required_complete` is derived. | `coverage` optional on v1; `ranking_semantics` const `absent`; `creates_verification` const false | `coverage::CoverageReport::from_run`; `validate_claim_integrity` recomputes coverage | `tests/b11_coverage_boundary.rs` B11-T1–T32 |
+| 16 | Live independent observation cannot be a mock or default-catalog run with forged implementation metadata. Live JSON shares `coverage_id` / `execution_id` and differs in `target_execution_id`. | — | `live_independent_observation`; `validate_claim_integrity` on live artifacts | `tests/b12_live_reconciliation.rs`; [LIVE_RECONCILIATION.md](LIVE_RECONCILIATION.md) |
+| 17 | Emitted `helix_git_sha` must match the compile-time git HEAD. Dirty checkout cannot claim clean commit evidence. Missing `.git` does not fabricate a SHA. Provenance is not `execution_id`. | optional `helix_git_sha` / `helix_git_dirty` | `provenance::cites_this_verifier_build`; `validate_helix_git_provenance` | `tests/b12_1_verifier_provenance.rs` |
 
 Emit path (`helix verify` JSON and text, `bind_run`): `CheckMode::Emit` — every executed/skipped row must have valid traceability.
 
@@ -86,7 +89,7 @@ These are real. Do not paper over them with a fallback or a SUPPORTED tag.
 |------------|--------------------------|---------------------------|
 | Executed OpenAPI bytes | HelixTest pin (`VERSIONS.lock`), **not** `standards/vendor` hashes | “This run tested the pinned registry bytes” |
 | Generic engine | HelixTest `Mode::Generic` behind `src/adapter` | Ferrum as a Helix crate or auto-selected mode |
-| Independent implementations | None recorded; `helix matrix` slots pending | Multi-implementation validation |
+| Independent implementations | Reviewed records in `targets/independence.yaml` (Starter Kit, Bento). Not a cryptographic URL bind. CI does not run live targets. | Multi-implementation certification, ranking, or “validated against every DRS” |
 | Load-mode old JSON | Files without `traceability` can still be compared | That those files were emit-checked |
 | `debug_assert!(check_set)` | Debug builds only | Release emit — **also** calls `check_set` via `check_run` |
 | serde unknown fields | Dropped on deserialize | HELIOS keys surviving compare — raw JSON is scanned first |
@@ -121,6 +124,8 @@ Do not weaken a test to match a convenient implementation. Do not mark a pack SU
 | [STANDARDS_REGISTRY.md](STANDARDS_REGISTRY.md) | Pack lifecycle; who reviews normative mappings |
 | [STANDARD_VERSIONING.md](STANDARD_VERSIONING.md) | Selection modes; fail closed |
 | [CLAIMS.md](CLAIMS.md) | VERIFIED predicates |
+| [COVERAGE.md](COVERAGE.md) | Verification boundary |
+| [LIVE_RECONCILIATION.md](LIVE_RECONCILIATION.md) | Live independent targets vs the same coverage contract |
 | [TRACEABILITY.md](TRACEABILITY.md) / [TAXONOMY.md](TAXONOMY.md) | check_kind vs fixture |
 | [HELIX_VS_HELIOS.md](HELIX_VS_HELIOS.md) | Feature gate |
 | [ARCHITECTURE.md](ARCHITECTURE.md) | Layer map (this file is the lock on that map) |

@@ -126,3 +126,5 @@ helix differential starter-kit.json bento.json --format json
 ```
 
 CI does **not** clone or start Bento. Live JSON is not committed.
+
+B12 live reconciliation (same contract, two live targets, tamper tests): [LIVE_RECONCILIATION.md](LIVE_RECONCILIATION.md). Use reviewed `target_id` values from `targets/independence.yaml`. Capture JSON under gitignored `local/b12/`.

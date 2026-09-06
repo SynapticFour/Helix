@@ -28,6 +28,7 @@ The operator questions use “services” and “checks”. v1 **does not** use 
 | Schema version | `schema_version` | const `helix-verification-v1` |
 | Helix version | `helix_version` | crate version |
 | HelixTest pin | `helixtest_version` (git tag) / `helixtest_sha` (executed checker source digest) / `helixtest_git_sha` (git checkout pin) | optional; [CHECKER_PROVENANCE.md](CHECKER_PROVENANCE.md) |
+| Helix git | `helix_git_sha` / `helix_git_dirty` | compile-time checkout; optional on pre-B12.1 files; not `execution_id`; [RUN_IDENTITY.md](RUN_IDENTITY.md) |
 | Profile | `profile` | `generic` or `ferrum` |
 | Fixture catalog | `fixture_version` | `helix-fixtures-v1`; compare identity only ([RUN_IDENTITY.md](RUN_IDENTITY.md)). Not HELIOS |
 | Target | `target.url` plus optional `target.identity` | origin; identity is B4 ([TARGETS.md](TARGETS.md)). Optional on old files |
@@ -42,6 +43,7 @@ The operator questions use “services” and “checks”. v1 **does not** use 
 | Traceability | per-check `traceability` | `category` / `check_kind` / `claim_scope` / `authority` / `layer` / `request`. Taxonomy: [TAXONOMY.md](TAXONOMY.md). Layers: [BEHAVIOR.md](BEHAVIOR.md). Not a MUST |
 | Layers | `layer` / `layer_summary` | SCHEMA vs BEHAVIOR vs SECURITY vs INTEROPERABILITY. No percentage |
 | Claims | `claims[]` | Six kinds. `verified` only when every predicate holds. [CLAIMS.md](CLAIMS.md) |
+| Coverage | `coverage` | Derived verification boundary. Optional on old files. [COVERAGE.md](COVERAGE.md) |
 | Summary | `summary` | counts, not a score |
 
 There is no `checks` array and no root `services` array in v1.
@@ -96,6 +98,8 @@ This v1 schema sets `additionalProperties: false` so CI rejects accidental HELIO
 
 **Exception (claim join):** run-level `claim_join` is optional on this same v1 file. `schema_version` stays `helix-verification-v1`. Producers always emit it after `finalize_run`. IDs and check statuses only. Missing on old files is not a silent VERIFIED. Not HELIOS. [CLAIMS.md](CLAIMS.md).
 
+**Exception (coverage):** run-level `coverage` is optional on this same v1 file. `schema_version` stays `helix-verification-v1`. Producers always emit it after `finalize_run`. `required_complete` and `coverage_id` are derived; they are not declarations. Not a score, rank, or percentage. Not full DRS compliance. Missing on old files is not silent completeness. Not HELIOS. [COVERAGE.md](COVERAGE.md).
+
 **Helix producers:**
 
 - Must emit `schema_version: helix-verification-v1` while this file is current
@@ -105,6 +109,7 @@ This v1 schema sets `additionalProperties: false` so CI rejects accidental HELIO
 - Must emit `layer` and `layer_summary` (no percentage)
 - Must emit `claims` (six kinds; `not_verified` unless every predicate holds)
 - Must emit `claim_join` after `finalize_run` (IDs and statuses; not a HELIOS pack)
+- Must emit `coverage` after `finalize_run` (derived boundary; not a score; not HELIOS)
 - Must emit `drs_fixture` on DRS verify runs (`source` is `default_catalog` or `operator_declared`)
 - Must not emit `services`, `checks`, `passed`, `signature`, `ro_crate`
 

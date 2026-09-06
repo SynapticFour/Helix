@@ -561,7 +561,10 @@ async fn b8_t18_forged_verified_state_is_rejected() {
     assert!(!ga4gh_requirement_is_verified(&run));
     let err = validate_claim_integrity(&run).unwrap_err().to_string();
     assert!(
-        err.contains("ga4gh_requirement") || err.contains("claim_join") || err.contains("verified"),
+        err.contains("ga4gh_requirement")
+            || err.contains("claim_join")
+            || err.contains("verified")
+            || err.contains("coverage"),
         "{err}"
     );
     assert!(check_run(&run).is_err());

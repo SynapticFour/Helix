@@ -84,13 +84,12 @@ fn redact_labeled_value(s: &str, label: &str) -> String {
             let after = abs + lab_bytes.len();
             let after_ok = after >= bytes.len() || !is_ascii_ident(bytes[after]);
             if before_ok && after_ok {
-                out.push_str(&s[i..after]);
                 let mut j = after;
                 while j < bytes.len() && (bytes[j].is_ascii_whitespace() || bytes[j] == b'"') {
-                    out.push(bytes[j] as char);
                     j += 1;
                 }
                 if j < bytes.len() && (bytes[j] == b':' || bytes[j] == b'=') {
+                    out.push_str(&s[i..j]);
                     out.push(bytes[j] as char);
                     j += 1;
                     while j < bytes.len() && (bytes[j].is_ascii_whitespace() || bytes[j] == b'"') {
@@ -111,6 +110,7 @@ fn redact_labeled_value(s: &str, label: &str) -> String {
                     i = j;
                     continue;
                 }
+                out.push_str(&s[i..after]);
                 i = after;
                 continue;
             }
@@ -261,5 +261,13 @@ mod tests {
     fn does_not_treat_eyjust_as_jwt() {
         let s = "eyJust a joke about tokens";
         assert_eq!(redact_text(s), s);
+    }
+
+    #[test]
+    fn json_id_ending_with_authorization_stays_valid() {
+        let raw = r#"{ "id": "drs.security.authorization", "x": 1 }"#;
+        let out = redact_text(raw);
+        assert_eq!(out, raw);
+        serde_json::from_str::<serde_json::Value>(&out).expect("still JSON");
     }
 }

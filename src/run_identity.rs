@@ -21,6 +21,10 @@ pub struct RunIdentity {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub helixtest_git_sha: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub helix_git_sha: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub helix_git_dirty: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub profile: Option<String>,
     /// Stable Helix check `id`s from this run (executed + skipped), sorted.
     pub check_ids: Vec<String>,
@@ -60,6 +64,8 @@ impl RunIdentity {
             helixtest_version: run.helixtest_version.clone(),
             helixtest_sha: run.helixtest_sha.clone(),
             helixtest_git_sha: run.helixtest_git_sha.clone(),
+            helix_git_sha: run.helix_git_sha.clone(),
+            helix_git_dirty: run.helix_git_dirty,
             profile: run.profile.clone(),
             check_ids,
             target: run.target.url.clone(),
@@ -86,6 +92,8 @@ impl RunIdentity {
             helixtest_version: None,
             helixtest_sha: None,
             helixtest_git_sha: None,
+            helix_git_sha: None,
+            helix_git_dirty: None,
             profile: None,
             check_ids: Vec::new(),
             target: format!(
@@ -119,6 +127,7 @@ impl RunIdentity {
             || self.helixtest_version != other.helixtest_version
             || self.helixtest_sha != other.helixtest_sha
             || self.helixtest_git_sha != other.helixtest_git_sha
+            || self.helix_git_sha != other.helix_git_sha
     }
 
     pub fn catalog_changed(&self, other: &Self) -> bool {
@@ -156,6 +165,12 @@ impl RunIdentity {
             "helixtest_git_sha",
             &self.helixtest_git_sha,
             &other.helixtest_git_sha,
+        );
+        push_opt(
+            &mut out,
+            "helix_git_sha",
+            &self.helix_git_sha,
+            &other.helix_git_sha,
         );
         push_opt(&mut out, "profile", &self.profile, &other.profile);
         push_mis(&mut out, "target", &self.target, &other.target);

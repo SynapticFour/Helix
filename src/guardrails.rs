@@ -76,6 +76,41 @@ pub fn check_run_with(run: &VerificationRun, mode: CheckMode) -> Result<()> {
     Ok(())
 }
 
+/// Presentation JSON `coverage` must match the derived report. Declarations are not evidence.
+pub fn check_serialized_coverage(run: &VerificationRun, json: &Value) -> Result<()> {
+    let expected = crate::coverage::CoverageReport::from_run(run);
+    if expected.contains_ranking_semantics() {
+        bail!("derived coverage contains ranking semantics");
+    }
+    let Some(got) = json.get("coverage") else {
+        if expected.required_complete
+            && run
+                .standard_selection
+                .as_ref()
+                .and_then(|s| s.verified_version.as_deref())
+                .is_some()
+        {
+            bail!("JSON omits coverage but verified_version is set");
+        }
+        return Ok(());
+    };
+    let parsed: crate::coverage::CoverageReport =
+        serde_json::from_value(got.clone()).context("deserialize JSON coverage")?;
+    if parsed != expected {
+        bail!("JSON coverage does not match derived coverage");
+    }
+    if parsed.required_complete != expected.required_complete {
+        bail!("JSON coverage.required_complete is not derived");
+    }
+    if parsed.coverage_id != expected.coverage_id {
+        bail!("JSON coverage_id does not match derived coverage identity");
+    }
+    if parsed.contains_ranking_semantics() {
+        bail!("JSON coverage contains ranking semantics");
+    }
+    Ok(())
+}
+
 fn check_selection(sel: Option<&StandardSelection>) -> Result<()> {
     let Some(sel) = sel else {
         return Ok(());

@@ -48,6 +48,8 @@ pub struct ClaimJoin {
     pub fixture_object_id: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub fixture_expected_sha256: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub coverage_id: Option<String>,
     pub checks: Vec<ClaimJoinCheck>,
     pub claims: Vec<ClaimJoinState>,
 }
@@ -117,6 +119,7 @@ impl ClaimJoin {
                 .drs_fixture
                 .as_ref()
                 .and_then(|f| f.expected_sha256.clone()),
+            coverage_id: crate::coverage::CoverageReport::from_run(run).coverage_id,
             checks,
             claims: claims
                 .items
@@ -209,6 +212,7 @@ fn apply_verified_version(run: &mut VerificationRun, version: &str) {
 /// Attach derived join after the semantic result exists. Presentation must not restamp.
 pub fn finalize_run(run: &mut VerificationRun) {
     stamp_verified_version_if_justified(run);
+    run.coverage = Some(crate::coverage::CoverageReport::from_run(run));
     run.claim_join = Some(ClaimJoin::from_run(run));
 }
 
@@ -218,6 +222,24 @@ pub fn validate_claim_integrity(run: &VerificationRun) -> Result<()> {
     if let Some(join) = &run.claim_join {
         if join != &expected {
             bail!("claim_join does not match the recorded execution");
+        }
+    }
+
+    let expected_cov = crate::coverage::CoverageReport::from_run(run);
+    if expected_cov.contains_ranking_semantics() {
+        bail!("coverage contains ranking semantics");
+    }
+    if let Some(cov) = &run.coverage {
+        if cov != &expected_cov {
+            bail!("coverage does not match the recorded execution");
+        }
+        if cov.contains_ranking_semantics() {
+            bail!("coverage contains ranking semantics");
+        }
+    }
+    if let Some(join) = &run.claim_join {
+        if join.coverage_id != expected_cov.coverage_id {
+            bail!("claim_join.coverage_id does not match derived coverage");
         }
     }
 
@@ -236,6 +258,12 @@ pub fn validate_claim_integrity(run: &VerificationRun) -> Result<()> {
         if claims.get(ClaimKind::Ga4ghRequirement).status != ClaimStatus::Verified {
             bail!("verified_version={ver} but ga4gh_requirement is not verified");
         }
+        if run.coverage.is_none() {
+            bail!("verified_version={ver} requires coverage");
+        }
+        if !expected_cov.required_complete {
+            bail!("verified_version={ver} but coverage required_complete is false");
+        }
         let selected = run
             .standard_selection
             .as_ref()
@@ -247,6 +275,39 @@ pub fn validate_claim_integrity(run: &VerificationRun) -> Result<()> {
     }
 
     validate_recorded_identities(run)?;
+    validate_helix_git_provenance(run)?;
+    Ok(())
+}
+
+fn validate_helix_git_provenance(run: &VerificationRun) -> Result<()> {
+    if let Some(recorded) = run.helix_git_sha.as_deref() {
+        if crate::provenance::parse_git_sha(recorded).is_none() {
+            bail!("helix_git_sha is not a 40-char lowercase git SHA");
+        }
+        match crate::provenance::helix_git_sha() {
+            Some(built) if recorded != built => {
+                bail!("helix_git_sha does not match this verifier build");
+            }
+            None => {
+                bail!("helix_git_sha is recorded but this verifier build has no git provenance")
+            }
+            Some(_) => {}
+        }
+    }
+    if let Some(recorded_dirty) = run.helix_git_dirty {
+        match crate::provenance::helix_git_dirty() {
+            Some(built) if recorded_dirty != built => {
+                bail!("helix_git_dirty does not match this verifier build");
+            }
+            None => {
+                bail!("helix_git_dirty is recorded but this verifier build has no git dirty state")
+            }
+            Some(_) => {}
+        }
+    }
+    if run.helix_git_dirty == Some(false) && run.helix_git_sha.is_none() {
+        bail!("helix_git_dirty=false requires helix_git_sha");
+    }
     Ok(())
 }
 

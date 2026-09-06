@@ -578,6 +578,13 @@ pub struct VerificationRun {
     /// VERSIONS.lock HELIXTEST_SHA (40-char git checkout pin). Not the executed checker.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub helixtest_git_sha: Option<String>,
+    /// Helix git commit this verifier binary was built from. Optional on files
+    /// produced before B12.1. Not `execution_id`. Not HELIOS.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub helix_git_sha: Option<String>,
+    /// Whether the Helix checkout was dirty at compile time. Not a claim input.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub helix_git_dirty: Option<bool>,
     /// Helix profile id (`generic` or `ferrum`). Not HelixTest Mode.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub profile: Option<String>,
@@ -603,6 +610,11 @@ pub struct VerificationRun {
     /// Producers always emit after `finalize_run`. Not a HELIOS evidence pack.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub claim_join: Option<crate::claim_integrity::ClaimJoin>,
+    /// Derived verification-boundary evaluation. Optional on files produced
+    /// before B11. Producers always emit after `finalize_run`. Not a score.
+    /// Not HELIOS. Not certification.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub coverage: Option<crate::coverage::CoverageReport>,
 }
 
 /// DRS-only helper for tests that still build a single-service run.
@@ -616,6 +628,8 @@ impl VerificationRun {
             helixtest_version: Some(HELIXTEST_PIN.to_string()),
             helixtest_sha: Some(crate::checker::executed_checker_source_sha256().to_string()),
             helixtest_git_sha: Some(HELIXTEST_SHA.to_string()),
+            helix_git_sha: crate::provenance::helix_git_sha().map(str::to_string),
+            helix_git_dirty: crate::provenance::helix_git_dirty(),
             profile: None,
             fixture_version: FIXTURE_VERSION.to_string(),
             timestamp: Utc::now().to_rfc3339_opts(SecondsFormat::Secs, true),
@@ -628,6 +642,7 @@ impl VerificationRun {
             summary: VerificationSummary::default(),
             layer_summary: Some(crate::layer::LayerSummary::default()),
             claim_join: None,
+            coverage: None,
         }
     }
 

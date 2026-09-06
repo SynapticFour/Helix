@@ -4,7 +4,7 @@ Human text for `helix verify` and `helix compare` is a **projection of the same 
 
 HelixTest already runs the DRS and WES checks. This document productizes how Helix **presents** a run. It is not a new suite, not HELIOS, and not GA4GH certification.
 
-Source: `src/report.rs` (`format_verify_text`, `format_compare_text`). Claims: `src/claims.rs` ([CLAIMS.md](CLAIMS.md)). Model: [VERIFICATION_MODEL.md](VERIFICATION_MODEL.md). Diagnostics on fail/error: [DIAGNOSTICS.md](DIAGNOSTICS.md). Compare kinds: [REGRESSION.md](REGRESSION.md). CLI: [CLI_CONTRACT.md](CLI_CONTRACT.md).
+Source: `src/report.rs` (`format_verify_text`, `format_compare_text`). Claims: `src/claims.rs` ([CLAIMS.md](CLAIMS.md)). Coverage: `src/coverage.rs` ([COVERAGE.md](COVERAGE.md)). Model: [VERIFICATION_MODEL.md](VERIFICATION_MODEL.md). Diagnostics on fail/error: [DIAGNOSTICS.md](DIAGNOSTICS.md). Compare kinds: [REGRESSION.md](REGRESSION.md). CLI: [CLI_CONTRACT.md](CLI_CONTRACT.md).
 
 ---
 
@@ -21,6 +21,7 @@ Source: `src/report.rs` (`format_verify_text`, `format_compare_text`). Claims: `
 | WHICH TESTS ran? | `Results:` executed rows | `executed[]` |
 | WHICH passed / failed / skipped? | `PASS` / `FAIL` / `SKIP` / `ERROR` | `status` |
 | WHY is this VERIFIED / NOT VERIFIED? | `Claims:` | `claims[]` ([CLAIMS.md](CLAIMS.md)). Not a PASS/FAIL grep |
+| WHAT is inside / outside the verification contract? | `Coverage:` | `coverage` ([COVERAGE.md](COVERAGE.md)). Not a score |
 | WHY this check? | `— {message}` and diagnostic block; `kind:` / `claim_scope:` / `authority:` | `message`, `failure`, `diagnostic`, `traceability` |
 | WHAT kinds of evidence? | `Evidence (classification, not a score):` | `traceability.category` / `claim_scope` on each row ([TAXONOMY.md](TAXONOMY.md)) |
 | SCHEMA vs BEHAVIOR vs SECURITY vs INTEROPERABILITY | `Layers:` SCHEMA PASS / BEHAVIOR FAIL / … | `layer` / `layer_summary` ([BEHAVIOR.md](BEHAVIOR.md)). SCHEMA PASS is not BEHAVIOR PASS |

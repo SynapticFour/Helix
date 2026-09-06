@@ -66,7 +66,9 @@ pub fn verify_json(run: &VerificationRun) -> anyhow::Result<String> {
     let mut value = serde_json::to_value(run)?;
     value["claims"] = serde_json::to_value(crate::claims::evaluate(run))?;
     value["claim_join"] = serde_json::to_value(crate::claim_integrity::ClaimJoin::from_run(run))?;
+    value["coverage"] = serde_json::to_value(crate::coverage::CoverageReport::from_run(run))?;
     crate::guardrails::check_serialized_claims(run, &value)?;
+    crate::guardrails::check_serialized_coverage(run, &value)?;
     Ok(crate::redact::redact_text(&serde_json::to_string_pretty(
         &value,
     )?))
@@ -260,6 +262,7 @@ pub fn format_verify_text(run: &VerificationRun, color: bool) -> String {
     out.push_str("It is not GA4GH certification.\n");
     out.push('\n');
     out.push_str(&crate::claims::format_claims_section(run, color));
+    out.push_str(&crate::coverage::format_coverage_section(run));
     out.push_str("What:\n");
     out.push_str(
         "  DRS and WES checks (HelixTest wrap). TES/TRS/htsget discovered only, not executed.\n",
@@ -312,6 +315,14 @@ pub fn format_verify_text(run: &VerificationRun, color: bool) -> String {
     out.push('\n');
     out.push_str("Helix:\n");
     out.push_str(&format!("  {}\n", run.helix_version));
+    if let Some(sha) = run.helix_git_sha.as_deref() {
+        out.push_str(&format!("  git {sha}\n"));
+        match run.helix_git_dirty {
+            Some(true) => out.push_str("  checkout dirty at build (not a clean commit evidence)\n"),
+            Some(false) => out.push_str("  checkout clean at build\n"),
+            None => {}
+        }
+    }
     out.push_str(&format!("  schema {}\n", run.schema_version));
     if let Some(profile) = run.profile.as_deref() {
         out.push_str(&format!("  profile {profile}\n"));

@@ -123,16 +123,16 @@ These files are the inspectable answers. Empty or explicit “none” is still a
 | # | Question | Inspect |
 |---|---------|---------|
 | 1 | Claims | This file, [README.md](../README.md), [CLAIMS.md](CLAIMS.md), JSON `claims[]`, report `Claims:`: technical signal, not certification. VERIFIED only if predicates hold. Stranger-facing audit: [PUBLIC_READINESS_AUDIT.md](PUBLIC_READINESS_AUDIT.md). Enforcement: [ARCHITECTURE_GUARDRAILS.md](ARCHITECTURE_GUARDRAILS.md) |
-| 2 | What is tested | [TEST_IDENTITY.md](TEST_IDENTITY.md), `src/identity.rs`, `src/verify.rs`, [INVENTORY.md](../INVENTORY.md), layers [BEHAVIOR.md](BEHAVIOR.md) |
+| 2 | What is tested | [TEST_IDENTITY.md](TEST_IDENTITY.md), `src/identity.rs`, `src/verify.rs`, [INVENTORY.md](../INVENTORY.md), layers [BEHAVIOR.md](BEHAVIOR.md), verification boundary [COVERAGE.md](COVERAGE.md) |
 | 3 | Why a test exists | Catalog names/codes; [DIAGNOSTICS.md](DIAGNOSTICS.md); [FIXTURES.md](FIXTURES.md) for fixture-kind rows; [TRACEABILITY.md](TRACEABILITY.md) `expected_behavior` / `untraceable_reason`; known-bad mutants [MUTATION.md](MUTATION.md); versioned DRS 1.4.0 negative controls [NEGATIVE_CONTROL.md](NEGATIVE_CONTROL.md) |
 | 4 | Which spec release | [STANDARDS_REGISTRY.md](STANDARDS_REGISTRY.md), `standards/registry.yaml`, JSON `requested_version` / `selected_version` / `verified_version` ([STANDARD_VERSIONING.md](STANDARD_VERSIONING.md)) |
-| 5 | Source files and commits | Registry `commit` + `vendor_path` + sha256; HelixTest pin in [VERSIONS.lock](../VERSIONS.lock) |
+| 5 | Source files and commits | Registry `commit` + `vendor_path` + sha256; HelixTest pin in [VERSIONS.lock](../VERSIONS.lock); Helix checkout in JSON `helix_git_sha` / `helix_git_dirty` (compile-time `git rev-parse HEAD`; omitted rather than fabricated when `.git` is missing; not `execution_id`; [RUN_IDENTITY.md](RUN_IDENTITY.md)) |
 | 6 | Normative vs Helix-defined | JSON `traceability.category` / `check_kind` / `claim_scope` / `authority` ([TAXONOMY.md](TAXONOMY.md), [TRACEABILITY.md](TRACEABILITY.md), `src/traceability.rs`). Domain `executed[].category` is schema/lifecycle/…, not this taxonomy. Until a pack loads vendor bytes, Helix must **not** label a check as a GA4GH MUST |
 | 7 | What the target reported | `detected_version` from 2xx service-info `type.version` only ([DISCOVERY.md](DISCOVERY.md)). Never `/v1` |
 | 8 | What Helix selected | `standard_selection.selected_version` (empty when selection failed) |
 | 9 | What Helix executed | Versioned join: `pack_integrity_sha256` / `schema_document_sha256` / `schema_component_sha256` / `execution_id` plus `executed[]` / `skipped[]`. `verified_version` is a claim field (empty in B2), not proof that a pack ran |
 | 10 | What was observed | `message`, `diagnostic.observed` on fail/error |
-| 11 | Why the result | `claims[]` ([CLAIMS.md](CLAIMS.md)), `selection_status`, skip reasons, `summary`, exit code ([CLI_CONTRACT.md](CLI_CONTRACT.md)). Reproduce the run: [INDEPENDENT_VERIFICATION.md](INDEPENDENT_VERIFICATION.md) |
+| 11 | Why the result | `claims[]` ([CLAIMS.md](CLAIMS.md)), `coverage` ([COVERAGE.md](COVERAGE.md)), `selection_status`, skip reasons, `summary`, exit code ([CLI_CONTRACT.md](CLI_CONTRACT.md)). Reproduce the run: [INDEPENDENT_VERIFICATION.md](INDEPENDENT_VERIFICATION.md). Live two-target reconciliation: [LIVE_RECONCILIATION.md](LIVE_RECONCILIATION.md) |
 
 `helix standards list|show|validate` is provenance inspection. It does not run verify and does not download specs.
 
@@ -145,7 +145,7 @@ A skeptical engineer can already reject several public sentences. That is intend
 | Gap | Recorded fact | Forbidden claim |
 |-----|---------------|-----------------|
 | DRS 1.4.0 is **SUPPORTED** for technical verification within declared coverage; DRS 1.5.0 is not | `helix standards list --supported-only` lists `ga4gh.drs.1.4.0` only. Mode 1 for DRS 1.5.0 is `AVAILABLE_BUT_NOT_SUPPORTED`. YAML `support_status` is not sufficient (`src/standards/support.rs`). | “Verified against GA4GH DRS 1.5.0” or “GA4GH certified” |
-| No second independent implementation is recorded | `helix matrix` slots `ferrum` and `independent` are **pending**. In-process mocks are not independent evidence ([INTEROP.md](INTEROP.md), [TARGETS.md](TARGETS.md)). `target_kind=mock` never sets independent evidence. | “Helix is validated against multiple implementations” |
+| No second independent implementation is **certified**, ranked, or run in CI | B9 reviewed records exist (`targets/independence.yaml`). B12 reconciles live operator JSON when those processes are running. `helix matrix` slots remain pending. In-process mocks are not independent evidence ([INTEROP.md](INTEROP.md), [LIVE_RECONCILIATION.md](LIVE_RECONCILIATION.md)). | “Helix is validated against multiple implementations” or “Starter Kit vs Bento winner” |
 | Default `helix verify TARGET` is unversioned | `standard_selection.mode` is `unversioned`; `selected_version` / `verified_version` are empty | Labelling that run as GA4GH DRS 1.4.0 (or any pack) |
 | Unversioned OpenAPI is still HelixTest-vendored | Default adapter uses HelixTest `include_str` OpenAPI, not `standards/vendor/…` | “This unversioned run tested the pinned registry bytes” |
 | Versioned DRS 1.4.0 join is not a versioned VERIFIED claim | Join hashes may be recorded; `verified_version` stays empty until every claims predicate holds | “Verified against GA4GH DRS 1.4.0” from join or check PASS |

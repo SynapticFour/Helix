@@ -16,6 +16,7 @@ Source: `src/run_identity.rs` (`RunIdentity::from_verify`). Compare: [REGRESSION
 |------|------|--------|
 | Helix version | `helix_version` | Crate version (`0.1.0`) |
 | HelixTest version | `helixtest_version`, `helixtest_sha`, `helixtest_git_sha` | Tag **v0.1.3**; `helixtest_sha` is the executed checker source digest; `helixtest_git_sha` is `HELIXTEST_SHA` |
+| Helix git commit | `helix_git_sha`, `helix_git_dirty` | Compile-time `git rev-parse HEAD` and porcelain dirty flag. Omitted when `.git` is unavailable (not fabricated). Not `execution_id` / `coverage_id`. Not HELIOS |
 | Profile | `profile` | `generic` or `ferrum`. Not HelixTest Mode |
 | Test IDs | `executed[].id` + `skipped[].id` | Stable Helix ids ([TEST_IDENTITY.md](TEST_IDENTITY.md)) |
 | Target identifier | `target.url` | Normalized origin. Not a Ferrum id |
@@ -34,7 +35,7 @@ Source: `src/run_identity.rs` (`RunIdentity::from_verify`). Compare: [REGRESSION
 | Flag | True when | Effect on exit |
 |------|-----------|----------------|
 | `same_measurement` | schema, profile, `fixture_version`, target, selected pack (and bench workload if present) match | None. Informational |
-| `suite_changed` | `helix_version` or HelixTest pin differs | None. Informational |
+| `suite_changed` | `helix_version`, HelixTest pin, or `helix_git_sha` differs | None. Informational. Dirty flag is not this identity. |
 | `identity_mismatches` | listed field pairs that differ | None. Informational |
 
 Check-id set differences are a **catalog** change (`check_ids` in mismatches). They already appear as `ADDED` / `NEW_SKIP` rows. They do not set `NEW_FAIL` by themselves.

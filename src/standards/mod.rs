@@ -30,8 +30,9 @@ pub use select::{
 };
 pub use support::{
     binding_id, catalog_id, contract_for, declared_checker_id, evaluate_support, expected_bindings,
-    yaml_supported_is_executable, SupportContract, SupportVerdict, DRS_140_CONTRACT,
-    DRS_140_PACK_ID, DRS_OPENAPI_SPECSOURCE_CHECK,
+    yaml_supported_is_executable, SupportCheckDecl, SupportContract, SupportVerdict,
+    DRS_140_CONTRACT, DRS_140_PACK_ID, DRS_140_SCHEMA_COMPONENT, DRS_140_SCHEMA_ENTRY,
+    DRS_OPENAPI_SPECSOURCE_CHECK,
 };
 pub use validate::{
     confined_vendor_file, hex_sha256, validate_loaded, validate_path, validate_yaml,

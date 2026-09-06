@@ -86,4 +86,36 @@ fn main() {
         }
     }
     println!("cargo:rustc-env=HELIX_EXPECTED_CHECKER_SOURCE_SHA256={expected}");
+    emit_helix_git_provenance(&manifest);
+}
+
+/// Compile-time Helix checkout identity. Not a verification claim. Not HELIOS.
+/// Empty SHA / dirty=`unknown` when `.git` is missing — do not fabricate.
+fn emit_helix_git_provenance(helix_root: &Path) {
+    let git_dir = helix_root.join(".git");
+    println!("cargo:rerun-if-changed={}", git_dir.join("HEAD").display());
+    println!("cargo:rerun-if-changed={}", git_dir.join("index").display());
+    let sha = git_stdout(helix_root, &["rev-parse", "HEAD"])
+        .filter(|s| s.len() == 40 && s.bytes().all(|b| matches!(b, b'0'..=b'9' | b'a'..=b'f')))
+        .unwrap_or_default();
+    let dirty = match git_stdout(helix_root, &["status", "--porcelain"]) {
+        Some(_) if sha.is_empty() => "unknown".to_string(),
+        Some(status) if status.is_empty() => "false".to_string(),
+        Some(_) => "true".to_string(),
+        None => "unknown".to_string(),
+    };
+    println!("cargo:rustc-env=HELIX_GIT_SHA={sha}");
+    println!("cargo:rustc-env=HELIX_GIT_DIRTY={dirty}");
+}
+
+fn git_stdout(repo: &Path, args: &[&str]) -> Option<String> {
+    let out = Command::new("git")
+        .args(args)
+        .current_dir(repo)
+        .output()
+        .ok()?;
+    if !out.status.success() {
+        return None;
+    }
+    Some(String::from_utf8_lossy(&out.stdout).trim().to_string())
 }

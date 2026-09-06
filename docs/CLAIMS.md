@@ -56,7 +56,7 @@ For `schema`, `behavior`, and `security`, **all** of the following must hold. If
 | `no_substitution` | `substituted = false` |
 | `catalog_evidence_complete` | **`ga4gh_requirement` only.** Support-catalog rows all present and PASS |
 
-`verified_version` is stamped only when `ga4gh_requirement` is VERIFIED (`src/claim_integrity.rs` `stamp_verified_version_if_justified`). Detected, declared, and `--implementation-version` never stamp it. The join is `claim_join` (IDs + check statuses), not a HELIOS pack.
+`verified_version` is stamped only when `ga4gh_requirement` is VERIFIED (`src/claim_integrity.rs` `stamp_verified_version_if_justified`). Detected, declared, and `--implementation-version` never stamp it. The join is `claim_join` (IDs + check statuses + `coverage_id`), not a HELIOS pack. Coverage: [COVERAGE.md](COVERAGE.md). Honest DRS 1.4.0 catalog PASS is `ga4gh_requirement` VERIFIED with `coverage.state = partial` because unevaluated OpenAPI operations remain. Live Bento with a complete catalog is the same: VERIFIED under the contract, still `partial` ([LIVE_RECONCILIATION.md](LIVE_RECONCILIATION.md)).
 
 An **empty** normative set is **not** vacuously verified. It blocks with `no_normative_checks`.
 

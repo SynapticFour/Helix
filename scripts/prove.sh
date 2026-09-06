@@ -28,6 +28,8 @@ for f in \
   docs/EXTERNAL_EVIDENCE.md \
   docs/MUTATION.md \
   docs/NEGATIVE_CONTROL.md \
+  docs/COVERAGE.md \
+  docs/LIVE_RECONCILIATION.md \
   docs/INDEPENDENT_VERIFICATION.md \
   docs/PUBLIC_READINESS_AUDIT.md \
   docs/ARCHITECTURE_GUARDRAILS.md \
@@ -368,6 +370,31 @@ grep -q "b10_t20_mutation_outside_closure_is_explicitly_identified" tests/b10_ne
 grep -q "b10_t28_no_external_network_and_harness_is_not_tautological" tests/b10_negative_control.rs
 grep -q "pub struct MutationEvidence" src/negative_control.rs
 grep -q "mutation_outside_closure" docs/NEGATIVE_CONTROL.md
+grep -q "UNEVALUATED" docs/COVERAGE.md
+grep -q "OUT_OF_SCOPE" docs/COVERAGE.md
+grep -q "not a score" docs/COVERAGE.md
+grep -q "pub struct CoverageReport" src/coverage.rs
+grep -q "b11_t1_known_good_drs_140_mock_verifies" tests/b11_coverage_boundary.rs
+grep -q "b11_t23_outside_closure_mutation_does_not_alter_in_scope_claim" tests/b11_coverage_boundary.rs
+grep -q "b11_no_silent_coverage_inflation" tests/b11_coverage_boundary.rs
+grep -q "live_independent_observation" src/live_evidence.rs
+grep -q "b12_verifier_identities_match_b11_pins" tests/b12_live_reconciliation.rs
+grep -q "b12_live_artifacts_are_optional_for_prove" tests/b12_live_reconciliation.rs
+grep -q "helix_git_sha" src/provenance.rs
+grep -q "b12_1_t1_forged_helix_git_sha_fails_integrity" tests/b12_1_verifier_provenance.rs
+grep -q "HELIX_GIT_SHA" build.rs
+grep -q "B12-T12" tests/b12_live_reconciliation.rs
+grep -q "same coverage_id" docs/LIVE_RECONCILIATION.md
+grep -q "not live Bento evidence" docs/LIVE_RECONCILIATION.md
+grep -q "AUTHZ_ENABLED=false" docs/LIVE_RECONCILIATION.md
+if grep -qiE 'overall score|compliance percentage|coverage score|implementation grade|better implementation' docs/LIVE_RECONCILIATION.md; then
+  echo "live reconciliation must not introduce ranking" >&2
+  exit 1
+fi
+if grep -qiE 'overall score|compliance percentage|coverage score|implementation grade' docs/COVERAGE.md; then
+  echo "coverage must not introduce a score or percentage" >&2
+  exit 1
+fi
 grep -q "Do not mix those catalogs" docs/MUTATION.md
 grep -q "What is not reproducible" docs/INDEPENDENT_VERIFICATION.md
 grep -q "not bit-for-bit" docs/INDEPENDENT_VERIFICATION.md

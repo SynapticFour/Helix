@@ -10,7 +10,7 @@ And separately:
 
 > Which deliberately changed behaviors remain outside the current verification closure?
 
-Trust: [TRUST.md](TRUST.md). Claims: [CLAIMS.md](CLAIMS.md). Evidence types: `src/negative_control.rs`. Target fixtures: `tests/support/mock_b10.rs`. Tests: `tests/b10_negative_control.rs`.
+Trust: [TRUST.md](TRUST.md). Claims: [CLAIMS.md](CLAIMS.md). Coverage: [COVERAGE.md](COVERAGE.md). Evidence types: `src/negative_control.rs`. Target fixtures: `tests/support/mock_b10.rs`. Tests: `tests/b10_negative_control.rs`.
 
 **Vertraue mir nicht, vertraue dem Code.**
 
@@ -128,7 +128,7 @@ There is no sticky verification cache. `verified_version` is derived again on ea
 
 Mutations are localhost wiremock. No reverse proxy, no URL forwarding, no Docker pull, no credential logging, no externally reachable mutation service. Reproducible from: Helix commit, HelixTest pin, DRS 1.4.0 pack hash, mutation id, fixture object id, operator digest when used.
 
-Live Bento mutations are **not** required for CI. If a live mutated Bento run is not captured, mark live evidence unavailable rather than fabricating JSON.
+Live Bento mutations are **not** required for CI. If a live mutated Bento run is not captured, mark live evidence unavailable rather than fabricating JSON. Live *unmutated* reconciliation is [LIVE_RECONCILIATION.md](LIVE_RECONCILIATION.md); B12 does not add another mutation proxy.
 
 ---
 
