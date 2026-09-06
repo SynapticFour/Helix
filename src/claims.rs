@@ -17,10 +17,12 @@ use crate::layer::CheckLayer;
 use crate::model::{StandardSelection, VerificationResult, VerificationRun, VerificationStatus};
 use crate::sanitize::sanitize_untrusted;
 use crate::standards::{
-    BindingKind, ClaimScope, AMBIGUOUS, AVAILABLE_BUT_NOT_SUPPORTED, DEVELOPMENT_NOT_SELECTABLE,
-    INSUFFICIENT, MULTIPLE_PACKS_NOT_EXECUTABLE, NEEDS_RELEASE_CLASS, NOT_SUPPORTED,
-    NO_OFFICIAL_SUPPORTED, SELECTED, UNKNOWN_TO_HELIX, UNVERSIONED,
+    binding_id, catalog_id, contract_for, BindingKind, ClaimScope, AMBIGUOUS,
+    AVAILABLE_BUT_NOT_SUPPORTED, DEVELOPMENT_NOT_SELECTABLE, INSUFFICIENT,
+    MULTIPLE_PACKS_NOT_EXECUTABLE, NEEDS_RELEASE_CLASS, NOT_SUPPORTED, NO_OFFICIAL_SUPPORTED,
+    SELECTED, UNKNOWN_TO_HELIX, UNVERSIONED,
 };
+use crate::target::FailureAttribution;
 use crate::traceability::Authority;
 
 const GREEN: &str = "\x1b[32m";
@@ -101,6 +103,7 @@ pub enum ClaimPredicate {
     CoverageRequirementsSatisfied,
     EvidenceRecorded,
     NoSubstitution,
+    CatalogEvidenceComplete,
 }
 
 impl ClaimPredicate {
@@ -117,15 +120,16 @@ impl ClaimPredicate {
             Self::CoverageRequirementsSatisfied => "coverage_requirements_satisfied",
             Self::EvidenceRecorded => "evidence_recorded",
             Self::NoSubstitution => "no_substitution",
+            Self::CatalogEvidenceComplete => "catalog_evidence_complete",
         }
     }
 
     pub fn required_for(kind: ClaimKind) -> &'static [ClaimPredicate] {
         match kind {
-            ClaimKind::Ga4ghRequirement
-            | ClaimKind::Schema
-            | ClaimKind::Behavior
-            | ClaimKind::Security => ALL_VERIFIED_PREDICATES,
+            ClaimKind::Ga4ghRequirement => GA4GH_VERIFIED_PREDICATES,
+            ClaimKind::Schema | ClaimKind::Behavior | ClaimKind::Security => {
+                ALL_VERIFIED_PREDICATES
+            }
             ClaimKind::Interoperability | ClaimKind::Benchmark => &[],
         }
     }
@@ -143,6 +147,21 @@ const ALL_VERIFIED_PREDICATES: &[ClaimPredicate] = &[
     ClaimPredicate::CoverageRequirementsSatisfied,
     ClaimPredicate::EvidenceRecorded,
     ClaimPredicate::NoSubstitution,
+];
+
+const GA4GH_VERIFIED_PREDICATES: &[ClaimPredicate] = &[
+    ClaimPredicate::ExactStandardIdentified,
+    ClaimPredicate::SupportedReleaseSelected,
+    ClaimPredicate::PinnedSpecificationSource,
+    ClaimPredicate::IntegrityValidationSuccessful,
+    ClaimPredicate::SelectedEqualsTested,
+    ClaimPredicate::RequiredNormativeChecksExecuted,
+    ClaimPredicate::RequiredNormativeChecksPassed,
+    ClaimPredicate::NoBlockingNormativeFailures,
+    ClaimPredicate::CoverageRequirementsSatisfied,
+    ClaimPredicate::EvidenceRecorded,
+    ClaimPredicate::NoSubstitution,
+    ClaimPredicate::CatalogEvidenceComplete,
 ];
 
 /// Why a claim is NOT_VERIFIED. Codes are an enum, not free text.
@@ -173,6 +192,13 @@ pub enum ClaimBlockCode {
     NoChecksRecorded,
     InteroperabilityIsNotAGa4ghRequirement,
     BenchmarkIsMeasurementOnly,
+    RequiredEvidenceUnavailable,
+    CatalogCheckFailed,
+    CatalogCheckError,
+    CatalogCheckMissing,
+    CheckerIdentityMismatch,
+    BindingIdentityMismatch,
+    CatalogIdentityMismatch,
 }
 
 impl ClaimBlockCode {
@@ -204,6 +230,13 @@ impl ClaimBlockCode {
                 "interoperability_is_not_a_ga4gh_requirement"
             }
             Self::BenchmarkIsMeasurementOnly => "benchmark_is_measurement_only",
+            Self::RequiredEvidenceUnavailable => "required_evidence_unavailable",
+            Self::CatalogCheckFailed => "catalog_check_failed",
+            Self::CatalogCheckError => "catalog_check_error",
+            Self::CatalogCheckMissing => "catalog_check_missing",
+            Self::CheckerIdentityMismatch => "checker_identity_mismatch",
+            Self::BindingIdentityMismatch => "binding_identity_mismatch",
+            Self::CatalogIdentityMismatch => "catalog_identity_mismatch",
         }
     }
 }
@@ -401,7 +434,7 @@ fn evaluate_kind(run: &VerificationRun, selection: &StandardSelection, kind: Cla
                     Some("not a GA4GH MUST"),
                 )],
             );
-            apply_selection_predicates(&mut acc, selection);
+            apply_selection_predicates(&mut acc, selection, kind);
             apply_evidence_recorded(&mut acc, run);
         }
         ClaimKind::Benchmark => {
@@ -416,22 +449,27 @@ fn evaluate_kind(run: &VerificationRun, selection: &StandardSelection, kind: Cla
             apply_evidence_recorded(&mut acc, run);
         }
         ClaimKind::Ga4ghRequirement => {
-            apply_selection_predicates(&mut acc, selection);
+            apply_selection_predicates(&mut acc, selection, kind);
+            apply_identity_gates(&mut acc, selection);
             apply_evidence_recorded(&mut acc, run);
             apply_normative_predicates(&mut acc, run, None);
+            apply_catalog_gates(&mut acc, run, selection);
         }
         ClaimKind::Schema => {
-            apply_selection_predicates(&mut acc, selection);
+            apply_selection_predicates(&mut acc, selection, kind);
+            apply_identity_gates(&mut acc, selection);
             apply_evidence_recorded(&mut acc, run);
             apply_normative_predicates(&mut acc, run, Some(CheckLayer::Schema));
         }
         ClaimKind::Behavior => {
-            apply_selection_predicates(&mut acc, selection);
+            apply_selection_predicates(&mut acc, selection, kind);
+            apply_identity_gates(&mut acc, selection);
             apply_evidence_recorded(&mut acc, run);
             apply_normative_predicates(&mut acc, run, Some(CheckLayer::Behavior));
         }
         ClaimKind::Security => {
-            apply_selection_predicates(&mut acc, selection);
+            apply_selection_predicates(&mut acc, selection, kind);
+            apply_identity_gates(&mut acc, selection);
             apply_evidence_recorded(&mut acc, run);
             apply_normative_predicates(&mut acc, run, Some(CheckLayer::Security));
         }
@@ -439,7 +477,7 @@ fn evaluate_kind(run: &VerificationRun, selection: &StandardSelection, kind: Cla
     acc.finish(kind)
 }
 
-fn apply_selection_predicates(acc: &mut Accum, selection: &StandardSelection) {
+fn apply_selection_predicates(acc: &mut Accum, selection: &StandardSelection, kind: ClaimKind) {
     if nonempty(&selection.standard) {
         acc.satisfy(ClaimPredicate::ExactStandardIdentified);
     } else {
@@ -610,21 +648,37 @@ fn apply_selection_predicates(acc: &mut Accum, selection: &StandardSelection) {
         (Some(a), Some(b)) if a == b && !a.is_empty() => {
             acc.satisfy(ClaimPredicate::SelectedEqualsTested);
         }
-        (None, None) | (Some(""), Some("")) => {}
-        (sel, ver) => acc.block(
+        (Some(a), Some(b)) if a != b => acc.block(
             ClaimBlockCode::SelectedNeVerified,
             vec![ClaimEvidence {
                 field: "standard_selection.selected_version".into(),
                 check_id: None,
-                observed: Some(format!(
-                    "selected={} verified={}",
-                    sel.unwrap_or("null"),
-                    ver.unwrap_or("null")
-                )),
+                observed: Some(format!("selected={a} verified={b}")),
                 expected: Some("selected_version equals verified_version".into()),
                 value: None,
             }],
         ),
+        (None, Some(v)) => acc.block(
+            ClaimBlockCode::SelectedNeVerified,
+            vec![ClaimEvidence {
+                field: "standard_selection.verified_version".into(),
+                check_id: None,
+                observed: Some(format!("selected=null verified={v}")),
+                expected: Some("verified_version requires selected_version".into()),
+                value: None,
+            }],
+        ),
+        (Some(a), None) if !a.is_empty() => {
+            // verified_version is a gate output. Schema/behavior/security may
+            // verify the selected pack without a version sentence. ga4gh_requirement
+            // still requires selected == verified (stamped only when justified).
+            match kind {
+                ClaimKind::Ga4ghRequirement => {}
+                _ => acc.satisfy(ClaimPredicate::SelectedEqualsTested),
+            }
+        }
+        (None, None) | (Some(""), Some("")) | (Some(""), None) => {}
+        _ => {}
     }
 
     if selection.substituted {
@@ -752,6 +806,144 @@ fn apply_normative_predicates(acc: &mut Accum, run: &VerificationRun, layer: Opt
             errored.iter().map(|r| check_status_ev(r)).collect(),
         );
     }
+}
+
+fn apply_identity_gates(acc: &mut Accum, selection: &StandardSelection) {
+    if let Some(id) = selection.checker_id.as_deref() {
+        let executed = crate::checker::executed_checker_id();
+        if id != executed {
+            acc.block(
+                ClaimBlockCode::CheckerIdentityMismatch,
+                vec![ev(
+                    "standard_selection.checker_id",
+                    Some(id),
+                    Some(&executed),
+                )],
+            );
+        }
+    }
+    let Some(pack_id) = selection.standards_registry_entry.as_deref() else {
+        return;
+    };
+    let Some(contract) = contract_for(pack_id) else {
+        return;
+    };
+    if let Some(cat) = selection.catalog_id.as_deref() {
+        let expected = catalog_id(contract);
+        if cat != expected {
+            acc.block(
+                ClaimBlockCode::CatalogIdentityMismatch,
+                vec![ev(
+                    "standard_selection.catalog_id",
+                    Some(cat),
+                    Some(&expected),
+                )],
+            );
+        }
+    }
+    if let (Some(p), Some(d), Some(c), Some(bid)) = (
+        selection.pack_integrity_sha256.as_deref(),
+        selection.schema_document_sha256.as_deref(),
+        selection.schema_component_sha256.as_deref(),
+        selection.binding_id.as_deref(),
+    ) {
+        let expected = binding_id(contract, p, d, c);
+        if bid != expected {
+            acc.block(
+                ClaimBlockCode::BindingIdentityMismatch,
+                vec![ev(
+                    "standard_selection.binding_id",
+                    Some(bid),
+                    Some(&expected),
+                )],
+            );
+        }
+    }
+}
+
+fn apply_catalog_gates(acc: &mut Accum, run: &VerificationRun, selection: &StandardSelection) {
+    let Some(pack_id) = selection.standards_registry_entry.as_deref() else {
+        return;
+    };
+    let Some(contract) = contract_for(pack_id) else {
+        return;
+    };
+
+    let rows: Vec<&VerificationResult> = run.executed.iter().chain(run.skipped.iter()).collect();
+    let mut missing = Vec::new();
+    let mut unavailable = Vec::new();
+    let mut failed = Vec::new();
+    let mut errored = Vec::new();
+
+    for decl in contract.checks {
+        let Some(r) = rows
+            .iter()
+            .copied()
+            .find(|r| r.id == decl.id || r.code == decl.code)
+        else {
+            missing.push(decl);
+            continue;
+        };
+        match r.status {
+            VerificationStatus::Pass => {}
+            VerificationStatus::Skip => {
+                if is_required_evidence_unavailable(r) || decl.kind != BindingKind::Normative {
+                    unavailable.push(r);
+                }
+            }
+            VerificationStatus::Fail if decl.kind == BindingKind::Normative => {}
+            VerificationStatus::Error if decl.kind == BindingKind::Normative => {}
+            VerificationStatus::Fail => failed.push(r),
+            VerificationStatus::Error => errored.push(r),
+        }
+    }
+
+    if missing.is_empty() && unavailable.is_empty() && failed.is_empty() && errored.is_empty() {
+        acc.satisfy(ClaimPredicate::CatalogEvidenceComplete);
+        return;
+    }
+
+    if !missing.is_empty() {
+        acc.block(
+            ClaimBlockCode::CatalogCheckMissing,
+            missing
+                .iter()
+                .map(|d| ClaimEvidence {
+                    field: "catalog.check".into(),
+                    check_id: Some(d.id.to_string()),
+                    observed: Some("absent".into()),
+                    expected: Some("executed".into()),
+                    value: Some(d.code.to_string()),
+                })
+                .collect(),
+        );
+    }
+    if !unavailable.is_empty() {
+        acc.block(
+            ClaimBlockCode::RequiredEvidenceUnavailable,
+            unavailable.iter().map(|r| check_status_ev(r)).collect(),
+        );
+    }
+    if !failed.is_empty() {
+        acc.block(
+            ClaimBlockCode::CatalogCheckFailed,
+            failed.iter().map(|r| check_status_ev(r)).collect(),
+        );
+    }
+    if !errored.is_empty() {
+        acc.block(
+            ClaimBlockCode::CatalogCheckError,
+            errored.iter().map(|r| check_status_ev(r)).collect(),
+        );
+    }
+}
+
+fn is_required_evidence_unavailable(r: &VerificationResult) -> bool {
+    r.attribution == Some(FailureAttribution::TargetConfigurationFailure)
+        || r.message
+            .as_deref()
+            .unwrap_or("")
+            .contains("fixture_unavailable")
 }
 
 /// Structured taxonomy only. Never inspects `message` for PASS/FAIL.
@@ -1085,16 +1277,23 @@ mod tests {
     }
 
     #[test]
-    fn synthetic_predicates_can_issue_verified_without_shipping_catalog_normative() {
+    fn synthetic_predicates_can_issue_schema_verified_without_full_catalog() {
         let mut run = with_selection(run_blank(), selected_ok());
         run.push_executed(normative_pass("drs.object.schema", CheckLayer::Schema));
         let set = evaluate(&run);
         assert_eq!(
             set.get(ClaimKind::Ga4ghRequirement).status,
-            ClaimStatus::Verified
+            ClaimStatus::NotVerified
         );
+        assert!(set
+            .get(ClaimKind::Ga4ghRequirement)
+            .has_block(ClaimBlockCode::CatalogCheckMissing));
         assert_eq!(set.get(ClaimKind::Schema).status, ClaimStatus::Verified);
-        assert!(set.get(ClaimKind::Ga4ghRequirement).blocks.is_empty());
+        assert!(set.get(ClaimKind::Ga4ghRequirement).blocks.iter().any(|b| {
+            b.code == ClaimBlockCode::CatalogCheckMissing
+                || b.code == ClaimBlockCode::RequiredEvidenceUnavailable
+                || b.code == ClaimBlockCode::CatalogCheckFailed
+        }));
         assert_eq!(
             set.get(ClaimKind::Behavior).status,
             ClaimStatus::NotVerified

@@ -70,6 +70,8 @@ pub fn check_run_with(run: &VerificationRun, mode: CheckMode) -> Result<()> {
     }
     if mode == CheckMode::Emit {
         check_set(&evaluate(run)).context("VERIFIED claim is not justified by predicates")?;
+        crate::claim_integrity::validate_claim_integrity(run)
+            .context("claim integrity does not match recorded execution")?;
     }
     Ok(())
 }

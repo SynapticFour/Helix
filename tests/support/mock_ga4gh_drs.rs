@@ -72,6 +72,24 @@ pub async fn start_mock_ga4gh_drs() -> MockGa4ghDrs {
     MockGa4ghDrs { server }
 }
 
+/// Same catalog object as [`start_mock_ga4gh_drs`], with DRS service-info
+/// `type.version` set to `version`. Detected version is untrusted.
+pub async fn start_mock_ga4gh_drs_advertising(version: &str) -> MockGa4ghDrs {
+    let server = MockServer::start().await;
+    Mock::given(method("GET"))
+        .and(path("/ga4gh/drs/v1/service-info"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+            "id": "org.ga4gh.drs",
+            "name": "Mock DRS",
+            "version": "0.0.0",
+            "type": { "group": "org.ga4gh", "artifact": "drs", "version": version }
+        })))
+        .mount(&server)
+        .await;
+    mount_ga4gh_drs(&server).await;
+    MockGa4ghDrs { server }
+}
+
 /// Gateway-prefixed DRS service-info so discovery can DETECT DRS without the
 /// configured object existing. Not a WES `/service-info`. Not certification.
 pub async fn mount_ga4gh_drs_service_info(server: &MockServer) {

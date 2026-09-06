@@ -280,25 +280,48 @@ impl FailureAttribution {
                     Some(Self::UnsupportedTest)
                 }
             }
-            VerificationStatus::Error => Some(Self::HelixExecutionFailure),
+            VerificationStatus::Error => Some(error_attribution(result)),
             VerificationStatus::Fail => Some(fail_attribution(result)),
         }
     }
 }
 
-fn fail_attribution(result: &VerificationResult) -> FailureAttribution {
-    let msg = result.message.as_deref().unwrap_or("");
-    if msg.contains("HelixTest adapter error")
+fn helix_execution_message(msg: &str) -> bool {
+    msg.contains("HelixTest adapter error")
         || msg.contains("SpecSource identity mismatch")
         || msg.contains("wall clock")
-    {
+}
+
+fn error_attribution(result: &VerificationResult) -> FailureAttribution {
+    let msg = result.message.as_deref().unwrap_or("");
+    if msg.contains("target unreachable") {
+        return FailureAttribution::TransportFailure;
+    }
+    if helix_execution_message(msg) {
         return FailureAttribution::HelixExecutionFailure;
+    }
+    if msg.contains("not TESTABLE") || msg.contains("not detected") {
+        return FailureAttribution::TargetConfigurationFailure;
+    }
+    FailureAttribution::HelixExecutionFailure
+}
+
+fn fail_attribution(result: &VerificationResult) -> FailureAttribution {
+    let msg = result.message.as_deref().unwrap_or("");
+    if helix_execution_message(msg) {
+        return FailureAttribution::HelixExecutionFailure;
+    }
+    if msg.contains("target unreachable") {
+        return FailureAttribution::TransportFailure;
     }
     if msg.contains("not TESTABLE") || msg.contains("not detected") {
         return FailureAttribution::TargetConfigurationFailure;
     }
     if let Some(d) = &result.diagnostic {
         if d.likely_category == DiagnosticCategory::Reachability {
+            if d.observed.starts_with("HTTP ") {
+                return FailureAttribution::TargetFailure;
+            }
             return FailureAttribution::TransportFailure;
         }
     }
@@ -309,10 +332,8 @@ fn fail_attribution(result: &VerificationResult) -> FailureAttribution {
         .unwrap_or(false);
     if normative {
         FailureAttribution::SpecFailure
-    } else if result.diagnostic.is_some() {
-        FailureAttribution::TargetFailure
     } else {
-        FailureAttribution::Unknown
+        FailureAttribution::TargetFailure
     }
 }
 

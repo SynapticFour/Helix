@@ -9,7 +9,8 @@
 - Target-scoped DRS fixture contract ([docs/TARGETS.md](docs/TARGETS.md) §11): `--drs-object-id` / `--drs-object-sha256`. Default catalog remains `test-object-1`. A 404 on the configured object is `fixture_unavailable`, not DRS non-conformance. Spec-join `execution_id` unchanged. Not automatic object discovery. Not HELIOS. Not certification.
 
 - `helix verify` executes **DRS and WES**. TES/TRS/htsget are discovery-only.
-- DRS 1.4.0 is **SUPPORTED** for technical verification within declared coverage. YAML `support_status` is not sufficient. Exactly one shipped check is `normative`. Default verify is **unversioned**. `verified_version` stays empty. Not GA4GH certification.
+- DRS 1.4.0 is **SUPPORTED** for technical verification within declared coverage. YAML `support_status` is not sufficient. Exactly one shipped check is `normative`. Default verify is **unversioned**. `verified_version` is stamped only when `ga4gh_requirement` is derived as VERIFIED (`src/claim_integrity.rs`). Detected/declared/`--implementation-version` never stamp it. Not GA4GH certification.
+- Claim integrity join (`claim_join`): a verification claim is bound to spec/checker/target/fixture identities and executed check statuses. Forged VERIFIED is rejected. Not HELIOS.
 - DRS 1.5.0 and WES remain AVAILABLE / non-executable as supported packs.
 - External multi-implementation validation is **pending**. Target identity and target-scoped execution ids are shipped ([docs/TARGETS.md](docs/TARGETS.md)). In-process mocks are not a second implementation.
 - No git tag. Cargo package version is `0.1.0`. Not crates.io (`publish = false`).

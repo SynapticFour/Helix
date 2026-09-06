@@ -126,6 +126,7 @@ pub async fn verify_with_options(endpoint: &str, options: VerifyOptions) -> Resu
         | VerifySelection::Compatibility { .. } => verify_versioned(endpoint, options).await?,
     };
     crate::traceability::bind_run(&mut outcome.run)?;
+    crate::claim_integrity::finalize_run(&mut outcome.run);
     Ok(outcome)
 }
 

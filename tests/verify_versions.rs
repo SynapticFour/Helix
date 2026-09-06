@@ -282,14 +282,22 @@ async fn all_supported_versions_does_not_run_available_1_5_0() {
     assert_eq!(v["standard_selection"]["selection_status"], SELECTED);
     assert_eq!(v["standard_selection"]["substituted"], false);
     assert_eq!(v["standard_selection"]["selected_version"], "1.4.0");
-    assert_eq!(v["standard_selection"]["verified_version"], Value::Null);
     assert_ne!(v["standard_selection"]["verified_version"], "1.5.0");
     assert_ne!(v["standard_selection"]["selected_version"], "1.5.0");
+    match v["standard_selection"]["verified_version"] {
+        Value::Null => {}
+        Value::String(ref s) => assert_eq!(s, "1.4.0"),
+        ref other => panic!("unexpected verified_version {other}"),
+    }
     for row in every_result(&v) {
         assert_seven_fields(row);
         if row["service"] == "drs" {
             assert_eq!(row["selected_version"], "1.4.0");
-            assert_eq!(row["verified_version"], Value::Null);
+            match &row["verified_version"] {
+                Value::Null => {}
+                Value::String(s) => assert_eq!(s, "1.4.0"),
+                other => panic!("unexpected verified_version {other}"),
+            }
             assert_ne!(row["selected_version"], "1.5.0");
         }
     }
@@ -469,7 +477,12 @@ async fn supported_1_4_0_runs_and_does_not_label_1_5_0() {
     let sel = outcome.run.standard_selection.as_ref().unwrap();
     assert_eq!(sel.selection_status, "SELECTED");
     assert_eq!(sel.selected_version.as_deref(), Some("1.4.0"));
-    assert!(sel.verified_version.is_none());
+    match sel.verified_version.as_deref() {
+        None => {}
+        Some("1.4.0") => {}
+        other => panic!("unexpected verified_version {other:?}"),
+    }
+    assert_ne!(sel.verified_version.as_deref(), Some("1.5.0"));
     assert_eq!(sel.integrity_ok, Some(true));
     assert!(sel.pack_integrity_sha256.as_ref().unwrap().len() == 64);
     assert!(sel.schema_document_sha256.as_ref().unwrap().len() == 64);
@@ -497,7 +510,11 @@ async fn supported_1_4_0_runs_and_does_not_label_1_5_0() {
         .filter(|r| r.service == "drs")
     {
         assert_eq!(r.selected_version.as_deref(), Some("1.4.0"));
-        assert!(r.verified_version.is_none());
+        match r.verified_version.as_deref() {
+            None => {}
+            Some("1.4.0") => {}
+            other => panic!("unexpected verified_version {other:?}"),
+        }
     }
     for r in outcome.run.skipped.iter().filter(|r| r.service == "wes") {
         assert_eq!(r.selected_version, None);

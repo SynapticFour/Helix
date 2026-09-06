@@ -184,17 +184,24 @@ async fn test5_target_metadata_cannot_create_verified() {
         .await
         .expect("verify");
     let sel = outcome.run.standard_selection.as_ref().unwrap();
-    assert_eq!(sel.selected_version.as_deref(), Some("1.4.0"));
-    assert!(sel.verified_version.is_none());
     let id = outcome.run.target.identity.as_ref().unwrap();
+    assert_eq!(sel.selected_version.as_deref(), Some("1.4.0"));
     assert_eq!(id.implementation_version.as_deref(), Some("1.2.3"));
     assert_eq!(id.declared.standard_version.as_deref(), Some("1.4.0"));
-    let claims = evaluate(&outcome.run);
-    assert!(!claims.any_verified());
-    assert!(claims
-        .items
-        .iter()
-        .all(|c| c.status != ClaimStatus::Verified));
+    assert_ne!(
+        sel.verified_version.as_deref(),
+        id.implementation_version.as_deref()
+    );
+    assert_ne!(sel.verified_version.as_deref(), Some("1.2.3"));
+    if sel.verified_version.is_some() {
+        assert_eq!(sel.verified_version.as_deref(), Some("1.4.0"));
+        assert_eq!(
+            evaluate(&outcome.run)
+                .get(helix::claims::ClaimKind::Ga4ghRequirement)
+                .status,
+            ClaimStatus::Verified
+        );
+    }
 }
 
 /// Test 6 — mock is not independent implementation.

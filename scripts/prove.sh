@@ -316,9 +316,16 @@ grep -q "start_mock_schema_ok_checksum_wrong" tests/support/mock_ga4gh_drs.rs
 grep -q "Exactly one shipped check is \`normative\`" docs/CLAIMS.md
 grep -q "not_verified" docs/CLAIMS.md
 grep -q "fixture_failure_is_not_a_normative_failure" docs/CLAIMS.md
+grep -q "required_evidence_unavailable" docs/CLAIMS.md
+grep -q "catalog_evidence_complete" docs/CLAIMS.md
 grep -q "pub fn evaluate" src/claims.rs
 grep -q "pub enum ClaimKind" src/claims.rs
 grep -q "Why not verified" src/claims.rs
+grep -q "pub struct ClaimJoin" src/claim_integrity.rs
+grep -q "stamp_verified_version_if_justified" src/claim_integrity.rs
+grep -q "b8_t1_verified_requires_all_mandatory_checks" tests/b8_claim_integrity.rs
+grep -q "b8_t18_forged_verified_state_is_rejected" tests/b8_claim_integrity.rs
+grep -q "b8_t24_no_helios_dependency_introduced" tests/b8_claim_integrity.rs
 if grep -E '\.contains\("(PASS|FAIL)' src/claims.rs; then
   echo "claim engine must not search PASS/FAIL strings" >&2
   exit 1

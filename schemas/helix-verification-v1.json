@@ -124,6 +124,10 @@
       "items": {
         "$ref": "#/$defs/claim"
       }
+    },
+    "claim_join": {
+      "$ref": "#/$defs/claimJoin",
+      "description": "Derived join from claims to the verification execution (spec, checker, target, fixture, check statuses). Optional on files produced before B8. Producers always emit after finalize. Not a HELIOS evidence pack."
     }
   },
   "$defs": {
@@ -854,7 +858,8 @@
         "no_blocking_normative_failures",
         "coverage_requirements_satisfied",
         "evidence_recorded",
-        "no_substitution"
+        "no_substitution",
+        "catalog_evidence_complete"
       ]
     },
     "claimBlockCode": {
@@ -883,7 +888,14 @@
         "normative_check_error",
         "no_checks_recorded",
         "interoperability_is_not_a_ga4gh_requirement",
-        "benchmark_is_measurement_only"
+        "benchmark_is_measurement_only",
+        "required_evidence_unavailable",
+        "catalog_check_failed",
+        "catalog_check_error",
+        "catalog_check_missing",
+        "checker_identity_mismatch",
+        "binding_identity_mismatch",
+        "catalog_identity_mismatch"
       ]
     },
     "claimEvidence": {
@@ -926,6 +938,69 @@
         "blocks": {
           "type": "array",
           "items": { "$ref": "#/$defs/claimBlock" }
+        }
+      }
+    },
+    "claimJoinCheck": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "code", "status"],
+      "description": "One executed or skipped check referenced by the claim join. Not a duplicated response blob.",
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "code": { "type": "string", "minLength": 1 },
+        "status": { "$ref": "#/$defs/status" },
+        "attribution": {
+          "type": "string",
+          "enum": [
+            "spec_failure",
+            "target_failure",
+            "transport_failure",
+            "target_configuration_failure",
+            "helix_execution_failure",
+            "unsupported_test",
+            "unknown"
+          ]
+        }
+      }
+    },
+    "claimJoinState": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "status"],
+      "properties": {
+        "kind": { "$ref": "#/$defs/claimKind" },
+        "status": { "$ref": "#/$defs/claimStatus" }
+      }
+    },
+    "claimJoin": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["checks", "claims"],
+      "description": "Derived join from claims to the verification execution. IDs and statuses only. Not HELIOS.",
+      "properties": {
+        "standard": { "type": "string" },
+        "selected_version": { "type": "string" },
+        "verified_version": { "type": "string" },
+        "release_commit": { "type": "string" },
+        "pack_id": { "type": "string" },
+        "pack_integrity_sha256": { "type": "string" },
+        "schema_document_sha256": { "type": "string" },
+        "schema_component_sha256": { "type": "string" },
+        "checker_id": { "type": "string" },
+        "binding_id": { "type": "string" },
+        "catalog_id": { "type": "string" },
+        "execution_id": { "type": "string" },
+        "target_execution_id": { "type": "string" },
+        "fixture_object_id": { "type": "string" },
+        "fixture_expected_sha256": { "type": "string" },
+        "checks": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/claimJoinCheck" }
+        },
+        "claims": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/claimJoinState" }
         }
       }
     }

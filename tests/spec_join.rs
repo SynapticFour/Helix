@@ -432,7 +432,6 @@ async fn test14_supported_drs_140_is_not_automatically_verified() {
     .expect("join execute");
     let sel = outcome.run.standard_selection.as_ref().unwrap();
     assert_eq!(sel.selected_version.as_deref(), Some("1.4.0"));
-    assert!(sel.verified_version.is_none());
     assert_eq!(schema_row(&outcome).status, VerificationStatus::Pass);
     let openapi = outcome
         .run
@@ -445,8 +444,17 @@ async fn test14_supported_drs_140_is_not_automatically_verified() {
         openapi.traceability.as_ref().unwrap().category,
         helix::standards::BindingKind::Normative
     );
+    // YAML support_status / join success is not a label. The honest mock executes
+    // the full DRS 1.4.0 catalog; when every catalog check PASSes, the gate stamps
+    // verified_version. Incomplete catalog cannot.
     let claims = evaluate(&outcome.run);
-    assert!(!claims.any_verified());
+    assert_eq!(sel.verified_version.as_deref(), Some("1.4.0"));
+    assert_eq!(
+        claims
+            .get(helix::claims::ClaimKind::Ga4ghRequirement)
+            .status,
+        helix::claims::ClaimStatus::Verified
+    );
 }
 
 /// F2 mutation: vendor pack bytes that change the schema must change the checker

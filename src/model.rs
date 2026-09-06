@@ -599,6 +599,10 @@ pub struct VerificationRun {
     /// SCHEMA / BEHAVIOR / SECURITY / INTEROPERABILITY counts. Not a score.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub layer_summary: Option<crate::layer::LayerSummary>,
+    /// Derived claim ↔ execution join. Optional on files produced before B8.
+    /// Producers always emit after `finalize_run`. Not a HELIOS evidence pack.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub claim_join: Option<crate::claim_integrity::ClaimJoin>,
 }
 
 /// DRS-only helper for tests that still build a single-service run.
@@ -623,6 +627,7 @@ impl VerificationRun {
             skipped: Vec::new(),
             summary: VerificationSummary::default(),
             layer_summary: Some(crate::layer::LayerSummary::default()),
+            claim_join: None,
         }
     }
 

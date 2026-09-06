@@ -64,6 +64,7 @@ pub fn verify_json(run: &VerificationRun) -> anyhow::Result<String> {
     crate::guardrails::check_run(run)?;
     let mut value = serde_json::to_value(run)?;
     value["claims"] = serde_json::to_value(crate::claims::evaluate(run))?;
+    value["claim_join"] = serde_json::to_value(crate::claim_integrity::ClaimJoin::from_run(run))?;
     crate::guardrails::check_serialized_claims(run, &value)?;
     Ok(crate::redact::redact_text(&serde_json::to_string_pretty(
         &value,

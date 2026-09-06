@@ -5,6 +5,7 @@
 pub mod adapter;
 pub mod bench;
 pub mod checker;
+pub mod claim_integrity;
 pub mod claims;
 pub mod compare;
 pub mod diagnostics;
