@@ -5,7 +5,8 @@
 //! at compile time). `helix_git_dirty` is whether that checkout had uncommitted
 //! changes. Neither enters `execution_id`, `coverage_id`, `binding_id`, or
 //! `catalog_id`. A missing `.git` directory yields `None` — Helix does not
-//! fabricate a SHA.
+//! fabricate a SHA. `build.rs` watches `.git/HEAD`, the resolved branch ref,
+//! `packed-refs`, and `index` so a new commit cannot keep a stale SHA.
 
 /// Compile-time `git rev-parse HEAD`. Empty when `.git` was unavailable.
 const EMBEDDED_SHA: &str = env!("HELIX_GIT_SHA");

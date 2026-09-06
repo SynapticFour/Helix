@@ -93,8 +93,19 @@ fn main() {
 /// Empty SHA / dirty=`unknown` when `.git` is missing — do not fabricate.
 fn emit_helix_git_provenance(helix_root: &Path) {
     let git_dir = helix_root.join(".git");
+    // HEAD is often a symbolic ref (`ref: refs/heads/...`). A commit updates the
+    // branch file, not HEAD itself — watching only HEAD leaves HELIX_GIT_SHA stale.
     println!("cargo:rerun-if-changed={}", git_dir.join("HEAD").display());
     println!("cargo:rerun-if-changed={}", git_dir.join("index").display());
+    println!(
+        "cargo:rerun-if-changed={}",
+        git_dir.join("packed-refs").display()
+    );
+    if let Ok(head) = std::fs::read_to_string(git_dir.join("HEAD")) {
+        if let Some(rel) = head.trim().strip_prefix("ref: ") {
+            println!("cargo:rerun-if-changed={}", git_dir.join(rel).display());
+        }
+    }
     let sha = git_stdout(helix_root, &["rev-parse", "HEAD"])
         .filter(|s| s.len() == 40 && s.bytes().all(|b| matches!(b, b'0'..=b'9' | b'a'..=b'f')))
         .unwrap_or_default();
