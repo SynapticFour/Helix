@@ -4,7 +4,9 @@ Helix is HelixTest becoming a standalone VERIFY CLI. This document records what 
 
 **Vertraue mir nicht, vertraue dem Code.**
 
-Status: **B13 BLOCKED — live authorization evidence unavailable.**
+Status: **B13 — Authorization Evidence Boundary: BLOCKED / DEFERRED.**
+
+Feasibility investigation (Bento source, not a live matrix): [B13_AUTHORIZATION_FEASIBILITY.md](B13_AUTHORIZATION_FEASIBILITY.md). Decision: **DEFER**.
 
 ---
 

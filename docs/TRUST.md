@@ -132,7 +132,7 @@ These files are the inspectable answers. Empty or explicit “none” is still a
 | 8 | What Helix selected | `standard_selection.selected_version` (empty when selection failed) |
 | 9 | What Helix executed | Versioned join: `pack_integrity_sha256` / `schema_document_sha256` / `schema_component_sha256` / `execution_id` plus `executed[]` / `skipped[]`. `verified_version` is a claim field (empty in B2), not proof that a pack ran |
 | 10 | What was observed | `message`, `diagnostic.observed` on fail/error |
-| 11 | Why the result | `claims[]` ([CLAIMS.md](CLAIMS.md)), `coverage` ([COVERAGE.md](COVERAGE.md)), `selection_status`, skip reasons, `summary`, exit code ([CLI_CONTRACT.md](CLI_CONTRACT.md)). Reproduce the run: [INDEPENDENT_VERIFICATION.md](INDEPENDENT_VERIFICATION.md). Live two-target reconciliation: [LIVE_RECONCILIATION.md](LIVE_RECONCILIATION.md). Authorization: [AUTHORIZATION.md](AUTHORIZATION.md) (`UNEVALUATED` until a live protected-resource matrix exists) |
+| 11 | Why the result | `claims[]` ([CLAIMS.md](CLAIMS.md)), `coverage` ([COVERAGE.md](COVERAGE.md)), `selection_status`, skip reasons, `summary`, exit code ([CLI_CONTRACT.md](CLI_CONTRACT.md)). Reproduce the run: [INDEPENDENT_VERIFICATION.md](INDEPENDENT_VERIFICATION.md). Live two-target reconciliation: [LIVE_RECONCILIATION.md](LIVE_RECONCILIATION.md). Authorization: [AUTHORIZATION.md](AUTHORIZATION.md); Bento feasibility: [B13_AUTHORIZATION_FEASIBILITY.md](B13_AUTHORIZATION_FEASIBILITY.md) (`UNEVALUATED` / **DEFER** until a live protected-resource matrix exists) |
 
 `helix standards list|show|validate` is provenance inspection. It does not run verify and does not download specs.
 

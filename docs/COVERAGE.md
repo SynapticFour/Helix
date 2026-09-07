@@ -158,6 +158,6 @@ B11 does not add RO-Crate, PDF, signatures, or archival provenance. Helix remain
 
 `tests/b11_coverage_boundary.rs` (B11-T1–T32). Forged `coverage_id`, forged `required_complete`, forged OUT_OF_SCOPE on a required row, target-metadata inflation, and stale 1.5.0 / checker / binding identities fail closed.
 
-Authorization remains unevaluated until a genuine live matrix exists: [AUTHORIZATION.md](AUTHORIZATION.md), `tests/b13_authorization_boundary.rs`.
+Authorization remains unevaluated until a genuine live matrix exists: [AUTHORIZATION.md](AUTHORIZATION.md), [B13_AUTHORIZATION_FEASIBILITY.md](B13_AUTHORIZATION_FEASIBILITY.md) (**DEFER**), `tests/b13_authorization_boundary.rs`.
 
 Live reconciliation of the same `coverage_id` against independent implementations: [LIVE_RECONCILIATION.md](LIVE_RECONCILIATION.md), `tests/b12_live_reconciliation.rs`. Prove does not require those live JSON files.
