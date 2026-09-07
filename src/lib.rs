@@ -3,6 +3,7 @@
 //! Not HELIOS (no signed evidence / RO-Crate / PDF).
 
 pub mod adapter;
+pub mod authorization;
 pub mod bench;
 pub mod checker;
 pub mod claim_integrity;

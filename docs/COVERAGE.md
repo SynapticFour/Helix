@@ -124,7 +124,7 @@ execute catalog checks
 
 `ga4gh_requirement` VERIFIED requires the existing B8 predicates **and** catalog completeness (001–006 present and PASS; fixture SKIP `fixture_unavailable` blocks). Schema VERIFIED still uses only the normative schema-layer row (006). Coverage evaluation does not replace that engine.
 
-A target with `AUTHZ_ENABLED=false` cannot emit an authorization-verified claim. Authorization is `unevaluated`. `security` stays NOT_VERIFIED.
+A target with `AUTHZ_ENABLED=false` cannot emit an authorization-verified claim. Authorization is `unevaluated`. `security` stays NOT_VERIFIED. B13: [AUTHORIZATION.md](AUTHORIZATION.md).
 
 ---
 
@@ -157,5 +157,7 @@ B11 does not add RO-Crate, PDF, signatures, or archival provenance. Helix remain
 ## 11. Tests
 
 `tests/b11_coverage_boundary.rs` (B11-T1–T32). Forged `coverage_id`, forged `required_complete`, forged OUT_OF_SCOPE on a required row, target-metadata inflation, and stale 1.5.0 / checker / binding identities fail closed.
+
+Authorization remains unevaluated until a genuine live matrix exists: [AUTHORIZATION.md](AUTHORIZATION.md), `tests/b13_authorization_boundary.rs`.
 
 Live reconciliation of the same `coverage_id` against independent implementations: [LIVE_RECONCILIATION.md](LIVE_RECONCILIATION.md), `tests/b12_live_reconciliation.rs`. Prove does not require those live JSON files.

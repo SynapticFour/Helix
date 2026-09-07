@@ -387,8 +387,17 @@ grep -q "B12-T12" tests/b12_live_reconciliation.rs
 grep -q "same coverage_id" docs/LIVE_RECONCILIATION.md
 grep -q "not live Bento evidence" docs/LIVE_RECONCILIATION.md
 grep -q "AUTHZ_ENABLED=false" docs/LIVE_RECONCILIATION.md
+grep -q "B13 BLOCKED" docs/AUTHORIZATION.md
+grep -q "configuration_is_not_evidence" src/authorization.rs
+grep -q "b13_t1_authorization_disabled_cannot_pass" tests/b13_authorization_boundary.rs
+grep -q "b13_t16_mock_cannot_become_live_authorization_evidence" tests/b13_authorization_boundary.rs
+grep -q "drs.security.authorization" src/coverage.rs
 if grep -qiE 'overall score|compliance percentage|coverage score|implementation grade|better implementation' docs/LIVE_RECONCILIATION.md; then
   echo "live reconciliation must not introduce ranking" >&2
+  exit 1
+fi
+if grep -qiE 'overall score|compliance percentage|coverage score|implementation grade' docs/AUTHORIZATION.md; then
+  echo "authorization doc must not introduce a score" >&2
   exit 1
 fi
 if grep -qiE 'overall score|compliance percentage|coverage score|implementation grade' docs/COVERAGE.md; then
