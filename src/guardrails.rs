@@ -72,6 +72,9 @@ pub fn check_run_with(run: &VerificationRun, mode: CheckMode) -> Result<()> {
         check_set(&evaluate(run)).context("VERIFIED claim is not justified by predicates")?;
         crate::claim_integrity::validate_claim_integrity(run)
             .context("claim integrity does not match recorded execution")?;
+    } else if run.claim_join.is_some() || run.coverage.is_some() {
+        crate::claim_integrity::validate_artifact_consistency(run)
+            .context("loaded evidence is internally inconsistent")?;
     }
     Ok(())
 }

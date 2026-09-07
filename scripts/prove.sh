@@ -31,6 +31,7 @@ for f in \
   docs/COVERAGE.md \
   docs/LIVE_RECONCILIATION.md \
   docs/B13_AUTHORIZATION_FEASIBILITY.md \
+  docs/B14_EVIDENCE_DURABILITY.md \
   docs/INDEPENDENT_VERIFICATION.md \
   docs/PUBLIC_READINESS_AUDIT.md \
   docs/ARCHITECTURE_GUARDRAILS.md \
@@ -392,6 +393,14 @@ grep -q "B13 — Authorization Evidence Boundary: BLOCKED / DEFERRED" docs/AUTHO
 grep -q "B13 BLOCKED" docs/AUTHORIZATION.md || grep -q "BLOCKED / DEFERRED" docs/AUTHORIZATION.md
 grep -q "^DEFER$" docs/B13_AUTHORIZATION_FEASIBILITY.md || grep -q "DEFER" docs/B13_AUTHORIZATION_FEASIBILITY.md
 grep -q "B13 — Authorization Evidence Boundary: BLOCKED / DEFERRED" docs/B13_AUTHORIZATION_FEASIBILITY.md
+grep -q "B13 — Authorization Evidence Boundary: BLOCKED / DEFERRED" docs/B14_EVIDENCE_DURABILITY.md
+grep -q "authorization = UNEVALUATED" docs/B14_EVIDENCE_DURABILITY.md
+grep -q "classify_evidence" src/evidence.rs
+grep -q "validate_artifact_consistency" src/claim_integrity.rs
+grep -q "b14_t1_valid_evidence_round_trips" tests/b14_evidence_durability.rs
+grep -q "b14_t6_stale_helix_provenance_cannot_become_current" tests/b14_evidence_durability.rs
+grep -q "b14_t20_historical_b12_evidence_is_not_restamped" tests/b14_evidence_durability.rs
+grep -q "helix-verification-v1 unchanged" docs/B14_EVIDENCE_DURABILITY.md || grep -q "helix-verification-v1" docs/B14_EVIDENCE_DURABILITY.md
 grep -q "configuration_is_not_evidence" src/authorization.rs
 grep -q "b13_t1_authorization_disabled_cannot_pass" tests/b13_authorization_boundary.rs
 grep -q "b13_t16_mock_cannot_become_live_authorization_evidence" tests/b13_authorization_boundary.rs
@@ -402,6 +411,10 @@ if grep -qiE 'overall score|compliance percentage|coverage score|implementation 
 fi
 if grep -qiE 'overall score|compliance percentage|coverage score|implementation grade' docs/AUTHORIZATION.md; then
   echo "authorization doc must not introduce a score" >&2
+  exit 1
+fi
+if grep -qiE 'overall score|compliance percentage|coverage score|implementation grade' docs/B14_EVIDENCE_DURABILITY.md; then
+  echo "evidence durability doc must not introduce a score" >&2
   exit 1
 fi
 if grep -qiE 'overall score|compliance percentage|coverage score|implementation grade' docs/B13_AUTHORIZATION_FEASIBILITY.md; then

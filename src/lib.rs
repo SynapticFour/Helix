@@ -13,6 +13,7 @@ pub mod coverage;
 pub mod diagnostics;
 pub mod differential;
 pub mod discover;
+pub mod evidence;
 pub mod fixture;
 pub mod guardrails;
 pub mod http_safety;

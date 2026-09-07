@@ -216,8 +216,11 @@ pub fn finalize_run(run: &mut VerificationRun) {
     run.claim_join = Some(ClaimJoin::from_run(run));
 }
 
-/// Fail closed if a recorded VERIFIED / join / identity cannot be re-derived.
-pub fn validate_claim_integrity(run: &VerificationRun) -> Result<()> {
+/// Internal consistency of observations, derived claims, coverage, and
+/// spec/target identities. Does **not** require `helix_git_sha` to match this
+/// binary. Use [`validate_claim_integrity`] before treating a run as *current*
+/// verification from this verifier.
+pub fn validate_artifact_consistency(run: &VerificationRun) -> Result<()> {
     let expected = ClaimJoin::from_run(run);
     if let Some(join) = &run.claim_join {
         if join != &expected {
@@ -275,15 +278,32 @@ pub fn validate_claim_integrity(run: &VerificationRun) -> Result<()> {
     }
 
     validate_recorded_identities(run)?;
-    validate_helix_git_provenance(run)?;
+    validate_helix_git_shape(run)?;
     Ok(())
 }
 
-fn validate_helix_git_provenance(run: &VerificationRun) -> Result<()> {
+/// Fail closed if a recorded VERIFIED / join / identity cannot be re-derived
+/// *and* Helix git provenance does not match this binary.
+pub fn validate_claim_integrity(run: &VerificationRun) -> Result<()> {
+    validate_artifact_consistency(run)?;
+    validate_helix_git_matches_this_build(run)?;
+    Ok(())
+}
+
+fn validate_helix_git_shape(run: &VerificationRun) -> Result<()> {
     if let Some(recorded) = run.helix_git_sha.as_deref() {
         if crate::provenance::parse_git_sha(recorded).is_none() {
             bail!("helix_git_sha is not a 40-char lowercase git SHA");
         }
+    }
+    if run.helix_git_dirty == Some(false) && run.helix_git_sha.is_none() {
+        bail!("helix_git_dirty=false requires helix_git_sha");
+    }
+    Ok(())
+}
+
+fn validate_helix_git_matches_this_build(run: &VerificationRun) -> Result<()> {
+    if let Some(recorded) = run.helix_git_sha.as_deref() {
         match crate::provenance::helix_git_sha() {
             Some(built) if recorded != built => {
                 bail!("helix_git_sha does not match this verifier build");
@@ -304,9 +324,6 @@ fn validate_helix_git_provenance(run: &VerificationRun) -> Result<()> {
             }
             Some(_) => {}
         }
-    }
-    if run.helix_git_dirty == Some(false) && run.helix_git_sha.is_none() {
-        bail!("helix_git_dirty=false requires helix_git_sha");
     }
     Ok(())
 }

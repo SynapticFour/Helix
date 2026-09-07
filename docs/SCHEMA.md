@@ -100,6 +100,8 @@ This v1 schema sets `additionalProperties: false` so CI rejects accidental HELIO
 
 **Exception (coverage):** run-level `coverage` is optional on this same v1 file. `schema_version` stays `helix-verification-v1`. Producers always emit it after `finalize_run`. `required_complete` and `coverage_id` are derived; they are not declarations. Not a score, rank, or percentage. Not full DRS compliance. Missing on old files is not silent completeness. Not HELIOS. [COVERAGE.md](COVERAGE.md).
 
+**B14 did not bump this schema.** Evidence standing (`current` / `historical` / `invalid`) is computed by `evidence::classify_evidence` on inspect. It is **not** a JSON field. Forged `claims[]` / `verified_version` / `coverage.state` cannot become authority: those values are recomputed. [B14_EVIDENCE_DURABILITY.md](B14_EVIDENCE_DURABILITY.md).
+
 **Helix producers:**
 
 - Must emit `schema_version: helix-verification-v1` while this file is current

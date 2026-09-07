@@ -161,3 +161,5 @@ B11 does not add RO-Crate, PDF, signatures, or archival provenance. Helix remain
 Authorization remains unevaluated until a genuine live matrix exists: [AUTHORIZATION.md](AUTHORIZATION.md), [B13_AUTHORIZATION_FEASIBILITY.md](B13_AUTHORIZATION_FEASIBILITY.md) (**DEFER**), `tests/b13_authorization_boundary.rs`.
 
 Live reconciliation of the same `coverage_id` against independent implementations: [LIVE_RECONCILIATION.md](LIVE_RECONCILIATION.md), `tests/b12_live_reconciliation.rs`. Prove does not require those live JSON files.
+
+Persisted coverage/claims are not authority: [B14_EVIDENCE_DURABILITY.md](B14_EVIDENCE_DURABILITY.md), `tests/b14_evidence_durability.rs`. B13 remains **BLOCKED / DEFERRED**.
