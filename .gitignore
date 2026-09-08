@@ -10,5 +10,8 @@ build/
 .pytest_cache/
 .ruff_cache/
 
-# Local-only (never GitHub). Drafts, notes, unsent outreach.
-local/
+# Operator-retained verify JSON (make verify-drs default path).
+/verify.json
+
+# Operator-only live evidence and investigation copies. Not required to build or prove.
+/local/

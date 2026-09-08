@@ -396,7 +396,9 @@ pub fn format_verify_text(run: &VerificationRun, color: bool) -> String {
     out.push_str("  What changed: helix compare <previous.json> <current.json>\n");
     out.push('\n');
     out.push_str("Discovery is not conformance. DETECTED is not a pass. Skip is never pass.\n");
-    out.push_str("Retain --format json and run helix inspect FILE to classify standing.\n");
+    out.push_str(
+        "Evidence: --output FILE or --format json, then helix inspect FILE. Identities live in that JSON.\n",
+    );
     crate::redact::redact_text(&out)
 }
 

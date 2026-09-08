@@ -1,37 +1,47 @@
 # Operator DRS 1.4.0 verification workflow
 
-Helix is HelixTest becoming a standalone VERIFY CLI. This page is the operator path for **technical verification** of supported GA4GH DRS 1.4.0. It is not GA4GH certification. It is not HELIOS.
+This is the **canonical first-usable Helix workflow**. Helix is HelixTest becoming a standalone VERIFY CLI. It is not GA4GH certification. It is not HELIOS.
 
 **Vertraue mir nicht, vertraue dem Code.**
 
-Five-minute briefing: [FOR-EVALUATORS.md](FOR-EVALUATORS.md). Claims: [CLAIMS.md](CLAIMS.md). Coverage: [COVERAGE.md](COVERAGE.md). Evidence durability: [B14_EVIDENCE_DURABILITY.md](B14_EVIDENCE_DURABILITY.md).
+Product picture: [HELIX_PRODUCT.md](HELIX_PRODUCT.md). Claims: [CLAIMS.md](CLAIMS.md). Coverage: [COVERAGE.md](COVERAGE.md). Install: [INSTALL.md](INSTALL.md).
+
+Helix is built **from source**. There is no crates.io crate, Homebrew formula, container image, or GitHub release binary.
 
 ---
 
-## 1. Prerequisites
-
-- Rust via rustup (`rust-toolchain.toml`).
-- Sibling HelixTest at the SHA in [VERSIONS.lock](../VERSIONS.lock).
-- `make fetch` once, then offline `make prove`.
-- A DRS HTTP origin **you** started, **or** `make verify-fixture` (in-process mock; not independent evidence).
-
-Helix does not send credentials. Authorization stays unevaluated ([AUTHORIZATION.md](AUTHORIZATION.md)).
-
----
-
-## 2. Supported standard / version
+## Canonical workflow
 
 ```text
+1. Identify supported DRS version
+        ↓
+2. Identify the target
+        ↓
+3. Configure the DRS fixture (object id)
+        ↓
+4. Run versioned verification
+        ↓
+5. Save evidence (--output)
+        ↓
+6. Inspect evidence (helix inspect)
+        ↓
+7. Interpret PASS vs VERIFIED vs unevaluated
+```
+
+### Step 1 — Supported version
+
+```bash
+helix --version
 helix standards list --supported-only
 ```
 
-Today that lists **ga4gh.drs.1.4.0**. SUPPORTED is not VERIFIED. Default `helix verify URL` is **unversioned** and does not select this pack.
+`--version` prints the Helix package version, compile-time git SHA, and HelixTest pin. Those are **not** the GA4GH DRS version.
 
----
+Today the only SUPPORTED pack is **ga4gh.drs.1.4.0**. SUPPORTED is not VERIFIED. Default `helix verify URL` does **not** select this pack.
 
-## 3. Target and fixture
+### Step 2 — Target
 
-Operator-declared, untrusted metadata:
+Point Helix at an HTTP origin **you** started. Operator labels are untrusted:
 
 ```text
 --target-id
@@ -42,6 +52,16 @@ Operator-declared, untrusted metadata:
 
 `--implementation-version` never becomes `verified_version`.
 
+No live DRS? Use the in-process fixture (not independent evidence):
+
+```bash
+make verify-drs
+```
+
+That runs DRS 1.4.0, writes `verify.json`, and prints `helix inspect`. Override the path with `HELIX_VERIFY_JSON`.
+
+### Step 3 — Fixture
+
 DRS test input (not a GA4GH MUST):
 
 ```text
@@ -49,13 +69,11 @@ DRS test input (not a GA4GH MUST):
 --drs-object-sha256
 ```
 
-Default object id is `test-object-1` (catalog). Independent implementations use their own object id. A 404 on the configured id is `fixture_unavailable`, not DRS non-conformance.
+Default object id is `test-object-1` (catalog). Independent implementations use their own object id. A 404 on the configured id is `fixture_unavailable` (SKIP), not DRS non-conformance.
 
----
+### Step 4–6 — Verify, save, inspect
 
-## 4. Exact verify command
-
-Technical verification against DRS 1.4.0:
+Against a DRS **you** started:
 
 ```bash
 NO_COLOR=1 helix verify URL \
@@ -63,60 +81,67 @@ NO_COLOR=1 helix verify URL \
   --target-id YOUR-ID \
   --target-kind real-independent-local-implementation \
   --drs-object-id YOUR-OBJECT-ID \
-  --format json > verify.json
-```
-
-Human-readable (same facts):
-
-```bash
-NO_COLOR=1 helix verify URL --standard drs --version 1.4.0 --format text
-```
-
-Retain `verify.json`. Classify later:
-
-```bash
+  --output verify.json
 helix inspect verify.json
 ```
 
----
+`--output` writes `helix-verification-v1` and does not replace `--format` (default is human text). `helix inspect` does **not** rewrite the file.
 
-## 5. How to read the result
+### Step 7 — Interpret
 
 | Word | Means | Does not mean |
 |------|--------|----------------|
 | PASS / FAIL / SKIP / ERROR | One check outcome | The target is GA4GH-certified |
-| VERIFIED / NOT_VERIFIED | Derived claim (`claims[]`) | Every DRS operation was tested |
+| VERIFIED / NOT_VERIFIED | Derived claim | Every DRS operation was tested |
 | selected | Pack Helix chose | The target declared that version |
-| detected | service-info `type.version` | Selected or verified |
+| detected | What the service advertised | Selected or verified |
 | verified_version | Claim output when predicates hold | Full-standard compliance |
-| coverage.state = partial | Required catalog rows passed; OpenAPI ops remain unevaluated | Complete DRS |
+| coverage.state = partial | Required catalog rows passed; operations remain unevaluated | Complete DRS |
 | Exit 0 | ≥1 PASS and no FAIL/ERROR | `ga4gh_requirement` VERIFIED |
 | current_verifier_evidence | Artifact cites **this** binary’s git SHA | Historical files are worthless |
 | historical_observation | Inspectable; not this build | Forged VERIFIED |
 
-Attribution on FAIL/SKIP (`target_failure`, `spec_failure`, `target_configuration_failure`, …) is in JSON `executed[].attribution` and in the text report.
-
-Unevaluated rows (service-info, bulk, access, authorization, …) are listed under `Coverage:`. They are not silently VERIFIED.
+Authorization is **unevaluated**. Helix does not send credentials.
 
 ---
 
-## 6. Evidence artifact
+## Evidence retention
 
-`--format json` is `helix-verification-v1` (`VerificationRun`). Reload:
+Recommended practice:
 
-```bash
-helix inspect verify.json
-helix compare previous.json current.json
+```text
+helix verify … --output verify.json
+    ↓
+keep the human stdout if you need it in a ticket
+    ↓
+helix inspect verify.json   (now or later)
 ```
 
-`helix inspect` does **not** rewrite the file. Standing is computed against this binary and is **not** a JSON field (no schema bump). Forged `claims[]` / `verified_version` / coverage / check status cannot manufacture current verification ([B14_EVIDENCE_DURABILITY.md](B14_EVIDENCE_DURABILITY.md)).
+The JSON is meaningful because it records the target, selected standard/version, checker, checks, claims, coverage, and Helix/HelixTest provenance. `helix inspect` recomputes claims, coverage, and standing. It does not sign the file. Signing is HELIOS.
 
 ---
 
-## 7. What Helix does not do
+## Troubleshooting
+
+| What you see | What it means |
+|--------------|----------------|
+| `AVAILABLE_BUT_NOT_SUPPORTED` / DRS 1.5.0 | That version is pinned but not a Helix verification pack. Helix did **not** substitute 1.4.0. |
+| `target unreachable` / ERROR rows | The origin was not reachable. That is not VERIFIED. |
+| SKIP `fixture_unavailable` | The configured object id was not a usable blob. SKIP is not PASS. |
+| DRS `NOT_DETECTED` after a missing `--drs-object-id` | Discovery may probe that object. Advertise DRS `service-info` (or keep a reachable object) so DRS stays DETECTED; then the 404 is `fixture_unavailable`, not “unsupported test”. |
+| FAIL `attribution: target_failure` | The check failed on the implementation. |
+| Exit 0 and `NOT_VERIFIED` | Checks passed; the DRS 1.4.0 claim did not. Default unversioned verify does this. |
+| `helix inspect` standing `invalid` | The file is not internally consistent. Do not treat it as evidence. |
+| Missing HelixTest | Clone the sibling at the SHA in [VERSIONS.lock](../VERSIONS.lock). [INSTALL.md](INSTALL.md). |
+| `make prove` needs crates | `make fetch` once (crates.io at lockfile checksums, not GA4GH). |
+
+---
+
+## What Helix does not do
 
 - Official GA4GH certification
 - Authorization / authentication evidence (B13 deferred)
 - Signing, RO-Crate, PDF (HELIOS)
 - Result cache, telemetry, remote upload
 - Ranking implementations
+- A published binary or container (source build only)

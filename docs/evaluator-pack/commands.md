@@ -16,10 +16,10 @@ Exit 0 prints `Helix prove OK (in-process fixtures; not Ferrum, not certificatio
 
 ```bash
 cd Helix
-make verify-fixture
+make verify-drs
 ```
 
-Starts the DRS fixture ([fixtures.md](fixtures.md)), runs `helix verify` against it, prints `HELIX VERIFICATION` on stdout. Expected: five DRS PASS, eight WES SKIP (WES not mounted), exit 0. DETECTED is not a pass. Skip is never pass.
+Canonical DRS 1.4.0 path against the in-process fixture: human report, `verify.json`, `helix inspect`. Not independent evidence. Unversioned `make verify-fixture` still prints `HELIX VERIFICATION` without selecting the DRS 1.4.0 pack.
 
 ## 3. JSON (same fixture, after `make install` or via cargo)
 
@@ -45,7 +45,8 @@ Stdout is `VerificationRun` ([example-verify.json](example-verify.json), schema 
 Default `helix verify URL` is unversioned. To select the supported pack:
 
 ```bash
-NO_COLOR=1 helix verify http://127.0.0.1:<port> --standard drs --version 1.4.0 --format json > verify.json
+NO_COLOR=1 helix verify http://127.0.0.1:<port> \
+  --standard drs --version 1.4.0 --output verify.json
 helix inspect verify.json
 ```
 

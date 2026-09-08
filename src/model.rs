@@ -12,10 +12,19 @@ use serde::{Deserialize, Serialize};
 
 pub use crate::identity::{CheckCategory, CheckSpec, Severity};
 
-/// Helix crate version (`Cargo.toml`).
+/// Helix crate version (`Cargo.toml`). Not a git tag. Not a GA4GH version.
 pub fn helix_version() -> &'static str {
     env!("CARGO_PKG_VERSION")
 }
+
+/// `helix --version` long text. Distinguishes package version from git SHA and HelixTest pin.
+/// Empty `HELIX_GIT_SHA` means `.git` was missing at compile (not a fabricated SHA).
+pub const HELIX_LONG_VERSION: &str = concat!(
+    env!("CARGO_PKG_VERSION"),
+    "\nHelix git: ",
+    env!("HELIX_GIT_SHA"),
+    "\nHelixTest pin: v0.1.3\nNot GA4GH certification. Not HELIOS."
+);
 
 /// Published HelixTest **tag** this repo documents ([VERSIONS.lock](../../VERSIONS.lock)).
 /// Not the executed checker identity.

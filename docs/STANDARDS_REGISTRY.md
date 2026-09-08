@@ -12,7 +12,7 @@ Baseline: [HELIX_CHECKPOINT_AUDIT.md](HELIX_CHECKPOINT_AUDIT.md) Parts 4–9. Ex
 
 ## 1. Why this exists
 
-Today a green `helix verify` cannot honestly say “Verified against GA4GH DRS 1.4.0” or “1.5.0”. Default verify is unversioned and uses HelixTest’s bundled OpenAPI. DRS 1.4.0 is SUPPORTED (executable pack + SpecSource + HelixTest binding + non-empty catalog + declared coverage). Mode 1 for 1.4.0 can SELECT and run checks; `verified_version` stays empty. Mode 1 for 1.5.0 is still `AVAILABLE_BUT_NOT_SUPPORTED`. Fixture extras remain distinguishable from the one normative schema check.
+Today a green `helix verify` cannot honestly say “Verified against GA4GH DRS 1.4.0” or “1.5.0” **unless** the versioned DRS 1.4.0 pack is selected and the claim predicates hold. Default verify is unversioned and uses HelixTest’s bundled OpenAPI. DRS 1.4.0 is SUPPORTED (executable pack + SpecSource + HelixTest binding + non-empty catalog + declared coverage). Mode 1 for 1.4.0 can SELECT and run checks; `verified_version` is stamped only when `ga4gh_requirement` is derived as VERIFIED. Mode 1 for 1.5.0 is still `AVAILABLE_BUT_NOT_SUPPORTED`. Fixture extras remain distinguishable from the one normative schema check.
 
 The registry is the missing layer between:
 

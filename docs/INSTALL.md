@@ -10,7 +10,16 @@ Helix productizes **HelixTest** (separate git root, [DECISIONS.md](DECISIONS.md)
 - A **sibling** HelixTest git clone, checked out at the SHA in [VERSIONS.lock](../VERSIONS.lock) (tag **v0.1.3**). Cargo.toml path-depends on `../HelixTest/helixtest/crates/{common,framework}`.
 - First build: **`make fetch`** (`cargo fetch --locked`). That is crates.io at lockfile checksums, not a GA4GH download. After that, `make prove` is **offline**.
 
-There is no Homebrew formula or GitHub release binary yet. `make install` is `cargo install --path .`.
+There is no Homebrew formula, GitHub release binary, or container image. **Installation is a source build.** `make install` is `cargo install --path . --locked`. `publish = false` on crates.io.
+
+After `make install` (or `cargo run --locked --bin helix`):
+
+```bash
+helix --version
+helix standards list --supported-only
+```
+
+`--version` is the Helix package version plus compile-time git SHA and HelixTest pin. It is not a GA4GH DRS version. Canonical DRS 1.4.0 path: [OPERATOR_VERIFY.md](OPERATOR_VERIFY.md) (`make verify-drs` without a live target).
 
 ## Commands
 
@@ -22,7 +31,8 @@ cd Helix
 make fetch              # network, Cargo.lock; not GA4GH
 make prove              # docs + cargo test --locked --offline
 make independent-verify # vendor sha256 + two-run fixture equality
-make verify-fixture     # helix verify against the mock DRS (prints HELIX VERIFICATION)
+make verify-fixture     # unversioned helix verify vs mock DRS (prints HELIX VERIFICATION)
+make verify-drs         # DRS 1.4.0 vs that mock; writes verify.json and inspects it
 make install            # optional: helix on PATH (~/.cargo/bin)
 ```
 

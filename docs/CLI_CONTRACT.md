@@ -70,6 +70,7 @@ TES / TRS / htsget checks are not executed by `verify` today. Discovery of those
 | Standard / version flags | `--standard`, `--version`, `--all-supported-versions`, `--release-class` | additive; default verify stays unversioned; [STANDARD_VERSIONING.md](STANDARD_VERSIONING.md) |
 | Target identity flags | `--target-id`, `--target-kind`, `--implementation-name`, `--implementation-version` | additive; declared untrusted metadata; [TARGETS.md](TARGETS.md) |
 | DRS fixture flags | `--drs-object-id`, `--drs-object-sha256` | additive; target-scoped test input, not a GA4GH MUST; sha256 requires object-id; [TARGETS.md](TARGETS.md) §11 |
+| Evidence file | `--output FILE` | additive; writes `helix-verification-v1` without replacing `--format`; [OPERATOR_VERIFY.md](OPERATOR_VERIFY.md) |
 | Inspect | `helix inspect FILE` | additive; classifies persisted verify JSON standing; does not rewrite; not the verify freeze |
 | HelixTest binary | `helixtest` | separate product; not this contract |
 | Standards registry | `helix standards` | shipped; provenance only; [STANDARDS_REGISTRY.md](STANDARDS_REGISTRY.md) |

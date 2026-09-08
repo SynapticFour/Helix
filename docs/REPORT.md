@@ -147,7 +147,7 @@ Word mapping (frozen):
 
 `helix inspect FILE` prints standing, recomputed `ga4gh_requirement`, coverage state, and identities from a retained JSON file. It does not re-run checks and does not rewrite the file.
 
-`--format json` prints `VerificationRun` only. It does not duplicate this heading layout, ANSI, or `PASS` marks. Standing is computed on inspect, not stored.
+`--output FILE` writes the same JSON while `--format text` stays on stdout. `--format json` still prints `VerificationRun` only. Standing is computed on inspect, not stored.
 
 ---
 

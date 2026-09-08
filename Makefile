@@ -1,6 +1,6 @@
 # Helix — VERIFY CLI (HelixTest wrap). Not HELIOS. Not certification.
 
-.PHONY: help prove test test-live verify-fixture install fetch independent-verify
+.PHONY: help prove test test-live verify-fixture verify-drs install fetch independent-verify
 
 # HelixTest HttpClient defaults to debug traces. Evaluators need the report, not GET dumps.
 RUST_LOG ?= error
@@ -12,14 +12,15 @@ help:
 	@echo "  make fetch                 cargo fetch --locked (network; crate checksums, not latest GA4GH)"
 	@echo "  make prove                 Docs + cargo test --locked --offline (in-process fixtures; no Ferrum)"
 	@echo "  make independent-verify    Registry hashes + reproducibility tests (offline)"
-	@echo "  make verify-fixture        helix verify against the in-process DRS fixture (no Ferrum)"
+	@echo "  make verify-fixture        unversioned helix verify vs in-process DRS fixture (no Ferrum)"
+	@echo "  make verify-drs           DRS 1.4.0 technical verification vs that fixture; writes verify.json"
 	@echo "  make test                  cargo test --locked --offline --all-targets"
 	@echo "  make install               cargo install --path . --locked (needs sibling HelixTest)"
 	@echo "  make test-live             helix verify against HELIX_LIVE_URL (you started the stack)"
 	@echo "  helix matrix               interop matrix (pending without independent runs; see docs/INTEROP.md)"
 	@echo ""
-	@echo "First run: docs/FOR-EVALUATORS.md, docs/INSTALL.md, docs/INDEPENDENT_VERIFICATION.md"
-	@echo "Fixtures: docs/FIXTURES.md. Live Ferrum: docs/PROVE.md (optional)"
+	@echo "First usable DRS 1.4.0 path: docs/OPERATOR_VERIFY.md"
+	@echo "Product: docs/HELIX_PRODUCT.md. Install: docs/INSTALL.md"
 
 # crates.io at Cargo.lock checksums. Explicit network. Not a GA4GH download.
 fetch:
@@ -48,11 +49,18 @@ independent-verify:
 	chmod +x scripts/independent-verify.sh scripts/require-helixtest.sh
 	./scripts/independent-verify.sh
 
-# helix verify against docs/FIXTURES.md §1. Not Ferrum. Not certification.
+# helix verify against docs/FIXTURES.md §1. Unversioned. Not Ferrum. Not certification.
 verify-fixture:
 	chmod +x scripts/require-helixtest.sh
 	./scripts/require-helixtest.sh
 	cargo run --locked --offline --example verify-fixture
+
+# Canonical first-usable DRS 1.4.0 workflow against the same fixture.
+# Writes verify.json (override with HELIX_VERIFY_JSON). Not independent evidence.
+verify-drs:
+	chmod +x scripts/require-helixtest.sh
+	./scripts/require-helixtest.sh
+	cargo run --locked --offline --example verify-drs-140
 
 install:
 	chmod +x scripts/require-helixtest.sh

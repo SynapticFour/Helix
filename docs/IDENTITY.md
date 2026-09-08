@@ -2,6 +2,8 @@
 
 Helix is the **independence** of [HelixTest](https://github.com/SynapticFour/HelixTest): a command-line runner you point at a running GA4GH HTTP target. **Apache-2.0. Not a product SKU. Not a server.**
 
+What exists today: [HELIX_PRODUCT.md](HELIX_PRODUCT.md).
+
 HelixTest already exists (public repo, CI, pin **v0.1.3**). Helix does not invent that suite. HelixTest stays a separate git root ([DECISIONS.md](DECISIONS.md) D1). Positioning: [HELIX_VISION.md](HELIX_VISION.md). Pin: [VERSIONS.lock](../VERSIONS.lock).
 
 ## Who maintains and reviews

@@ -8,7 +8,7 @@ Helix runs the same documented DRS and WES checks against any HTTP origin that i
 
 **Not HELIOS** (no signed evidence, RO-Crate, or PDF). **Not GA4GH certification.** **Not a Ferrum clinical deployment.** Early stage. TES/TRS/htsget are discovered only. One maintainer.
 
-Start here: [docs/FOR-EVALUATORS.md](docs/FOR-EVALUATORS.md) (five minutes). Pack without a prior conversation: [docs/evaluator-pack/README.md](docs/evaluator-pack/README.md). How to judge a result: [docs/TRUST.md](docs/TRUST.md). Public-readiness audit: [docs/PUBLIC_READINESS_AUDIT.md](docs/PUBLIC_READINESS_AUDIT.md).
+Start here: [docs/HELIX_PRODUCT.md](docs/HELIX_PRODUCT.md) (what Helix is and what it can do today). Clone-and-run in five minutes: [docs/FOR-EVALUATORS.md](docs/FOR-EVALUATORS.md). Pack without a prior conversation: [docs/evaluator-pack/README.md](docs/evaluator-pack/README.md). How to judge a result: [docs/TRUST.md](docs/TRUST.md). Public-readiness audit: [docs/PUBLIC_READINESS_AUDIT.md](docs/PUBLIC_READINESS_AUDIT.md).
 
 [![CI](https://github.com/SynapticFour/Helix/actions/workflows/ci.yml/badge.svg)](https://github.com/SynapticFour/Helix/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
@@ -49,12 +49,12 @@ git -C HelixTest checkout "$(grep '^HELIXTEST_SHA=' Helix/VERSIONS.lock | cut -d
 cd Helix
 make fetch
 make prove
-make verify-fixture
+make verify-drs
 ```
 
-`make fetch` is crates.io at [Cargo.lock](Cargo.lock) checksums (explicit network, not a GA4GH download). `make prove` is docs + `cargo test --locked --offline --all-targets` against in-process fixtures ([docs/FIXTURES.md](docs/FIXTURES.md)). It does not need Ferrum, Docker, or credentials. What matches and what does not: [docs/INDEPENDENT_VERIFICATION.md](docs/INDEPENDENT_VERIFICATION.md).
+`make fetch` is crates.io at [Cargo.lock](Cargo.lock) checksums (explicit network, not a GA4GH download). `make prove` is docs + `cargo test --locked --offline --all-targets` against in-process fixtures ([docs/FIXTURES.md](docs/FIXTURES.md)). It does not need Ferrum, Docker, or credentials.
 
-`make verify-fixture` runs **`helix verify`** against that DRS fixture and prints `HELIX VERIFICATION`. DETECTED is not a pass. Skip is never pass. Layout: [docs/REPORT.md](docs/REPORT.md). Claims on that run are **NOT_VERIFIED** ([docs/CLAIMS.md](docs/CLAIMS.md)).
+`make verify-drs` is the canonical DRS 1.4.0 path against the in-process fixture: human report, `verify.json`, and `helix inspect`. It is not independent-implementation evidence. Unversioned `make verify-fixture` still exists. Against a DRS you started: [docs/OPERATOR_VERIFY.md](docs/OPERATOR_VERIFY.md).
 
 ### Optional: install the `helix` binary
 
@@ -107,7 +107,7 @@ CLI contract: [docs/CLI_CONTRACT.md](docs/CLI_CONTRACT.md). Roadmap (scope stage
 
 ## Documentation
 
-**Start.** [FOR-EVALUATORS.md](docs/FOR-EVALUATORS.md) · [evaluator-pack](docs/evaluator-pack/README.md) · [TRUST.md](docs/TRUST.md) · [PUBLIC_READINESS_AUDIT.md](docs/PUBLIC_READINESS_AUDIT.md)
+**Start.** [HELIX_PRODUCT.md](docs/HELIX_PRODUCT.md) · [FOR-EVALUATORS.md](docs/FOR-EVALUATORS.md) · [evaluator-pack](docs/evaluator-pack/README.md) · [TRUST.md](docs/TRUST.md) · [PUBLIC_READINESS_AUDIT.md](docs/PUBLIC_READINESS_AUDIT.md)
 
 **Run.** [INSTALL.md](docs/INSTALL.md) · [PROVE.md](docs/PROVE.md) · [FIXTURES.md](docs/FIXTURES.md) · [INDEPENDENT_VERIFICATION.md](docs/INDEPENDENT_VERIFICATION.md) · [EVALUATOR_JOURNEY.md](docs/EVALUATOR_JOURNEY.md)
 

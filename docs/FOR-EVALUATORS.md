@@ -1,6 +1,6 @@
 # For evaluators
 
-Five minutes. Helix is a CLI that wraps [HelixTest](https://github.com/SynapticFour/HelixTest) (existing engine, pin **v0.1.3**) as a standalone `helix` binary. It is not a new test platform. Results are not GA4GH certification. Standalone pack (install, contract summary, commands, example JSON, report template): [evaluator-pack/README.md](evaluator-pack/README.md). Confusion log of a first clone: [EVALUATOR_JOURNEY.md](EVALUATOR_JOURNEY.md). Install detail: [INSTALL.md](INSTALL.md).
+Five minutes. Helix is a CLI that wraps [HelixTest](https://github.com/SynapticFour/HelixTest) (existing engine, pin **v0.1.3**) as a standalone `helix` binary. It is not a new test platform. Results are not GA4GH certification. What Helix is and what it can do today: [HELIX_PRODUCT.md](HELIX_PRODUCT.md). Standalone pack (install, contract summary, commands, example JSON, report template): [evaluator-pack/README.md](evaluator-pack/README.md). Confusion log of a first clone: [EVALUATOR_JOURNEY.md](EVALUATOR_JOURNEY.md). Install detail: [INSTALL.md](INSTALL.md).
 
 ## What Helix is
 
@@ -27,7 +27,7 @@ git -C HelixTest checkout "$(grep '^HELIXTEST_SHA=' Helix/VERSIONS.lock | cut -d
 cd Helix
 make fetch
 make prove
-make verify-fixture
+make verify-drs
 ```
 
 | Command | What happens |
@@ -35,7 +35,8 @@ make verify-fixture
 | `make fetch` | `cargo fetch --locked`: crates.io at lockfile checksums. Explicit network. Not GA4GH. |
 | `make prove` | Docs checks + `cargo test --locked --offline --all-targets`. In-process fixtures. No Ferrum, Docker, or credentials. |
 | `make independent-verify` | Vendor SHA-256 + two-run fixture equality ([INDEPENDENT_VERIFICATION.md](INDEPENDENT_VERIFICATION.md)). Offline. |
-| `make verify-fixture` | Starts the deterministic mock DRS ([FIXTURES.md](FIXTURES.md) §1) and runs **`helix verify`** against it. Prints `HELIX VERIFICATION`. |
+| `make verify-fixture` | Starts the DRS fixture ([FIXTURES.md](FIXTURES.md) §1) and runs unversioned **`helix verify`**. Prints `HELIX VERIFICATION`. Claims remain NOT_VERIFIED. |
+| `make verify-drs` | Same fixture, **DRS 1.4.0** pack, writes `verify.json`, prints inspect. Not independent evidence. |
 | `make install` | `cargo install --path . --locked` (still needs the sibling at build time). |
 
 If `require-helixtest.sh` warns that HelixTest HEAD ≠ `VERSIONS.lock`, checkout the pin. Cargo may still compile; CI will not match.

@@ -25,6 +25,7 @@ use std::path::PathBuf;
 #[command(name = "helix")]
 #[command(
     version,
+    long_version = helix::model::HELIX_LONG_VERSION,
     about = "Helix — DRS/WES VERIFY CLI wrapping HelixTest. Not HELIOS. Not GA4GH certification."
 )]
 struct Cli {
@@ -37,16 +38,17 @@ enum Commands {
     /// Discover GA4GH APIs under a gateway-style URL, then run DRS and WES checks when TESTABLE.
     ///
     /// Default is unversioned (no DRS 1.4.0 pack). Technical verification of supported DRS 1.4.0:
-    ///   helix verify URL --standard drs --version 1.4.0 --format json
+    ///   helix verify URL --standard drs --version 1.4.0 --output verify.json
     /// PASS is a check outcome. VERIFIED is a derived claim. Exit 0 is not VERIFIED.
     /// Retain JSON and classify standing with `helix inspect FILE`.
     /// Not GA4GH certification. Not HELIOS.
     #[command(
         disable_version_flag = true,
         after_help = "Examples:\n  \
-            helix verify http://127.0.0.1:8080 --standard drs --version 1.4.0 --format json > verify.json\n  \
+            helix verify http://127.0.0.1:8080 --standard drs --version 1.4.0 --output verify.json\n  \
             helix inspect verify.json\n\n\
             Default `helix verify URL` does not select a GA4GH pack.\n\
+            --output writes helix-verification-v1 without replacing --format.\n\
             --drs-object-id is test input, not a GA4GH requirement."
     )]
     Verify(VerifyArgs),
@@ -128,6 +130,11 @@ struct VerifyArgs {
     /// When set, checksum does not take expected digest from the GetObject JSON.
     #[arg(long)]
     drs_object_sha256: Option<String>,
+
+    /// Write helix-verification-v1 JSON to this path. Does not change --format.
+    /// helix inspect does not rewrite this file.
+    #[arg(long, value_name = "FILE")]
+    output: Option<PathBuf>,
 
     /// text (default) or json (Helix VerificationRun). `--report` is an alias.
     #[arg(long, visible_alias = "report", value_enum, default_value_t = OutputFormat::Text)]
@@ -627,6 +634,11 @@ async fn verify_cmd(args: VerifyArgs) -> Result<()> {
     match args.format {
         OutputFormat::Json => print_json(&outcome)?,
         OutputFormat::Text => print_text(&outcome)?,
+    }
+    if let Some(path) = args.output {
+        std::fs::write(&path, helix::report::verify_json(&outcome.run)?)?;
+        eprintln!("Wrote helix-verification-v1 to {}", path.display());
+        eprintln!("Inspect later: helix inspect {}", path.display());
     }
     if !outcome.is_success() {
         std::process::exit(1);

@@ -122,7 +122,7 @@ These files are the inspectable answers. Empty or explicit “none” is still a
 
 | # | Question | Inspect |
 |---|---------|---------|
-| 1 | Claims | This file, [README.md](../README.md), [CLAIMS.md](CLAIMS.md), JSON `claims[]`, report `Claims:`: technical signal, not certification. VERIFIED only if predicates hold. Stranger-facing audit: [PUBLIC_READINESS_AUDIT.md](PUBLIC_READINESS_AUDIT.md). Enforcement: [ARCHITECTURE_GUARDRAILS.md](ARCHITECTURE_GUARDRAILS.md) |
+| 1 | Claims | This file, [README.md](../README.md), [HELIX_PRODUCT.md](HELIX_PRODUCT.md), [CLAIMS.md](CLAIMS.md), JSON `claims[]`, report `Claims:`: technical signal, not certification. VERIFIED only if predicates hold. Stranger-facing audit: [PUBLIC_READINESS_AUDIT.md](PUBLIC_READINESS_AUDIT.md). Enforcement: [ARCHITECTURE_GUARDRAILS.md](ARCHITECTURE_GUARDRAILS.md) |
 | 2 | What is tested | [TEST_IDENTITY.md](TEST_IDENTITY.md), `src/identity.rs`, `src/verify.rs`, [INVENTORY.md](../INVENTORY.md), layers [BEHAVIOR.md](BEHAVIOR.md), verification boundary [COVERAGE.md](COVERAGE.md) |
 | 3 | Why a test exists | Catalog names/codes; [DIAGNOSTICS.md](DIAGNOSTICS.md); [FIXTURES.md](FIXTURES.md) for fixture-kind rows; [TRACEABILITY.md](TRACEABILITY.md) `expected_behavior` / `untraceable_reason`; known-bad mutants [MUTATION.md](MUTATION.md); versioned DRS 1.4.0 negative controls [NEGATIVE_CONTROL.md](NEGATIVE_CONTROL.md) |
 | 4 | Which spec release | [STANDARDS_REGISTRY.md](STANDARDS_REGISTRY.md), `standards/registry.yaml`, JSON `requested_version` / `selected_version` / `verified_version` ([STANDARD_VERSIONING.md](STANDARD_VERSIONING.md)) |

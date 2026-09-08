@@ -34,6 +34,8 @@ for f in \
   docs/B14_EVIDENCE_DURABILITY.md \
   docs/OPERATOR_VERIFY.md \
   docs/B15_OPERATOR_VERIFICATION_UX.md \
+  docs/HELIX_PRODUCT.md \
+  docs/P2_FIRST_USABLE_RELEASE.md \
   docs/INDEPENDENT_VERIFICATION.md \
   docs/PUBLIC_READINESS_AUDIT.md \
   docs/ARCHITECTURE_GUARDRAILS.md \
@@ -408,6 +410,14 @@ grep -q "PASS is a check outcome" src/report.rs
 grep -q "attribution:" src/report.rs
 grep -q "B13 — Authorization Evidence Boundary: BLOCKED / DEFERRED" docs/B15_OPERATOR_VERIFICATION_UX.md
 grep -q "helix-verification-v1" docs/B15_OPERATOR_VERIFICATION_UX.md
+grep -q "Authorization verification is currently deferred" docs/HELIX_PRODUCT.md
+grep -q "official GA4GH certification" docs/HELIX_PRODUCT.md
+grep -q "docs/HELIX_PRODUCT.md" README.md
+grep -q "make verify-drs" Makefile
+grep -q "p2_t1_fresh_operator_discovers_supported_workflow" tests/p2_first_usable_release.rs
+grep -q "verify-drs-140" Cargo.toml
+grep -q -- "--output" src/main.rs
+grep -q "B13 remains closed" docs/P2_FIRST_USABLE_RELEASE.md
 grep -q "configuration_is_not_evidence" src/authorization.rs
 grep -q "b13_t1_authorization_disabled_cannot_pass" tests/b13_authorization_boundary.rs
 grep -q "b13_t16_mock_cannot_become_live_authorization_evidence" tests/b13_authorization_boundary.rs
@@ -418,6 +428,10 @@ if grep -qiE 'overall score|compliance percentage|coverage score|implementation 
 fi
 if grep -qiE 'overall score|compliance percentage|coverage score|implementation grade' docs/AUTHORIZATION.md; then
   echo "authorization doc must not introduce a score" >&2
+  exit 1
+fi
+if grep -qiE 'overall score|compliance percentage|coverage score|implementation grade|better implementation' docs/P2_FIRST_USABLE_RELEASE.md docs/HELIX_PRODUCT.md; then
+  echo "product/release docs must not introduce a score or ranking" >&2
   exit 1
 fi
 if grep -qiE 'overall score|compliance percentage|coverage score|implementation grade|better implementation' docs/B15_OPERATOR_VERIFICATION_UX.md docs/OPERATOR_VERIFY.md; then

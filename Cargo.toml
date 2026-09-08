@@ -47,3 +47,7 @@ path = "src/lib.rs"
 [[example]]
 name = "verify-fixture"
 path = "examples/verify_fixture.rs"
+
+[[example]]
+name = "verify-drs-140"
+path = "examples/verify_drs_140.rs"
