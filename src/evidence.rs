@@ -28,6 +28,20 @@ pub enum EvidenceStanding {
     CurrentVerifierEvidence,
 }
 
+impl EvidenceStanding {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::Invalid => "invalid",
+            Self::HistoricalObservation => "historical_observation",
+            Self::CurrentVerifierEvidence => "current_verifier_evidence",
+        }
+    }
+
+    pub fn is_current(self) -> bool {
+        self == Self::CurrentVerifierEvidence
+    }
+}
+
 /// Revalidation result. Claims and coverage are always recomputed.
 #[derive(Debug, Clone)]
 pub struct EvidenceRevalidation {

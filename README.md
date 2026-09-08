@@ -88,6 +88,9 @@ cargo run --bin helix -- security http://127.0.0.1:8080 \
 # 3-GET smoke (`http.drs.smoke.v1`); >10% worse warns, does not fail the process
 cargo run --bin helix -- bench --baseline http://127.0.0.1:8080 --candidate http://127.0.0.1:8080
 
+# Classify standing of retained verify JSON (does not rewrite the file)
+cargo run --bin helix -- inspect verify.json
+
 # Compare two verify JSON files (PASS→FAIL at stable id = regression; not a score)
 cargo run --bin helix -- compare previous.json current.json --format json
 
@@ -108,7 +111,7 @@ CLI contract: [docs/CLI_CONTRACT.md](docs/CLI_CONTRACT.md). Roadmap (scope stage
 
 **Run.** [INSTALL.md](docs/INSTALL.md) · [PROVE.md](docs/PROVE.md) · [FIXTURES.md](docs/FIXTURES.md) · [INDEPENDENT_VERIFICATION.md](docs/INDEPENDENT_VERIFICATION.md) · [EVALUATOR_JOURNEY.md](docs/EVALUATOR_JOURNEY.md)
 
-**Interpret a result.** [REPORT.md](docs/REPORT.md) · [CLAIMS.md](docs/CLAIMS.md) · [TAXONOMY.md](docs/TAXONOMY.md) · [TRACEABILITY.md](docs/TRACEABILITY.md) · [BEHAVIOR.md](docs/BEHAVIOR.md) · [SCHEMA.md](docs/SCHEMA.md)
+**Interpret a result.** [OPERATOR_VERIFY.md](docs/OPERATOR_VERIFY.md) · [REPORT.md](docs/REPORT.md) · [CLAIMS.md](docs/CLAIMS.md) · [TAXONOMY.md](docs/TAXONOMY.md) · [TRACEABILITY.md](docs/TRACEABILITY.md) · [BEHAVIOR.md](docs/BEHAVIOR.md) · [SCHEMA.md](docs/SCHEMA.md)
 
 **Standards.** [STANDARDS_REGISTRY.md](docs/STANDARDS_REGISTRY.md) · [STANDARD_VERSIONING.md](docs/STANDARD_VERSIONING.md) — default `helix verify` is unversioned; `--standard` / `--version` fail closed when a pack is not SUPPORTED.
 

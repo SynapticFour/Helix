@@ -40,6 +40,17 @@ Replace `<port>` with an origin **you** started that implements [target.md](targ
 
 Stdout is `VerificationRun` ([example-verify.json](example-verify.json), schema `schemas/helix-verification-v1.json`). Stderr is logs (default `RUST_LOG=error`).
 
+## 3b. Supported DRS 1.4.0 (technical verification)
+
+Default `helix verify URL` is unversioned. To select the supported pack:
+
+```bash
+NO_COLOR=1 helix verify http://127.0.0.1:<port> --standard drs --version 1.4.0 --format json > verify.json
+helix inspect verify.json
+```
+
+Operator path: [../OPERATOR_VERIFY.md](../OPERATOR_VERIFY.md). PASS is not VERIFIED. Exit 0 is not VERIFIED. `inspect` does not rewrite the file.
+
 ## 4. Interop matrix (external validation pending)
 
 ```bash

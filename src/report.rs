@@ -260,9 +260,14 @@ pub fn format_verify_text(run: &VerificationRun, color: bool) -> String {
     out.push('\n');
     out.push_str("This is a technical verification signal.\n");
     out.push_str("It is not GA4GH certification.\n");
+    out.push_str("PASS is a check outcome. VERIFIED is a derived claim.\n");
+    out.push_str(
+        "Exit 0 means executed checks passed (no fail/error). It is not ga4gh_requirement VERIFIED.\n",
+    );
     out.push('\n');
     out.push_str(&crate::claims::format_claims_section(run, color));
     out.push_str(&crate::coverage::format_coverage_section(run));
+    out.push_str(&format_standing_section(run));
     out.push_str("What:\n");
     out.push_str(
         "  DRS and WES checks (HelixTest wrap). TES/TRS/htsget discovered only, not executed.\n",
@@ -391,6 +396,7 @@ pub fn format_verify_text(run: &VerificationRun, color: bool) -> String {
     out.push_str("  What changed: helix compare <previous.json> <current.json>\n");
     out.push('\n');
     out.push_str("Discovery is not conformance. DETECTED is not a pass. Skip is never pass.\n");
+    out.push_str("Retain --format json and run helix inspect FILE to classify standing.\n");
     crate::redact::redact_text(&out)
 }
 
@@ -433,6 +439,160 @@ fn format_layers_section(summary: &LayerSummary, run: &VerificationRun) -> Strin
     out.push_str("  NONE means this layer did not execute; that is not PASS.\n");
     out.push('\n');
     out
+}
+
+fn format_standing_section(run: &VerificationRun) -> String {
+    let standing = crate::evidence::classify_evidence(run);
+    let mut out = String::from(
+        "Evidence standing (computed for this binary; not a JSON field; not HELIOS):\n",
+    );
+    out.push_str(&format!("  {}\n", standing.as_str()));
+    match standing {
+        crate::evidence::EvidenceStanding::CurrentVerifierEvidence => {
+            out.push_str("  This artifact cites this verifier build.\n");
+        }
+        crate::evidence::EvidenceStanding::HistoricalObservation => {
+            out.push_str("  Historical observation: inspectable, not current verifier evidence.\n");
+            out.push_str("  Reload with helix inspect FILE. Do not restamp helix_git_sha.\n");
+        }
+        crate::evidence::EvidenceStanding::Invalid => {
+            out.push_str("  Invalid: join/coverage/claims/identities cannot be re-derived.\n");
+        }
+    }
+    out.push('\n');
+    out
+}
+
+/// Human inspect of persisted `helix verify --format json`. Same facts as
+/// [`crate::evidence::revalidate_evidence`]. Not a second claim evaluator.
+pub fn format_inspect_text(run: &VerificationRun) -> String {
+    let re = crate::evidence::revalidate_evidence(run);
+    let ga4gh = re.claims.get(crate::claims::ClaimKind::Ga4ghRequirement);
+    let mut out = String::new();
+    out.push_str("HELIX EVIDENCE INSPECT\n");
+    out.push('\n');
+    out.push_str("Classifies persisted helix verify JSON against THIS binary.\n");
+    out.push_str("Does not re-run checks. Not GA4GH certification. Not HELIOS.\n");
+    out.push('\n');
+    out.push_str("Standing:\n");
+    out.push_str(&format!("  {}\n", re.standing.as_str()));
+    out.push_str(&format!(
+        "  current_verifier_evidence: {}\n",
+        if re.standing.is_current() {
+            "yes"
+        } else {
+            "no"
+        }
+    ));
+    out.push('\n');
+    out.push_str("Claim (recomputed; JSON claims[] is not authority):\n");
+    out.push_str(&format!(
+        "  ga4gh_requirement: {}\n",
+        ga4gh.status.report_mark()
+    ));
+    out.push_str(&format!(
+        "  verified_version: {}\n",
+        run.standard_selection
+            .as_ref()
+            .and_then(|s| s.verified_version.as_deref())
+            .unwrap_or("(none)")
+    ));
+    out.push_str(&format!(
+        "  coverage.state: {}\n",
+        re.coverage.state.as_str()
+    ));
+    out.push_str("  PASS is not VERIFIED. Partial coverage is not full DRS.\n");
+    out.push('\n');
+    out.push_str("Identity:\n");
+    if let Some(sel) = &run.standard_selection {
+        out.push_str(&format!(
+            "  standard: {}\n",
+            sel.standard.as_deref().unwrap_or("(none)")
+        ));
+        out.push_str(&format!(
+            "  declared_version: {}\n",
+            run.target
+                .identity
+                .as_ref()
+                .and_then(|i| i.declared.standard_version.as_deref())
+                .unwrap_or("(none)")
+        ));
+        out.push_str(&format!(
+            "  detected_version: {}\n",
+            sel.detected_version.as_deref().unwrap_or("(none)")
+        ));
+        out.push_str(&format!(
+            "  selected_version: {}\n",
+            sel.selected_version.as_deref().unwrap_or("(none)")
+        ));
+        out.push_str(&format!(
+            "  verified_version: {}\n",
+            sel.verified_version.as_deref().unwrap_or("(none)")
+        ));
+        out.push_str(&format!(
+            "  standards_source_commit: {}\n",
+            sel.standards_source_commit.as_deref().unwrap_or("(none)")
+        ));
+        out.push_str(&format!(
+            "  checker: {}\n",
+            sel.checker_id.as_deref().unwrap_or("(none)")
+        ));
+        out.push_str(&format!(
+            "  pack_integrity_sha256: {}\n",
+            sel.pack_integrity_sha256.as_deref().unwrap_or("(none)")
+        ));
+        out.push_str(&format!(
+            "  schema_document_sha256: {}\n",
+            sel.schema_document_sha256.as_deref().unwrap_or("(none)")
+        ));
+        out.push_str(&format!(
+            "  schema_component_sha256: {}\n",
+            sel.schema_component_sha256.as_deref().unwrap_or("(none)")
+        ));
+        out.push_str(&format!(
+            "  binding: {}\n",
+            sel.binding_id.as_deref().unwrap_or("(none)")
+        ));
+        out.push_str(&format!(
+            "  catalog: {}\n",
+            sel.catalog_id.as_deref().unwrap_or("(none)")
+        ));
+        out.push_str(&format!(
+            "  execution_id: {}\n",
+            sel.execution_id.as_deref().unwrap_or("(none)")
+        ));
+        out.push_str(&format!(
+            "  target_execution_id: {}\n",
+            sel.target_execution_id.as_deref().unwrap_or("(none)")
+        ));
+        out.push_str(&format!(
+            "  coverage_id: {}\n",
+            re.coverage.coverage_id.as_deref().unwrap_or("(none)")
+        ));
+    } else {
+        out.push_str("  unversioned run (no registry pack selected)\n");
+    }
+    if let Some(id) = &run.target.identity {
+        out.push_str(&format!("  target_id: {}\n", id.target_id));
+        out.push_str(&format!("  target_kind: {}\n", id.target_kind.as_str()));
+        out.push_str(&format!("  endpoint: {}\n", id.endpoint));
+    } else {
+        out.push_str(&format!("  target.url: {}\n", run.target.url));
+    }
+    if let Some(fx) = &run.drs_fixture {
+        out.push_str(&format!("  fixture.object_id: {}\n", fx.object_id));
+        out.push_str(&format!(
+            "  fixture.expected_sha256: {}\n",
+            fx.expected_sha256.as_deref().unwrap_or("(none)")
+        ));
+    }
+    out.push_str(&format!(
+        "  helix_git_sha: {}\n",
+        run.helix_git_sha.as_deref().unwrap_or("(none)")
+    ));
+    out.push('\n');
+    out.push_str("Retain the original JSON. helix inspect does not rewrite it.\n");
+    crate::redact::redact_text(&out)
 }
 
 fn format_evidence_section(run: &VerificationRun) -> String {
@@ -484,6 +644,27 @@ fn format_standards_section(run: &VerificationRun) -> String {
                 "  requested_version: {}\n",
                 sel.requested_version.as_deref().unwrap_or("(none)")
             ));
+            out.push_str("  Versions (these four must not be collapsed):\n");
+            out.push_str(&format!(
+                "    declared: {} (operator-declared GA4GH version; untrusted; never verified_version)\n",
+                run.target
+                    .identity
+                    .as_ref()
+                    .and_then(|i| i.declared.standard_version.as_deref())
+                    .unwrap_or("(none)")
+            ));
+            out.push_str(&format!(
+                "    detected: {} (service-info type.version; not selected)\n",
+                sel.detected_version.as_deref().unwrap_or("(none)")
+            ));
+            out.push_str(&format!(
+                "    selected: {} (Helix pack choice)\n",
+                sel.selected_version.as_deref().unwrap_or("(none)")
+            ));
+            out.push_str(&format!(
+                "    verified: {} (derived claim output; empty means not verified)\n",
+                sel.verified_version.as_deref().unwrap_or("(none)")
+            ));
             out.push_str(&format!(
                 "  detected_version: {}\n",
                 sel.detected_version.as_deref().unwrap_or("(none)")
@@ -529,6 +710,14 @@ fn format_standards_section(run: &VerificationRun) -> String {
                 "  catalog: {}\n",
                 sel.catalog_id.as_deref().unwrap_or("(none)")
             ));
+            out.push_str(&format!(
+                "  pack_integrity_sha256: {}\n",
+                sel.pack_integrity_sha256.as_deref().unwrap_or("(none)")
+            ));
+            out.push_str(&format!(
+                "  execution_id: {}\n",
+                sel.execution_id.as_deref().unwrap_or("(none)")
+            ));
             if sel.coverage_schema.is_some() {
                 out.push_str(&format!(
                     "  coverage: schema={} behavior={} security={} interoperability={}\n",
@@ -538,8 +727,8 @@ fn format_standards_section(run: &VerificationRun) -> String {
                     sel.coverage_interoperability.as_deref().unwrap_or("(none)")
                 ));
             }
-            let target = if sel.selection_status != crate::standards::SELECTED {
-                "NOT_VERIFIED"
+            let check_outcome = if sel.selection_status != crate::standards::SELECTED {
+                "NOT_EXECUTED_AS_SELECTED_PACK"
             } else if run.executed.iter().any(|r| {
                 r.status == crate::model::VerificationStatus::Fail
                     || r.status == crate::model::VerificationStatus::Error
@@ -552,10 +741,22 @@ fn format_standards_section(run: &VerificationRun) -> String {
             {
                 "PASS"
             } else {
-                "NOT_VERIFIED"
+                "NO_PASS"
             };
-            out.push_str(&format!("  target_result: {target}\n"));
-            out.push_str("  verification_claim: NOT_VERIFIED unless claims[] says otherwise\n");
+            let ga4gh = crate::claims::evaluate(run)
+                .get(crate::claims::ClaimKind::Ga4ghRequirement)
+                .status
+                .report_mark();
+            if let Some(rc) = run.executed.iter().find_map(|r| {
+                r.traceability
+                    .as_ref()
+                    .and_then(|t| t.release_class.as_deref())
+            }) {
+                out.push_str(&format!("  release_class: {rc}\n"));
+            }
+            out.push_str(&format!("  check_outcome: {check_outcome}\n"));
+            out.push_str(&format!("  ga4gh_requirement: {ga4gh}\n"));
+            out.push_str("  check_outcome PASS is not ga4gh_requirement VERIFIED.\n");
             out.push_str("  Technical Verification only. Not GA4GH certification.\n");
             out.push_str(&format!(
                 "  standards_registry_entry: {}\n",
@@ -693,6 +894,9 @@ fn format_result_block(r: &VerificationResult, color: bool) -> String {
         } else {
             out.push_str("        not a GA4GH MUST  (PASS is not a conformance claim)\n");
         }
+    }
+    if let Some(a) = r.attribution {
+        out.push_str(&format!("        attribution: {}\n", a.as_str()));
     }
     out
 }

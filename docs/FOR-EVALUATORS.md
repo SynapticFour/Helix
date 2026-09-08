@@ -6,7 +6,7 @@ Five minutes. Helix is a CLI that wraps [HelixTest](https://github.com/SynapticF
 
 A CLI (`helix`) you point at a GA4GH HTTP origin you already run. It discovers which APIs answer, then runs HelixTest **DRS** and **WES** checks when those services are TESTABLE. `make prove` / `make verify-fixture` use in-process mocks so you do not need Ferrum. An external origin: [EXTERNAL_TARGET_CONTRACT.md](EXTERNAL_TARGET_CONTRACT.md) (`helix verify <url>`; documented GA4GH HTTP + fixtures only).
 
-Helix runs the same documented DRS and WES checks against any HTTP origin that implements those GA4GH paths. Ferrum is a reference target, not a dependency. Helix supports technical verification checks for GA4GH DRS 1.4.0 within the declared coverage boundary. A PASS is not a GA4GH-release VERIFIED claim ([TRUST.md](TRUST.md), [CLAIMS.md](CLAIMS.md)).
+Helix runs the same documented DRS and WES checks against any HTTP origin that implements those GA4GH paths. Ferrum is a reference target, not a dependency. Helix supports technical verification checks for GA4GH DRS 1.4.0 within the declared coverage boundary. A PASS is not a GA4GH-release VERIFIED claim ([TRUST.md](TRUST.md), [CLAIMS.md](CLAIMS.md)). Operator workflow (versioned DRS 1.4.0, JSON retain, `helix inspect`): [OPERATOR_VERIFY.md](OPERATOR_VERIFY.md).
 
 ## What it is not
 
@@ -48,8 +48,8 @@ Optional: a stack you started (e.g. Ferrum `make up`) then `make test-live HELIX
 - **DETECTED** means an HTTP probe got 2xx/401/403. It is **not** a pass.
 - **TESTABLE** means Helix will execute checks for that service. DRS and WES are TESTABLE today. TES/TRS/htsget may be DETECTED and still not executed.
 - Fixture run: DRS checks should **pass**; WES is **not mounted** → skip. Overall can still be pass (passes exist, no fail/error).
-- Exit 0 = overall pass. Exit 1 = fail, error, skip-only, or unreachable. Not certification.
-- Human report: [REPORT.md](REPORT.md). JSON: `--format json` ([SCHEMA.md](SCHEMA.md)).
+- Exit 0 = overall pass (≥1 executed PASS, no fail/error). **That is not `ga4gh_requirement` VERIFIED.** Unversioned `helix verify URL` can exit 0 with six NOT_VERIFIED claims. Versioned DRS 1.4.0: [OPERATOR_VERIFY.md](OPERATOR_VERIFY.md).
+- Human report: [REPORT.md](REPORT.md). JSON: `--format json` ([SCHEMA.md](SCHEMA.md)). Classify standing: `helix inspect FILE`.
 - The report is **stdout**, starting at `HELIX VERIFICATION`. HelixTest HTTP traces are **stderr** and are off unless `RUST_LOG=debug`.
 
 ## Why Ferrum is mentioned

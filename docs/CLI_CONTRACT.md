@@ -70,6 +70,7 @@ TES / TRS / htsget checks are not executed by `verify` today. Discovery of those
 | Standard / version flags | `--standard`, `--version`, `--all-supported-versions`, `--release-class` | additive; default verify stays unversioned; [STANDARD_VERSIONING.md](STANDARD_VERSIONING.md) |
 | Target identity flags | `--target-id`, `--target-kind`, `--implementation-name`, `--implementation-version` | additive; declared untrusted metadata; [TARGETS.md](TARGETS.md) |
 | DRS fixture flags | `--drs-object-id`, `--drs-object-sha256` | additive; target-scoped test input, not a GA4GH MUST; sha256 requires object-id; [TARGETS.md](TARGETS.md) §11 |
+| Inspect | `helix inspect FILE` | additive; classifies persisted verify JSON standing; does not rewrite; not the verify freeze |
 | HelixTest binary | `helixtest` | separate product; not this contract |
 | Standards registry | `helix standards` | shipped; provenance only; [STANDARDS_REGISTRY.md](STANDARDS_REGISTRY.md) |
 
@@ -90,6 +91,8 @@ Skip-only is **not** a pass. A live HTTP server with no DRS and no WES exits **1
 `--help` / `--version` exit **0**.
 
 `helix security` and `helix bench` keep their own exit tables (below). `helix compare` is a separate table ([REGRESSION.md](REGRESSION.md)): exit 1 only on `NEW_FAIL` (PASS→FAIL at stable id), not on a score drop. They are not this verify freeze.
+
+`helix inspect FILE` is **not** this verify freeze. Exit **0** if the artifact is internally consistent (current or historical). Exit **1** if it is invalid or unreadable. Inspect does not change `helix verify` exit codes. Exit 0 on verify still means check PASS, not `ga4gh_requirement` VERIFIED.
 
 ---
 

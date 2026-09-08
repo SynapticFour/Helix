@@ -601,16 +601,37 @@ pub fn format_coverage_section(run: &VerificationRun) -> String {
         cov.required_complete
     ));
     out.push_str("  UNEVALUATED is not OUT_OF_SCOPE. PASS is not VERIFIED.\n");
+    out.push_str(
+        "  Partial coverage means unevaluated operations are not part of the VERIFIED claim.\n",
+    );
     if !cov.unevaluated.is_empty() {
         out.push_str("  unevaluated:\n");
         for id in &cov.unevaluated {
-            out.push_str(&format!("    - {id}\n"));
+            let role = cov
+                .rows
+                .iter()
+                .find(|r| r.id == *id)
+                .map(|r| r.standard_role.as_str())
+                .filter(|s| !s.is_empty());
+            match role {
+                Some(role) => out.push_str(&format!("    - {id}  ({role})\n")),
+                None => out.push_str(&format!("    - {id}\n")),
+            }
         }
     }
     if !cov.out_of_scope.is_empty() {
         out.push_str("  out_of_scope:\n");
         for id in &cov.out_of_scope {
-            out.push_str(&format!("    - {id}\n"));
+            let role = cov
+                .rows
+                .iter()
+                .find(|r| r.id == *id)
+                .map(|r| r.standard_role.as_str())
+                .filter(|s| !s.is_empty());
+            match role {
+                Some(role) => out.push_str(&format!("    - {id}  ({role})\n")),
+                None => out.push_str(&format!("    - {id}\n")),
+            }
         }
     }
     if !cov.required_missing.is_empty() {

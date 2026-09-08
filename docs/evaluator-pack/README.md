@@ -15,7 +15,7 @@ Helix is HelixTest becoming a standalone VERIFY CLI (pin **v0.1.3**). It is not 
 | Interpretation | [interpret.md](interpret.md) |
 | Failure reporting template | [FAILURE_REPORT.md](FAILURE_REPORT.md) |
 
-Full contract (spec vs fixtures vs optional vs current-runner extras): [../EXTERNAL_TARGET_CONTRACT.md](../EXTERNAL_TARGET_CONTRACT.md).
+Full contract (spec vs fixtures vs optional vs current-runner extras): [../EXTERNAL_TARGET_CONTRACT.md](../EXTERNAL_TARGET_CONTRACT.md). Versioned DRS 1.4.0 operator path (`helix inspect`): [../OPERATOR_VERIFY.md](../OPERATOR_VERIFY.md).
 
 ## What this pack does not do
 

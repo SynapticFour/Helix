@@ -41,7 +41,9 @@ May include `failure.code` (catalog code, e.g. `HLX-DRS-005`) and `diagnostic` (
 
 Producers also emit `traceability` (`category`, `check_kind`, `claim_scope`, `authority`, `untraceable_reason`). `category` is not `normative` in the shipped catalog. `claim_scope` is never `ga4gh_requirement`. A fixture PASS is not a GA4GH requirement. `related_source` is an AVAILABLE pin a reviewer can open, not a verified-against claim. Taxonomy: [TAXONOMY.md](../TAXONOMY.md). Walkthrough: [TRACEABILITY.md](../TRACEABILITY.md).
 
-The report also prints **Claims**. Default and fixture runs are six times **NOT_VERIFIED** ([CLAIMS.md](../CLAIMS.md)). A green DRS PASS is not “verified against GA4GH DRS.” `helix standards list --supported-only` lists DRS 1.4.0: that is technical support, not VERIFIED.
+The report also prints **Claims**. Default and fixture runs are six times **NOT_VERIFIED** ([CLAIMS.md](../CLAIMS.md)). A green DRS PASS is not “verified against GA4GH DRS.” `helix standards list --supported-only` lists DRS 1.4.0: that is technical support, not VERIFIED. Versioned operator workflow: [../OPERATOR_VERIFY.md](../OPERATOR_VERIFY.md).
+
+`helix inspect FILE` classifies a retained JSON file as current verifier evidence, historical observation, or invalid. Standing is computed for **this** binary. It is not stored in `helix-verification-v1`.
 
 ## What success is not
 

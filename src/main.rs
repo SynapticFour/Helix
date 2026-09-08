@@ -9,8 +9,8 @@ use helix::compare::compare_files;
 use helix::differential::differential_files;
 use helix::profile::ProfileId;
 use helix::report::{
-    print_bench_json, print_bench_text, print_compare_json, print_compare_text, print_json,
-    print_security_json, print_security_text, print_text,
+    format_inspect_text, print_bench_json, print_bench_text, print_compare_json,
+    print_compare_text, print_json, print_security_json, print_security_text, print_text,
 };
 use helix::security::{load_hmac_secret, run_security};
 use helix::standards::{
@@ -35,8 +35,24 @@ struct Cli {
 #[derive(Subcommand, Debug)]
 enum Commands {
     /// Discover GA4GH APIs under a gateway-style URL, then run DRS and WES checks when TESTABLE.
-    #[command(disable_version_flag = true)]
+    ///
+    /// Default is unversioned (no DRS 1.4.0 pack). Technical verification of supported DRS 1.4.0:
+    ///   helix verify URL --standard drs --version 1.4.0 --format json
+    /// PASS is a check outcome. VERIFIED is a derived claim. Exit 0 is not VERIFIED.
+    /// Retain JSON and classify standing with `helix inspect FILE`.
+    /// Not GA4GH certification. Not HELIOS.
+    #[command(
+        disable_version_flag = true,
+        after_help = "Examples:\n  \
+            helix verify http://127.0.0.1:8080 --standard drs --version 1.4.0 --format json > verify.json\n  \
+            helix inspect verify.json\n\n\
+            Default `helix verify URL` does not select a GA4GH pack.\n\
+            --drs-object-id is test input, not a GA4GH requirement."
+    )]
     Verify(VerifyArgs),
+    /// Reload persisted `helix verify --format json` and classify current vs historical standing.
+    /// Does not re-run checks. Does not rewrite the file. Not HELIOS.
+    Inspect(InspectArgs),
     /// Stage 3: Security Behavior Profile + Crypt4GH protocol layout (dummy fixtures only).
     Security(SecurityArgs),
     /// Stage 4: http.drs.smoke.v1 vs two endpoints; warn on >threshold% worse, never fail CI.
@@ -114,6 +130,15 @@ struct VerifyArgs {
     drs_object_sha256: Option<String>,
 
     /// text (default) or json (Helix VerificationRun). `--report` is an alias.
+    #[arg(long, visible_alias = "report", value_enum, default_value_t = OutputFormat::Text)]
+    format: OutputFormat,
+}
+
+#[derive(Parser, Debug)]
+struct InspectArgs {
+    /// Persisted `helix verify --format json` file.
+    file: PathBuf,
+    /// text (default) or json (inspect summary; not helix-verification-v1).
     #[arg(long, visible_alias = "report", value_enum, default_value_t = OutputFormat::Text)]
     format: OutputFormat,
 }
@@ -348,6 +373,7 @@ async fn main() {
 async fn dispatch(cli: Cli) -> Result<()> {
     match cli.command {
         Commands::Verify(args) => verify_cmd(args).await,
+        Commands::Inspect(args) => inspect_cmd(args),
         Commands::Security(args) => security_cmd(args).await,
         Commands::Bench(args) => bench_cmd(args).await,
         Commands::Compare(args) => compare_cmd(args),
@@ -502,6 +528,53 @@ fn standards_trace(args: StandardsTraceArgs) -> Result<()> {
             let v = helix::traceability::format_trace_json(&args.check_id)?;
             println!("{}", serde_json::to_string_pretty(&v)?);
         }
+    }
+    Ok(())
+}
+
+fn inspect_cmd(args: InspectArgs) -> Result<()> {
+    let raw = helix::http_safety::read_to_string_capped(
+        &args.file,
+        helix::http_safety::MAX_COMPARE_FILE_BYTES,
+    )?;
+    let run = match helix::compare::parse_verification_run(&raw) {
+        Ok(run) => run,
+        Err(load_err) => match serde_json::from_str::<helix::model::VerificationRun>(&raw) {
+            Ok(run) => run,
+            Err(_) => {
+                anyhow::bail!("JSON is not a Helix VerificationRun ({load_err:#})");
+            }
+        },
+    };
+    let standing = helix::evidence::classify_evidence(&run);
+    match args.format {
+        OutputFormat::Text => print!("{}", format_inspect_text(&run)),
+        OutputFormat::Json => {
+            let re = helix::evidence::revalidate_evidence(&run);
+            let ga4gh = re
+                .claims
+                .get(helix::claims::ClaimKind::Ga4ghRequirement)
+                .status
+                .as_str();
+            let summary = serde_json::json!({
+                "standing": standing.as_str(),
+                "current_verifier_evidence": standing.is_current(),
+                "ga4gh_requirement": ga4gh,
+                "verified_version": run.standard_selection.as_ref().and_then(|s| s.verified_version.clone()),
+                "coverage_state": re.coverage.state.as_str(),
+                "execution_id": run.standard_selection.as_ref().and_then(|s| s.execution_id.clone()),
+                "target_execution_id": run.standard_selection.as_ref().and_then(|s| s.target_execution_id.clone()),
+                "helix_git_sha": run.helix_git_sha,
+                "not_helix_verification_v1": true,
+            });
+            println!(
+                "{}",
+                helix::redact::redact_text(&serde_json::to_string_pretty(&summary)?)
+            );
+        }
+    }
+    if standing == helix::evidence::EvidenceStanding::Invalid {
+        std::process::exit(1);
     }
     Ok(())
 }

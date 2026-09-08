@@ -22,7 +22,8 @@ Source: `src/report.rs` (`format_verify_text`, `format_compare_text`). Claims: `
 | WHICH passed / failed / skipped? | `PASS` / `FAIL` / `SKIP` / `ERROR` | `status` |
 | WHY is this VERIFIED / NOT VERIFIED? | `Claims:` | `claims[]` ([CLAIMS.md](CLAIMS.md)). Not a PASS/FAIL grep |
 | WHAT is inside / outside the verification contract? | `Coverage:` | `coverage` ([COVERAGE.md](COVERAGE.md)). Not a score |
-| WHY this check? | `— {message}` and diagnostic block; `kind:` / `claim_scope:` / `authority:` | `message`, `failure`, `diagnostic`, `traceability` |
+| IS THIS CURRENT VERIFIER EVIDENCE? | `Evidence standing:` / `helix inspect` | Computed; **not** a JSON field ([B14_EVIDENCE_DURABILITY.md](B14_EVIDENCE_DURABILITY.md)) |
+| WHY this check? | `— {message}` and diagnostic block; `kind:` / `claim_scope:` / `authority:` / `attribution:` | `message`, `failure`, `diagnostic`, `traceability`, `attribution` |
 | WHAT kinds of evidence? | `Evidence (classification, not a score):` | `traceability.category` / `claim_scope` on each row ([TAXONOMY.md](TAXONOMY.md)) |
 | SCHEMA vs BEHAVIOR vs SECURITY vs INTEROPERABILITY | `Layers:` SCHEMA PASS / BEHAVIOR FAIL / … | `layer` / `layer_summary` ([BEHAVIOR.md](BEHAVIOR.md)). SCHEMA PASS is not BEHAVIOR PASS |
 | WHAT changed since the previous run? | `Changes:` | verify JSON has no previous; `helix compare` is `CompareReport` |
@@ -40,6 +41,8 @@ HELIX VERIFICATION
 
 This is a technical verification signal.
 It is not GA4GH certification.
+PASS is a check outcome. VERIFIED is a derived claim.
+Exit 0 means executed checks passed (no fail/error). It is not ga4gh_requirement VERIFIED.
 
 Claims (predicates; not GA4GH certification):
   No VERIFIED claim is justified by this run.
@@ -142,7 +145,9 @@ Word mapping (frozen):
 
 `TESTABLE` is not a pass. Skip is never painted as PASS. Fail/error may include [diagnostics](DIAGNOSTICS.md) (**possible causes**, never `Cause:`). Diagnostic `category:` is a likely-failure class (`error_handling`, …), not the claim taxonomy. Taxonomy is `kind:` / `claim_scope:` on every row.
 
-`--format json` prints `VerificationRun` only. It does not duplicate this heading layout, ANSI, or `PASS` marks.
+`helix inspect FILE` prints standing, recomputed `ga4gh_requirement`, coverage state, and identities from a retained JSON file. It does not re-run checks and does not rewrite the file.
+
+`--format json` prints `VerificationRun` only. It does not duplicate this heading layout, ANSI, or `PASS` marks. Standing is computed on inspect, not stored.
 
 ---
 
