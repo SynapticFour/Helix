@@ -42,6 +42,7 @@ for f in \
   docs/ROADMAP_RESET.md \
   docs/PUBLISHED_BASELINE_READINESS.md \
   docs/PUBLISHED_BASELINE_RELEASE_PLAN.md \
+  docs/PUBLISHED_BASELINE_IMPLEMENTATION.md \
   docs/INDEPENDENT_DRS.md \
   docs/C1_CANONICAL_TWO_TARGET_WORKFLOW.md \
   docs/C2_CURRENT_LIVE_EVIDENCE.md \
@@ -445,6 +446,8 @@ grep -q "PUBLISHED BASELINE — READY TO PLAN" docs/PUBLISHED_BASELINE_READINESS
 grep -q "DEFERRED / CLOSED" docs/PUBLISHED_BASELINE_READINESS.md
 grep -q "PLAN APPROVED — READY FOR IMPLEMENTATION" docs/PUBLISHED_BASELINE_RELEASE_PLAN.md
 grep -q "DEFERRED / CLOSED" docs/PUBLISHED_BASELINE_RELEASE_PLAN.md
+grep -q "PUBLISHED BASELINE IMPLEMENTATION — READY FOR PR" docs/PUBLISHED_BASELINE_IMPLEMENTATION.md
+grep -q "DEFERRED / CLOSED" docs/PUBLISHED_BASELINE_IMPLEMENTATION.md
 grep -q "OPTIONAL LIVE VERIFICATION" docs/INDEPENDENT_DRS.md
 grep -q "helix differential starter-kit.json bento.json" docs/INDEPENDENT_DRS.md
 grep -q "B13 remains" docs/C1_CANONICAL_TWO_TARGET_WORKFLOW.md || grep -q "B13 remains deferred" docs/C1_CANONICAL_TWO_TARGET_WORKFLOW.md
@@ -478,7 +481,7 @@ if grep -qiE 'overall score|compliance percentage|coverage score|implementation 
   echo "authorization doc must not introduce a score" >&2
   exit 1
 fi
-if grep -qiE 'overall score|compliance percentage|coverage score|implementation grade|better implementation' docs/P2_FIRST_USABLE_RELEASE.md docs/HELIX_PRODUCT.md docs/PHASE_B_CLOSURE.md docs/PHASE_C_PLAN.md docs/PHASE_C_CLOSURE.md docs/ROADMAP_RESET.md docs/PUBLISHED_BASELINE_READINESS.md docs/PUBLISHED_BASELINE_RELEASE_PLAN.md docs/HELIX_ROADMAP.md docs/INDEPENDENT_DRS.md docs/C1_CANONICAL_TWO_TARGET_WORKFLOW.md docs/C2_CURRENT_LIVE_EVIDENCE.md docs/C3_DIFFERENTIAL_INTERPRETATION.md; then
+if grep -qiE 'overall score|compliance percentage|coverage score|implementation grade|better implementation' docs/P2_FIRST_USABLE_RELEASE.md docs/HELIX_PRODUCT.md docs/PHASE_B_CLOSURE.md docs/PHASE_C_PLAN.md docs/PHASE_C_CLOSURE.md docs/ROADMAP_RESET.md docs/PUBLISHED_BASELINE_READINESS.md docs/PUBLISHED_BASELINE_RELEASE_PLAN.md docs/PUBLISHED_BASELINE_IMPLEMENTATION.md docs/HELIX_ROADMAP.md docs/INDEPENDENT_DRS.md docs/C1_CANONICAL_TWO_TARGET_WORKFLOW.md docs/C2_CURRENT_LIVE_EVIDENCE.md docs/C3_DIFFERENTIAL_INTERPRETATION.md; then
   echo "product/release docs must not introduce a score or ranking" >&2
   exit 1
 fi

@@ -409,4 +409,6 @@ Not committed as the next phase:
 
 The existing DRS 1.4.0 product can be published as an early-stage source baseline **after** the sequence in §12. This file is not that implementation.
 
+Implementation record (PR-ready, not published): [PUBLISHED_BASELINE_IMPLEMENTATION.md](PUBLISHED_BASELINE_IMPLEMENTATION.md).
+
 **Vertraue mir nicht. Vertraue dem Code.**
