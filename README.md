@@ -97,7 +97,10 @@ cargo run --bin helix -- compare previous.json current.json --format json
 # Interop matrix — pending without independent run JSON; mocks are not a second implementation
 cargo run --bin helix -- matrix --format json
 
-# Pinned GA4GH spec provenance (does not run verify; no network). None are SUPPORTED.
+# Pinned GA4GH spec provenance (does not run verify; no network).
+# DRS 1.4.0 is SUPPORTED for technical verification within declared coverage.
+# Default `list` includes AVAILABLE rows; `--supported-only` lists DRS 1.4.0.
+# Not GA4GH certification. Not complete DRS coverage.
 cargo run --bin helix -- standards list
 cargo run --bin helix -- standards list --supported-only
 cargo run --bin helix -- standards show drs 1.5.0

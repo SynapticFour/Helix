@@ -2,7 +2,15 @@
 
 ## Unreleased
 
-**Current facts (2026-09-05).** Prefer [README.md](README.md) and [docs/TRUST.md](docs/TRUST.md) over older bullets in this section if they disagree.
+No further changes after the 0.1.0 source-baseline candidate on this branch.
+
+## 0.1.0 — Early-stage DRS 1.4.0 source baseline (2026-09-09)
+
+Cargo package version is `0.1.0`. `publish = false`. This is an **early-stage source baseline**, not crates.io, not a binary distribution, not a GitHub Release with artefacts, and not GA4GH certification.
+
+**What this baseline is:** versioned technical verification of **GA4GH DRS 1.4.0** within declared **partial** coverage; persisted `helix-verification-v1`; `helix inspect` (recompute standing; does not rewrite); optional independent two-target differential workflow. Default `helix verify TARGET` stays unversioned. WES is not a published Supported standard. Authorization (B13) remains **DEFERRED**; `drs.security.authorization` remains **UNEVALUATED**.
+
+**Current facts (2026-09-09).** Prefer [README.md](README.md) and [docs/TRUST.md](docs/TRUST.md) over older bullets later in this file if they disagree.
 
 - Executed DRS checker identity ([docs/CHECKER_PROVENANCE.md](docs/CHECKER_PROVENANCE.md)): `checker_id` is `helixtest-drs:` plus SHA-256 of the helix-drs-checker-v2 closure (checker, SpecSource, HTTP, sha256_bytes, bundled DRS OpenAPI, Level-0 reachable). `HELIXTEST_SHA` is the git checkout pin. JSON `helixtest_sha` is the source digest; `helixtest_git_sha` is the git pin. Not HELIOS. Not certification.
 
@@ -29,7 +37,7 @@
 - Phase C closed ([docs/PHASE_C_CLOSURE.md](docs/PHASE_C_CLOSURE.md)): C1–C3 PASS WITH FINDINGS — CLOSED. Live targets were optional and not exercised. B13 remains deferred. Not a coverage expansion. Not HELIOS. Not certification.
 - Roadmap reset ([docs/ROADMAP_RESET.md](docs/ROADMAP_RESET.md)): Stage 0–5 preserved as history. Current roadmap is foundation + independent DRS path (complete) versus later adoption/expansion/integration. Next action is a product decision, not Phase D. B13 remains deferred. Not a coverage expansion. Not HELIOS. Not certification.
 - Published-baseline readiness ([docs/PUBLISHED_BASELINE_READINESS.md](docs/PUBLISHED_BASELINE_READINESS.md)): existing DRS 1.4.0 product is READY TO PLAN as an early-stage source baseline. Not a tag. Not a merge. Not Phase D. B13 remains deferred. Not HELIOS. Not certification.
-- Published-baseline release plan ([docs/PUBLISHED_BASELINE_RELEASE_PLAN.md](docs/PUBLISHED_BASELINE_RELEASE_PLAN.md)): PLAN APPROVED — READY FOR IMPLEMENTATION. Merge `origin/main` into productization (no rebase). Not a tag. Not executed. B13 remains deferred. Not HELIOS. Not certification.
+- Published-baseline release plan ([docs/PUBLISHED_BASELINE_RELEASE_PLAN.md](docs/PUBLISHED_BASELINE_RELEASE_PLAN.md)): PLAN APPROVED. Productization snapshot committed; `origin/main` merged (no rebase). Remaining: PR to `main`, CI, merge, optional `v0.1.0` tag. Not published until the default branch contains this product. B13 remains deferred. Not HELIOS. Not certification.
 - DRS 1.5.0 and WES remain AVAILABLE / non-executable as supported packs.
 - External multi-implementation **ranking / certification** is not a Helix product. B9 records reviewed independent targets and check-level differentials. `helix matrix` remains operator-labeled ([docs/INTEROP.md](docs/INTEROP.md)). In-process mocks are not a second implementation.
 - No git tag. Cargo package version is `0.1.0`. Not crates.io (`publish = false`).
