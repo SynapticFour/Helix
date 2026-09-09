@@ -2,7 +2,7 @@
 
 This is an **API compatibility contract** for the `helix` binary. Changing a frozen rule here is a compatibility break for CI, helix-action, and any consumer that parses stdout or exit codes.
 
-Helix is HelixTest becoming a standalone VERIFY CLI (separate git root, pin **v0.1.3**). This document freezes **how operators invoke Helix**, not HelixTest’s own `helixtest` CLI. Results are not GA4GH certification. HELIOS (`helios-audit`) is out of scope. The binary is **`helix`**, never `helios`.
+Helix is HelixTest becoming a standalone VERIFY CLI (separate git root). HelixTest **tag lineage** is **v0.1.3**; the exact source Helix compiles is `HELIXTEST_SHA` in [VERSIONS.lock](../VERSIONS.lock), which is not the tagged commit. This document freezes **how operators invoke Helix**, not HelixTest’s own `helixtest` CLI. Results are not GA4GH certification. HELIOS (`helios-audit`) is out of scope. The binary is **`helix`**, never `helios`.
 
 JSON shape details: [VERIFICATION_MODEL.md](VERIFICATION_MODEL.md). Human text: [REPORT.md](REPORT.md). Identities: [TEST_IDENTITY.md](TEST_IDENTITY.md). Discovery words: [DISCOVERY.md](DISCOVERY.md). DRS/WES execution: [DRS_PROFILE.md](DRS_PROFILE.md), [WES.md](WES.md). Profiles: [PROFILES.md](PROFILES.md). Diagnostics: [DIAGNOSTICS.md](DIAGNOSTICS.md). Regression: [REGRESSION.md](REGRESSION.md). Threat model (Helix as a client): [THREAT_MODEL.md](THREAT_MODEL.md).
 
@@ -174,7 +174,7 @@ Same mock URL, same binary, same HelixTest pin, same fixture catalog: JSON value
 
 | Surface | What |
 |---------|------|
-| `helix --version` | clap banner including Cargo package version |
+| `helix --version` | Package version, Helix git SHA, HelixTest **lineage** (`v0.1.3`), exact HelixTest **source** (`HELIXTEST_SHA`), checker id. Lineage is not the compile commit. |
 | JSON `helix_version` | that same package version string (e.g. `0.1.0`) |
 | JSON `schema_version` | frozen document id `helix-verification-v1` |
 | JSON `fixture_version` | fixture catalog id `helix-fixtures-v1` ([RUN_IDENTITY.md](RUN_IDENTITY.md)). Not HELIOS |
@@ -183,7 +183,7 @@ Same mock URL, same binary, same HelixTest pin, same fixture catalog: JSON value
 | JSON `helixtest_git_sha` | VERSIONS.lock `HELIXTEST_SHA` (40-char git checkout pin). Not the executed checker |
 | JSON `standard_selection.checker_id` | `helixtest-drs:` plus that source digest. Not a lockfile string |
 
-Operators pin HelixTest by **tag/SHA**, not crate `0.1.0`. Do not invent a later HelixTest tag here.
+Operators pin HelixTest by **tag lineage plus exact SHA**, not crate `0.1.0`. Do not treat tag **v0.1.3** as the Helix compile commit. Do not invent a later HelixTest tag here.
 
 ---
 
@@ -286,15 +286,15 @@ Same generic `helix verify` suite, compared across operator-labeled run JSON fil
 
 ### `helix standards list|show|validate|trace`
 
-Pinned GA4GH specification provenance ([STANDARDS_REGISTRY.md](STANDARDS_REGISTRY.md)), claim taxonomy ([TAXONOMY.md](TAXONOMY.md)), and per-check kind/authority ([TRACEABILITY.md](TRACEABILITY.md)). Does **not** run `helix verify`. Does **not** download specs. Default discovery is **OFFICIAL ∩ SUPPORTED** (currently empty). `show` is an exact version match (`substituted: false`). `trace CHECK_ID` prints catalog provenance for one Helix id (not a MUST; none are `normative` today). Exit 0 on `list` / successful `validate` / `show` of a registry row (including AVAILABLE-not-SUPPORTED) / `trace` of a catalogued id. Exit 1 on validate failure, unknown version, or unknown check id. Exit 2 on usage. Not certification. Not HELIOS.
+Pinned GA4GH specification provenance ([STANDARDS_REGISTRY.md](STANDARDS_REGISTRY.md)), claim taxonomy ([TAXONOMY.md](TAXONOMY.md)), and per-check kind/authority ([TRACEABILITY.md](TRACEABILITY.md)). Does **not** run `helix verify`. Does **not** download specs. Default discovery is **OFFICIAL ∩ SUPPORTED**. Today that set is **GA4GH DRS 1.4.0** (technical verification within declared **partial** coverage). DRS 1.5.0 and WES remain AVAILABLE, not SUPPORTED. SUPPORTED is not complete DRS coverage and not GA4GH certification. `show` is an exact version match (`substituted: false`). `trace CHECK_ID` prints catalog provenance for one Helix id. Exactly one shipped check is `normative`: `HLX-DRS-006` (`drs.object.schema.openapi`). Exit 0 on `list` / successful `validate` / `show` of a registry row (including AVAILABLE-not-SUPPORTED) / `trace` of a catalogued id. Exit 1 on validate failure, unknown version, or unknown check id. Exit 2 on usage. Not certification. Not HELIOS.
 
 ```text
 helix standards list
 helix standards list --supported-only --format json
 helix standards show drs 1.5.0
 helix standards validate
-helix standards trace drs.object.schema
-helix standards trace drs.object.schema --format json
+helix standards trace drs.object.schema.openapi
+helix standards trace drs.object.schema.openapi --format json
 ```
 
 ---

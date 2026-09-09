@@ -104,7 +104,21 @@ fn p2_t1_fresh_operator_discovers_supported_workflow() {
     )
     .into_owned();
     assert!(ver.contains(env!("CARGO_PKG_VERSION")), "{ver}");
-    assert!(ver.contains("HelixTest pin"), "{ver}");
+    assert!(ver.contains("HelixTest lineage: v0.1.3"), "{ver}");
+    assert!(
+        ver.contains("HelixTest source: 1baddfd3d75f01dc7c149074a785616fa014c725"),
+        "{ver}"
+    );
+    assert!(
+        ver.contains(
+            "Checker: helixtest-drs:18bf4a445ac5cf7ae9a45a331834dc13da3a21528f5b29eb1a72bddfbc42a05a"
+        ),
+        "{ver}"
+    );
+    assert!(
+        !ver.contains("HelixTest pin: v0.1.3"),
+        "tag lineage must not be presented as the exact pin: {ver}"
+    );
     assert!(ver.contains("Not GA4GH certification"), "{ver}");
 }
 

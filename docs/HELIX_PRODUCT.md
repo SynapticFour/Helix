@@ -8,7 +8,7 @@ Helix is the standalone `helix` command-line product built from [HelixTest](http
 
 **Vertraue mir nicht, vertraue dem Code.** Do not take this page on trust. The commands, reports, and linked technical documents are the evidence.
 
-This page answers: **is Helix useful to me right now?** How to run it: [OPERATOR_VERIFY.md](OPERATOR_VERIFY.md). Two independent DRS implementations: [INDEPENDENT_DRS.md](INDEPENDENT_DRS.md). Five-minute clone-and-run: [FOR-EVALUATORS.md](FOR-EVALUATORS.md). Phase B technical close: [PHASE_B_CLOSURE.md](PHASE_B_CLOSURE.md). Phase C close: [PHASE_C_CLOSURE.md](PHASE_C_CLOSURE.md). Roadmap after Phase C: [ROADMAP_RESET.md](ROADMAP_RESET.md), [HELIX_ROADMAP.md](HELIX_ROADMAP.md). Published-baseline readiness (not a release): [PUBLISHED_BASELINE_READINESS.md](PUBLISHED_BASELINE_READINESS.md). Release plan (not a tag): [PUBLISHED_BASELINE_RELEASE_PLAN.md](PUBLISHED_BASELINE_RELEASE_PLAN.md).
+This page answers: **is Helix useful to me right now?** How to run it: [OPERATOR_VERIFY.md](OPERATOR_VERIFY.md). Two independent DRS implementations: [INDEPENDENT_DRS.md](INDEPENDENT_DRS.md). Five-minute clone-and-run: [FOR-EVALUATORS.md](FOR-EVALUATORS.md). Trust (pins and recorded evidence, not authorship): [TRUST.md](TRUST.md).
 
 ---
 
@@ -303,7 +303,7 @@ User-facing words on this page, and how they relate to Helix output:
 |-----------|--------|------------------|----------------------|-------------------------|
 | DRS 1.4.0 technical verification | Available, partial | `helix verify URL --standard drs --version 1.4.0` | Partial coverage; not certification | [OPERATOR_VERIFY.md](OPERATOR_VERIFY.md), [COVERAGE.md](COVERAGE.md), [CLAIMS.md](CLAIMS.md) |
 | Unversioned DRS/WES checks | Available | `helix verify URL` | Does not select a GA4GH pack; exit 0 is not VERIFIED | [CLI_CONTRACT.md](CLI_CONTRACT.md), [DRS_PROFILE.md](DRS_PROFILE.md), [WES.md](WES.md) |
-| Standard selection / provenance | Available | `helix standards list --supported-only` | DRS 1.5.0 and WES 1.1.0 are AVAILABLE only | [STANDARDS_REGISTRY.md](STANDARDS_REGISTRY.md), [STANDARD_VERSIONING.md](STANDARD_VERSIONING.md) |
+| Standard selection / provenance | Available | `helix standards list --supported-only`; `helix standards validate`; `helix standards trace CHECK_ID` | DRS 1.5.0 and WES 1.1.0 are AVAILABLE only. WES is not a published Supported standard. | [STANDARDS_REGISTRY.md](STANDARDS_REGISTRY.md), [STANDARD_VERSIONING.md](STANDARD_VERSIONING.md) |
 | Evidence artifact | Available | `--output FILE` or `--format json`; `helix inspect FILE` | Unsigned; not HELIOS | [SCHEMA.md](SCHEMA.md), [B14_EVIDENCE_DURABILITY.md](B14_EVIDENCE_DURABILITY.md), [B15_OPERATOR_VERIFICATION_UX.md](B15_OPERATOR_VERIFICATION_UX.md) |
 | Independent DRS targets | Partial | Same verify path against Starter Kit / Bento | Operator evidence, not CI; not a ranking | [INDEPENDENT_DRS.md](INDEPENDENT_DRS.md), [LIVE_RECONCILIATION.md](LIVE_RECONCILIATION.md), [TARGETS.md](TARGETS.md) |
 | Check-level compare | Available | `helix compare`, `helix differential` | Compare ≠ verify; differential ≠ ranking; PASS ≠ VERIFIED | [REGRESSION.md](REGRESSION.md), [DIFFERENTIAL.md](DIFFERENTIAL.md), [C3_DIFFERENTIAL_INTERPRETATION.md](C3_DIFFERENTIAL_INTERPRETATION.md) |

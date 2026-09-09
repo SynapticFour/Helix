@@ -7,7 +7,7 @@ Helix productizes **HelixTest** (separate git root, [DECISIONS.md](DECISIONS.md)
 - **Rust 1.91.1** via [rustup](https://rustup.rs/) (`rust-toolchain.toml`). CI uses that channel.
   - Put `$HOME/.cargo/bin` **before** Homebrew `/opt/homebrew/bin` on `PATH`. Otherwise `which rustc` may be Homebrew 1.97+ and ignore `rust-toolchain.toml`.
   - `rustup toolchain install 1.91.1` if needed. `rustc --version` should report 1.91.1 when you are in this directory and using rustup’s cargo.
-- A **sibling** HelixTest git clone, checked out at the SHA in [VERSIONS.lock](../VERSIONS.lock) (tag **v0.1.3**). Cargo.toml path-depends on `../HelixTest/helixtest/crates/{common,framework}`.
+- A **sibling** HelixTest git clone, checked out at `HELIXTEST_SHA` in [VERSIONS.lock](../VERSIONS.lock). Tag **v0.1.3** is HelixTest release lineage, not that commit. Cargo.toml path-depends on `../HelixTest/helixtest/crates/{common,framework}`.
 - First build: **`make fetch`** (`cargo fetch --locked`). That is crates.io at lockfile checksums, not a GA4GH download. After that, `make prove` is **offline**.
 
 There is no Homebrew formula, GitHub release binary, or container image. **Installation is a source build.** `make install` is `cargo install --path . --locked`. `publish = false` on crates.io.
@@ -19,7 +19,7 @@ helix --version
 helix standards list --supported-only
 ```
 
-`--version` is the Helix package version plus compile-time git SHA and HelixTest pin. It is not a GA4GH DRS version. Canonical DRS 1.4.0 path: [OPERATOR_VERIFY.md](OPERATOR_VERIFY.md) (`make verify-drs` without a live target).
+`--version` is the Helix package version, compile-time Helix git SHA, HelixTest tag lineage, exact HelixTest source SHA, and checker id. It is not a GA4GH DRS version. Canonical DRS 1.4.0 path: [OPERATOR_VERIFY.md](OPERATOR_VERIFY.md) (`make verify-drs` without a live target).
 
 ## Commands
 

@@ -17,22 +17,29 @@ pub fn helix_version() -> &'static str {
     env!("CARGO_PKG_VERSION")
 }
 
-/// `helix --version` long text. Distinguishes package version from git SHA and HelixTest pin.
+/// HelixTest **tag lineage** ([VERSIONS.lock](../../VERSIONS.lock) `HELIXTEST_TAG`).
+/// Not the git commit Helix compiles. Not the executed checker identity.
+pub const HELIXTEST_PIN: &str = "v0.1.3";
+
+/// Git commit CI should check out ([VERSIONS.lock](../../VERSIONS.lock) `HELIXTEST_SHA`).
+/// Not the tag. Not the executed checker. Executed identity is `crate::checker::executed_checker_id()`.
+pub const HELIXTEST_SHA: &str = "1baddfd3d75f01dc7c149074a785616fa014c725";
+
+/// `helix --version` long text. Tag lineage is not the source SHA.
 /// Empty `HELIX_GIT_SHA` means `.git` was missing at compile (not a fabricated SHA).
+/// `Checker:` is `helixtest-drs:` plus [VERSIONS.lock](../../VERSIONS.lock) `HELIXTEST_CHECKER_SOURCE_SHA256`.
+/// `concat!` needs literals; they must stay equal to `HELIXTEST_PIN` / `HELIXTEST_SHA`.
 pub const HELIX_LONG_VERSION: &str = concat!(
     env!("CARGO_PKG_VERSION"),
     "\nHelix git: ",
     env!("HELIX_GIT_SHA"),
-    "\nHelixTest pin: v0.1.3\nNot GA4GH certification. Not HELIOS."
+    "\nHelixTest lineage: v0.1.3",
+    "\nHelixTest source: ",
+    "1baddfd3d75f01dc7c149074a785616fa014c725",
+    "\nChecker: helixtest-drs:",
+    env!("HELIX_EXPECTED_CHECKER_SOURCE_SHA256"),
+    "\nNot GA4GH certification. Not HELIOS."
 );
-
-/// Published HelixTest **tag** this repo documents ([VERSIONS.lock](../../VERSIONS.lock)).
-/// Not the executed checker identity.
-pub const HELIXTEST_PIN: &str = "v0.1.3";
-
-/// Git commit CI should check out ([VERSIONS.lock](../../VERSIONS.lock) `HELIXTEST_SHA`).
-/// Not the executed checker. Executed identity is `crate::checker::executed_checker_id()`.
-pub const HELIXTEST_SHA: &str = "1baddfd3d75f01dc7c149074a785616fa014c725";
 
 /// Frozen machine-readable document id for `helix verify --format json`.
 /// File: `schemas/helix-verification-v1.json`. Not a HELIOS evidence schema.
@@ -886,6 +893,19 @@ mod tests {
         let run = VerificationRun::new(Target::new("http://127.0.0.1:9"));
         assert_eq!(run.overall_status(), VerificationStatus::Skip);
         assert!(!run.overall_status().is_pass());
+    }
+
+    #[test]
+    fn long_version_separates_helixtest_lineage_from_source_sha() {
+        assert!(HELIX_LONG_VERSION.contains(HELIXTEST_PIN));
+        assert!(HELIX_LONG_VERSION.contains(HELIXTEST_SHA));
+        assert!(HELIX_LONG_VERSION.contains("HelixTest lineage:"));
+        assert!(HELIX_LONG_VERSION.contains("HelixTest source:"));
+        assert!(HELIX_LONG_VERSION.contains("Checker: helixtest-drs:"));
+        assert!(
+            !HELIX_LONG_VERSION.contains("HelixTest pin:"),
+            "tag lineage must not be presented as the exact pin"
+        );
     }
 
     #[test]

@@ -2,7 +2,11 @@
 
 ## Unreleased
 
-No further changes after the 0.1.0 source-baseline candidate on this branch.
+Documentation / version-provenance cleanup on this productization branch (not a merge, not a tag, not a claim that `origin/main` already contains DRS 1.4.0):
+
+- `helix --version` prints HelixTest **lineage** (`v0.1.3`) separately from the exact source SHA (`HELIXTEST_SHA`) and checker id. The SHA is unchanged (`1baddfd3d75f01dc7c149074a785616fa014c725`). Tag `v0.1.3` is not the compile commit.
+- First-reader docs (README, CLI_CONTRACT, HELIX_PRODUCT, INSTALL, OPERATOR_VERIFY): DRS 1.4.0 SUPPORTED with declared partial coverage; `HLX-DRS-006` is the one normative check; shipped commands include `verify`, `inspect`, `differential`, `standards validate`, `standards trace`. SKU / ambassador wording is not on the README first screen. Trust remains [docs/TRUST.md](docs/TRUST.md).
+- **Deferred (do not do on this pass):** sibling `helix-action` still defaults to a Helix ref that does not contain the VerificationRun/action contract. Retarget `helix-ref` only after PR #1 lands, using an immutable Helix SHA that actually contains that contract. Do not point the action at a WIP SHA.
 
 ## 0.1.0 — Early-stage DRS 1.4.0 source baseline (2026-09-09)
 

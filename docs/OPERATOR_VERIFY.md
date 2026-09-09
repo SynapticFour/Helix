@@ -35,7 +35,7 @@ helix --version
 helix standards list --supported-only
 ```
 
-`--version` prints the Helix package version, compile-time git SHA, and HelixTest pin. Those are **not** the GA4GH DRS version.
+`--version` prints the Helix package version, compile-time Helix git SHA, HelixTest **tag lineage** (`v0.1.3`), exact HelixTest **source SHA** (`HELIXTEST_SHA`), and executed checker id. Lineage is not the compile commit. Those lines are **not** the GA4GH DRS version.
 
 Today the only SUPPORTED pack is **ga4gh.drs.1.4.0**. SUPPORTED is not VERIFIED. Default `helix verify URL` does **not** select this pack.
 

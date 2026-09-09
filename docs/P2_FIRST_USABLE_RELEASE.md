@@ -25,7 +25,7 @@ An independent operator can obtain Helix from source, learn that DRS 1.4.0 is th
 
 ## Release identity
 
-Proof binary (`helix --version`):
+Proof binary (`helix --version` at P2 time):
 
 ```text
 helix 0.1.0
@@ -34,11 +34,13 @@ HelixTest pin: v0.1.3
 Not GA4GH certification. Not HELIOS.
 ```
 
+That P2 snapshot presented the HelixTest tag as `HelixTest pin:`. Current `helix --version` prints **lineage** (`v0.1.3`) separately from the exact source SHA (`HELIXTEST_SHA`) and checker id. The SHA was already `1baddfd3d75f01dc7c149074a785616fa014c725` at P2.
+
 | Identity | Value | How an operator sees it |
 |----------|--------|-------------------------|
 | Helix package version | `0.1.0` (`Cargo.toml`; `publish = false`) | `helix --version` first line |
 | Helix git | compile-time SHA (`HELIX_GIT_SHA`); this proof compiled against B15 HEAD `8d4110856222ae8d3c3184912fc4e193e70291c4` with a dirty tree (P1+P2 uncommitted at compile) | `helix --version` `Helix git:` / report `Helix:` |
-| HelixTest pin | tag `v0.1.3` / `1baddfd3d75f01dc7c149074a785616fa014c725` | `helix --version` `HelixTest pin:` / report `Test suite:` |
+| HelixTest pin | tag lineage `v0.1.3` / exact SHA `1baddfd3d75f01dc7c149074a785616fa014c725` | Current `helix --version` `HelixTest lineage:` / `HelixTest source:` / report `Test suite:` |
 | Selected GA4GH version | `1.4.0` when `--standard drs --version 1.4.0` | report `selected:` / JSON `selected_version` |
 
 There is **no** git tag, crates.io crate, Homebrew formula, or container image. Installation is a source build ([INSTALL.md](INSTALL.md)). Do not confuse these four identities. A later rebuild after this commit is committed will stamp a different `HELIX_GIT_SHA`.
@@ -156,7 +158,7 @@ README / `make verify-fixture` ran **unversioned** verify and printed text only.
 
 ### MEDIUM — Helix identity not visible as `helix --version` (fixed)
 
-Package `0.1.0` was the only CLI version line. Long version now includes git SHA and HelixTest pin.
+Package `0.1.0` was the only CLI version line. Long version now includes git SHA, HelixTest lineage, exact source SHA, and checker id.
 
 ### OBSERVATION — missing `--drs-object-id` without DRS service-info looks like unsupported_test
 

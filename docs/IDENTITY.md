@@ -4,7 +4,7 @@ Helix is the **independence** of [HelixTest](https://github.com/SynapticFour/Hel
 
 What exists today: [HELIX_PRODUCT.md](HELIX_PRODUCT.md).
 
-HelixTest already exists (public repo, CI, pin **v0.1.3**). Helix does not invent that suite. HelixTest stays a separate git root ([DECISIONS.md](DECISIONS.md) D1). Positioning: [HELIX_VISION.md](HELIX_VISION.md). Pin: [VERSIONS.lock](../VERSIONS.lock).
+HelixTest already exists (public repo, CI, tag lineage **v0.1.3**). Helix does not invent that suite. Helix compiles the exact SHA in [VERSIONS.lock](../VERSIONS.lock), which is not the tagged commit. HelixTest stays a separate git root ([DECISIONS.md](DECISIONS.md) D1). Positioning: [HELIX_VISION.md](HELIX_VISION.md).
 
 ## Who maintains and reviews
 

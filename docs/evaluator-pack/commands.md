@@ -66,6 +66,18 @@ helix differential starter-kit.json bento.json
 
 `make verify-independent` is OPTIONAL LIVE VERIFICATION. It is not `make prove`. Helix does not rank the two implementations.
 
+## 3d. Standards provenance (no live target)
+
+Does not run `helix verify`. Does not download specs.
+
+```bash
+helix standards list --supported-only
+helix standards validate
+helix standards trace drs.object.schema.openapi
+```
+
+DRS 1.4.0 is SUPPORTED for technical verification within declared coverage. That is not GA4GH certification and not complete DRS coverage. WES is not a published Supported standard.
+
 ## 4. Interop matrix (external validation pending)
 
 ```bash

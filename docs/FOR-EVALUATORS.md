@@ -1,6 +1,6 @@
 # For evaluators
 
-Five minutes. Helix is a CLI that wraps [HelixTest](https://github.com/SynapticFour/HelixTest) (existing engine, pin **v0.1.3**) as a standalone `helix` binary. It is not a new test platform. Results are not GA4GH certification. What Helix is and what it can do today: [HELIX_PRODUCT.md](HELIX_PRODUCT.md). Standalone pack (install, contract summary, commands, example JSON, report template): [evaluator-pack/README.md](evaluator-pack/README.md). Confusion log of a first clone: [EVALUATOR_JOURNEY.md](EVALUATOR_JOURNEY.md). Install detail: [INSTALL.md](INSTALL.md).
+Five minutes. Helix is a CLI that wraps [HelixTest](https://github.com/SynapticFour/HelixTest) (existing engine; tag lineage **v0.1.3**, exact source SHA in [VERSIONS.lock](../VERSIONS.lock)) as a standalone `helix` binary. It is not a new test platform. Results are not GA4GH certification. What Helix is and what it can do today: [HELIX_PRODUCT.md](HELIX_PRODUCT.md). Standalone pack (install, contract summary, commands, example JSON, report template): [evaluator-pack/README.md](evaluator-pack/README.md). Confusion log of a first clone: [EVALUATOR_JOURNEY.md](EVALUATOR_JOURNEY.md). Install detail: [INSTALL.md](INSTALL.md).
 
 ## What Helix is
 

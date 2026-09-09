@@ -104,7 +104,7 @@ Confirm `commit`, `vendor_path`, and `integrity.hex`. Open:
 
 `standards/vendor/ga4gh.drs.1.4.0/openapi/components/schemas/DrsObject.yaml`
 
-and the rest of that pack’s `openapi/` tree. Search for `related_source.locator` (for this check: `/objects/{object_id}`). Confirm the **limitation**: default unversioned verify still does not load these bytes; the versioned path does only when a pack is selected for execution (no shipped SUPPORTED row).
+and the rest of that pack’s `openapi/` tree. Search for `related_source.locator` (for this check: `/objects/{object_id}`). Confirm the **limitation**: default unversioned verify still does not load these bytes; the versioned DRS 1.4.0 path does when that SUPPORTED pack is selected.
 
 Hash the file (`sha256sum`) and compare to the registry hex. `helix standards validate` already does that. Join hashes on a versioned run are `pack_integrity_sha256` / `schema_document_sha256` / `schema_component_sha256` — not `verified_version`.
 

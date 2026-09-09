@@ -2,7 +2,7 @@
 
 Self-contained instructions to **run Helix** from public git. No Synaptic Four conversation, account, cloud product, or telemetry.
 
-Helix is HelixTest becoming a standalone VERIFY CLI (pin **v0.1.3**). It is not a new test platform. Results are not GA4GH certification. HELIOS (`helios-audit`) is a different product.
+Helix is HelixTest becoming a standalone VERIFY CLI (HelixTest tag lineage **v0.1.3**; exact source SHA in [VERSIONS.lock](../../VERSIONS.lock)). It is not a new test platform. Results are not GA4GH certification. HELIOS (`helios-audit`) is a different product.
 
 | Piece | File |
 |-------|------|

@@ -325,21 +325,21 @@ Signing / RO-Crate / PDF are **not** required for this sentence; they are HELIOS
 
 | Pack | Status |
 |------|--------|
-| DRS 1.4.0 | **AVAILABLE**, official, tag `drs-1.4.0`, commit `36145d389e0a454428d1dac5c4a30870995fdd7c`. Not SUPPORTED. |
-| DRS 1.5.0 | **AVAILABLE**, official, tag `drs-1.5.0`. The tag exists; Helix still does not treat it as SUPPORTED. |
-| WES 1.1.0 | **AVAILABLE**, official, tag `1.1.0`. Not SUPPORTED. |
-| Default discovery (OFFICIAL ∩ SUPPORTED) | **Empty** |
-| `helix verify` | Default: unversioned HelixTest wrap. `--standard drs --version 1.4.0` can SELECT the supported pack. Mode 1 for 1.5.0 is `AVAILABLE_BUT_NOT_SUPPORTED`. SUPPORTED is not VERIFIED. |
+| DRS 1.4.0 | **SUPPORTED** for technical verification within declared **partial** coverage. Official, tag `drs-1.4.0`, commit `36145d389e0a454428d1dac5c4a30870995fdd7c`. SUPPORTED is not complete DRS coverage and not GA4GH certification. |
+| DRS 1.5.0 | **AVAILABLE**, official, tag `drs-1.5.0`. Not SUPPORTED. |
+| WES 1.1.0 | **AVAILABLE**, official, tag `1.1.0`. Not a published Supported standard. |
+| Default discovery (OFFICIAL ∩ SUPPORTED) | `ga4gh.drs.1.4.0` |
+| `helix verify` | Default: unversioned HelixTest wrap. `--standard drs --version 1.4.0` selects the supported pack. Mode 1 for 1.5.0 is `AVAILABLE_BUT_NOT_SUPPORTED`. SUPPORTED is not VERIFIED. |
 
-Honest language remains: HelixTest pin + documented fixtures. Do not say “Verified against GA4GH DRS 1.5.0.”
+Honest language remains: HelixTest exact SHA in [VERSIONS.lock](../VERSIONS.lock) plus documented fixtures. Tag **v0.1.3** is lineage, not the compile commit. Do not say “Verified against GA4GH DRS 1.5.0.”
 
-HelixTest’s own vendored YAML remains unpinned for `helix verify`. TES/TRS/htsget/Beacon YAML in HelixTest is unused by verify. TRS-from-develop must not be imported as OFFICIAL.
-
-Next (not this change): test mapping, pack prove, then mark SUPPORTED.
+HelixTest’s own vendored YAML remains the unversioned `helix verify` OpenAPI. TES/TRS/htsget/Beacon YAML in HelixTest is unused by verify. TRS-from-develop must not be imported as OFFICIAL.
 
 ---
 
 ## 13. What this change does not do
+
+**Historical (original registry landing).** DRS 1.4.0 is SUPPORTED today; see §12. This list records what that first registry change did not do.
 
 - Does not mark any pack SUPPORTED (steps 4–7 incomplete).
 - Does not duplicate HELIOS.
