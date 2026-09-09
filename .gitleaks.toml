@@ -6,3 +6,13 @@ useDefault = true
 [[allowlists]]
 description = "Helix Stage 3 dummy fixtures (NICHT FÜR PRODUKTION), not live secrets"
 paths = ['''test-fixtures/''']
+
+# Vendored GA4GH DRS OpenAPI example JWT strings (specification examples, not Helix secrets).
+# Do not broaden this to the whole repo or to Helix-owned credential paths.
+[[allowlists]]
+description = "GA4GH DRS vendor OpenAPI example JWTs (not Helix credentials)"
+paths = [
+  '''standards/vendor/ga4gh\.drs\.1\.[45]\.0/openapi/components/parameters/BulkObjectId\.yaml''',
+  '''standards/vendor/ga4gh\.drs\.1\.[45]\.0/openapi/components/requestBodies/Passports\.yaml''',
+  '''standards/vendor/ga4gh\.drs\.1\.[45]\.0/openapi/components/requestBodies/PostObjectBody\.yaml''',
+]
