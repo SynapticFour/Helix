@@ -89,9 +89,11 @@ fn b12_1_t1_forged_helix_git_sha_fails_integrity() {
     validate_claim_integrity(&run).expect("pre-commit live JSON still validates");
     run.helix_git_sha = Some("0".repeat(40));
     let err = validate_claim_integrity(&run).unwrap_err().to_string();
+    // C2 binds helix_git_sha into claim_join: paste-without-restamp fails join
+    // first. Either message is an integrity failure, not current evidence.
     assert!(
-        err.contains("helix_git_sha"),
-        "expected provenance failure, got {err}"
+        err.contains("helix_git_sha") || err.contains("claim_join"),
+        "expected integrity failure for forged SHA, got {err}"
     );
 }
 

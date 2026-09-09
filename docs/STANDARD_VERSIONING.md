@@ -19,7 +19,7 @@ The report **must** distinguish these four. They must not collapse into one `ver
 | **declared** | What the target **asserts** in documented service-info fields about the **standard** | Those fields are absent, unreadable, or not 2xx JSON |
 | **detected** | The version identifier Helix is willing to treat as observed, **only** from sufficient evidence | Evidence is insufficient (this is required honesty) |
 | **selected** | The GA4GH release Helix **chose** for the attempted versioned execution | Selection failed (Mode 2 insufficient, unknown version, AVAILABLE-only, …) |
-| **verified** | A version claim permitted by the complete claim predicates (join **and** SUPPORTED / normative / VERIFIED gates) | Predicates do not hold (B2: always empty) |
+| **verified** | A version claim permitted by the complete claim predicates (join **and** SUPPORTED / normative / VERIFIED gates) | Predicates do not hold (`verified_version` stays empty; B8 stamps it only when `ga4gh_requirement` is VERIFIED) |
 
 `selected_version` without `verified_version` is valid: Helix may select a pack, execute the join, and still emit no version claim. `verified_version` without `selected_version` is invalid. If both are set they must be equal **and** the join hashes must be present.
 
@@ -117,7 +117,7 @@ This is an operator instruction. It is **not** “the target declared 1.5.0.”
 2. Optional `--release-class` (default `official`). `development` → error.
 3. Resolve to **exactly one** ExplicitSupported row with that `standard`, `version`, and class.
 4. Load **those** pinned bytes. `selected.pack_id` = that row. Run that suite only for that standard.
-5. After a successful execution join, record join hashes. `verified_version` stays empty until claim predicates permit a version sentence (B2: always empty).
+5. After a successful execution join, record join hashes. `verified_version` stays empty until claim predicates permit a version sentence ([CLAIMS.md](CLAIMS.md); B8). Join success is not VERIFIED.
 6. Other services: discover as today; **do not** execute their packs unless also named. Unselected TESTABLE services are skipped with reason `standard_not_selected`.
 
 ### 3.2 Fail closed (no substitution)

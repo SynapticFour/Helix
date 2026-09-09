@@ -36,6 +36,16 @@ for f in \
   docs/B15_OPERATOR_VERIFICATION_UX.md \
   docs/HELIX_PRODUCT.md \
   docs/P2_FIRST_USABLE_RELEASE.md \
+  docs/PHASE_B_CLOSURE.md \
+  docs/PHASE_C_PLAN.md \
+  docs/PHASE_C_CLOSURE.md \
+  docs/ROADMAP_RESET.md \
+  docs/PUBLISHED_BASELINE_READINESS.md \
+  docs/PUBLISHED_BASELINE_RELEASE_PLAN.md \
+  docs/INDEPENDENT_DRS.md \
+  docs/C1_CANONICAL_TWO_TARGET_WORKFLOW.md \
+  docs/C2_CURRENT_LIVE_EVIDENCE.md \
+  docs/C3_DIFFERENTIAL_INTERPRETATION.md \
   docs/INDEPENDENT_VERIFICATION.md \
   docs/PUBLIC_READINESS_AUDIT.md \
   docs/ARCHITECTURE_GUARDRAILS.md \
@@ -418,6 +428,44 @@ grep -q "p2_t1_fresh_operator_discovers_supported_workflow" tests/p2_first_usabl
 grep -q "verify-drs-140" Cargo.toml
 grep -q -- "--output" src/main.rs
 grep -q "B13 remains closed" docs/P2_FIRST_USABLE_RELEASE.md
+grep -q "Authorization verification: DEFERRED" docs/PHASE_B_CLOSURE.md
+grep -q "PASS WITH FINDINGS" docs/PHASE_B_CLOSURE.md
+grep -q "formally closed" docs/PHASE_B_CLOSURE.md
+grep -q "PASS WITH FINDINGS — CLOSED" docs/PHASE_C_CLOSURE.md
+grep -q "formally closed" docs/PHASE_C_CLOSURE.md
+grep -q "DEFERRED / CLOSED" docs/PHASE_C_CLOSURE.md
+grep -q "independent DRS 1.4.0 verification as a repeatable product path" docs/PHASE_C_PLAN.md
+grep -q "Authorization verification remains outside Phase C until a reproducible" docs/PHASE_C_PLAN.md
+grep -q "B13 — Authorization Evidence Boundary: BLOCKED / DEFERRED" docs/PHASE_C_PLAN.md
+grep -q "Phase C (C1, C2, and C3 implemented)" docs/HELIX_ROADMAP.md
+grep -q "ROADMAP RESET — COMPLETE" docs/ROADMAP_RESET.md
+grep -q "DEFERRED / CLOSED" docs/ROADMAP_RESET.md
+grep -q "Current roadmap (post-Phase-C reset)" docs/HELIX_ROADMAP.md
+grep -q "PUBLISHED BASELINE — READY TO PLAN" docs/PUBLISHED_BASELINE_READINESS.md
+grep -q "DEFERRED / CLOSED" docs/PUBLISHED_BASELINE_READINESS.md
+grep -q "PLAN APPROVED — READY FOR IMPLEMENTATION" docs/PUBLISHED_BASELINE_RELEASE_PLAN.md
+grep -q "DEFERRED / CLOSED" docs/PUBLISHED_BASELINE_RELEASE_PLAN.md
+grep -q "OPTIONAL LIVE VERIFICATION" docs/INDEPENDENT_DRS.md
+grep -q "helix differential starter-kit.json bento.json" docs/INDEPENDENT_DRS.md
+grep -q "B13 remains" docs/C1_CANONICAL_TWO_TARGET_WORKFLOW.md || grep -q "B13 remains deferred" docs/C1_CANONICAL_TWO_TARGET_WORKFLOW.md
+grep -q "make verify-independent" Makefile
+grep -q "c1_t1_help_exposes_two_target_workflow" tests/c1_two_target_workflow.rs
+grep -q "c2_t1_current_verifier_evidence_is_classified" tests/c2_current_live_evidence.rs
+grep -q "current_verifier_evidence" docs/C2_CURRENT_LIVE_EVIDENCE.md
+grep -q "B13 remains deferred" docs/C2_CURRENT_LIVE_EVIDENCE.md
+grep -q "helix_git_sha" src/claim_integrity.rs
+grep -q "c3_t1_same_contract" tests/c3_differential_interpretation.rs
+grep -q "does not rank implementations" docs/C3_DIFFERENTIAL_INTERPRETATION.md
+grep -q "B13 remains deferred" docs/C3_DIFFERENTIAL_INTERPRETATION.md
+grep -q "assert_comparable_runs" src/differential.rs
+if grep -q "docker pull" scripts/verify-independent-drs.sh; then
+  echo "verify-independent helper must not docker pull" >&2
+  exit 1
+fi
+if sed -n '/^prove:/,/^test:/p' Makefile | grep -q verify-independent; then
+  echo "make prove must not invoke verify-independent" >&2
+  exit 1
+fi
 grep -q "configuration_is_not_evidence" src/authorization.rs
 grep -q "b13_t1_authorization_disabled_cannot_pass" tests/b13_authorization_boundary.rs
 grep -q "b13_t16_mock_cannot_become_live_authorization_evidence" tests/b13_authorization_boundary.rs
@@ -430,7 +478,7 @@ if grep -qiE 'overall score|compliance percentage|coverage score|implementation 
   echo "authorization doc must not introduce a score" >&2
   exit 1
 fi
-if grep -qiE 'overall score|compliance percentage|coverage score|implementation grade|better implementation' docs/P2_FIRST_USABLE_RELEASE.md docs/HELIX_PRODUCT.md; then
+if grep -qiE 'overall score|compliance percentage|coverage score|implementation grade|better implementation' docs/P2_FIRST_USABLE_RELEASE.md docs/HELIX_PRODUCT.md docs/PHASE_B_CLOSURE.md docs/PHASE_C_PLAN.md docs/PHASE_C_CLOSURE.md docs/ROADMAP_RESET.md docs/PUBLISHED_BASELINE_READINESS.md docs/PUBLISHED_BASELINE_RELEASE_PLAN.md docs/HELIX_ROADMAP.md docs/INDEPENDENT_DRS.md docs/C1_CANONICAL_TWO_TARGET_WORKFLOW.md docs/C2_CURRENT_LIVE_EVIDENCE.md docs/C3_DIFFERENTIAL_INTERPRETATION.md; then
   echo "product/release docs must not introduce a score or ranking" >&2
   exit 1
 fi

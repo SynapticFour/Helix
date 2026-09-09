@@ -53,6 +53,8 @@ pub struct EvidenceRevalidation {
 }
 
 /// Classify persisted evidence. Never upgrades Historical → Current by trusting JSON claims.
+/// Standing is computed: it is not a JSON field. Pasting `helix_git_sha` onto a
+/// historical file without restamping `claim_join` is Invalid, not Current.
 pub fn classify_evidence(run: &VerificationRun) -> EvidenceStanding {
     if validate_artifact_consistency(run).is_err() {
         return EvidenceStanding::Invalid;

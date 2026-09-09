@@ -8,7 +8,7 @@ Helix is the standalone `helix` command-line product built from [HelixTest](http
 
 **Vertraue mir nicht, vertraue dem Code.** Do not take this page on trust. The commands, reports, and linked technical documents are the evidence.
 
-This page answers: **is Helix useful to me right now?** How to run it: [OPERATOR_VERIFY.md](OPERATOR_VERIFY.md). Five-minute clone-and-run: [FOR-EVALUATORS.md](FOR-EVALUATORS.md).
+This page answers: **is Helix useful to me right now?** How to run it: [OPERATOR_VERIFY.md](OPERATOR_VERIFY.md). Two independent DRS implementations: [INDEPENDENT_DRS.md](INDEPENDENT_DRS.md). Five-minute clone-and-run: [FOR-EVALUATORS.md](FOR-EVALUATORS.md). Phase B technical close: [PHASE_B_CLOSURE.md](PHASE_B_CLOSURE.md). Phase C close: [PHASE_C_CLOSURE.md](PHASE_C_CLOSURE.md). Roadmap after Phase C: [ROADMAP_RESET.md](ROADMAP_RESET.md), [HELIX_ROADMAP.md](HELIX_ROADMAP.md). Published-baseline readiness (not a release): [PUBLISHED_BASELINE_READINESS.md](PUBLISHED_BASELINE_READINESS.md). Release plan (not a tag): [PUBLISHED_BASELINE_RELEASE_PLAN.md](PUBLISHED_BASELINE_RELEASE_PLAN.md).
 
 ---
 
@@ -185,7 +185,9 @@ The same DRS 1.4.0 contract has been applied to two reviewed independent local i
 | GA4GH Starter Kit DRS 0.3.2 | Detected `1.3.0experimental`, selected 1.4.0, **not verified**. Some checks pass; schema/`access_methods` fails; checksum/Range skip when the configured object is not a usable blob fixture. |
 | Bento DRS v0.21.5 | Detected, selected, and **verified** 1.4.0 under the current contract, with **partial** coverage. Authorization was not enabled on that run and remains unevaluated. |
 
-In-process mocks prove the harness. They are not a second implementation. `helix matrix` is a labeling harness; completed public multi-implementation validation in CI is **not** claimed. Detail: [LIVE_RECONCILIATION.md](LIVE_RECONCILIATION.md), [INTEROP.md](INTEROP.md).
+In-process mocks prove the harness. They are not a second implementation. `helix matrix` is a labeling harness; completed public multi-implementation validation in CI is **not** claimed.
+
+How to run the two-target path: [INDEPENDENT_DRS.md](INDEPENDENT_DRS.md). Detail: [LIVE_RECONCILIATION.md](LIVE_RECONCILIATION.md), [INTEROP.md](INTEROP.md).
 
 ---
 
@@ -200,7 +202,12 @@ Every `helix verify --format json` run produces a `helix-verification-v1` artifa
 - what remains unevaluated;
 - whether the file is current verifier evidence or a historical observation (via `helix inspect`).
 
-The artifact is inspectable and tamper-checked. It is **not** a signed audit pack. Signing, RO-Crate, and PDF stay with HELIOS.
+The artifact is inspectable and tamper-checked. Standing is computed by `helix inspect`; it is not a field you can set in JSON.
+
+- **Current verifier evidence** — this Helix binary produced the file, and the file still matches this binary’s identity.
+- **Historical observation** — older evidence, still inspectable, not this build.
+
+Current does not mean VERIFIED. Historical does not mean NOT_VERIFIED. Do not restamp historical files (`local/b12/` included) to make them look current. Signing, RO-Crate, and PDF stay with HELIOS.
 
 Schema and report layout: [SCHEMA.md](SCHEMA.md), [REPORT.md](REPORT.md). Durability: [B14_EVIDENCE_DURABILITY.md](B14_EVIDENCE_DURABILITY.md). Operator presentation: [B15_OPERATOR_VERIFICATION_UX.md](B15_OPERATOR_VERIFICATION_UX.md).
 
@@ -298,8 +305,8 @@ User-facing words on this page, and how they relate to Helix output:
 | Unversioned DRS/WES checks | Available | `helix verify URL` | Does not select a GA4GH pack; exit 0 is not VERIFIED | [CLI_CONTRACT.md](CLI_CONTRACT.md), [DRS_PROFILE.md](DRS_PROFILE.md), [WES.md](WES.md) |
 | Standard selection / provenance | Available | `helix standards list --supported-only` | DRS 1.5.0 and WES 1.1.0 are AVAILABLE only | [STANDARDS_REGISTRY.md](STANDARDS_REGISTRY.md), [STANDARD_VERSIONING.md](STANDARD_VERSIONING.md) |
 | Evidence artifact | Available | `--output FILE` or `--format json`; `helix inspect FILE` | Unsigned; not HELIOS | [SCHEMA.md](SCHEMA.md), [B14_EVIDENCE_DURABILITY.md](B14_EVIDENCE_DURABILITY.md), [B15_OPERATOR_VERIFICATION_UX.md](B15_OPERATOR_VERIFICATION_UX.md) |
-| Independent DRS targets | Partial | Same verify path against Starter Kit / Bento | Operator evidence, not CI; not a ranking | [LIVE_RECONCILIATION.md](LIVE_RECONCILIATION.md), [TARGETS.md](TARGETS.md) |
-| Check-level compare | Available | `helix compare`, `helix differential` | Compare ≠ verify; differential ≠ ranking | [REGRESSION.md](REGRESSION.md), [DIFFERENTIAL.md](DIFFERENTIAL.md) |
+| Independent DRS targets | Partial | Same verify path against Starter Kit / Bento | Operator evidence, not CI; not a ranking | [INDEPENDENT_DRS.md](INDEPENDENT_DRS.md), [LIVE_RECONCILIATION.md](LIVE_RECONCILIATION.md), [TARGETS.md](TARGETS.md) |
+| Check-level compare | Available | `helix compare`, `helix differential` | Compare ≠ verify; differential ≠ ranking; PASS ≠ VERIFIED | [REGRESSION.md](REGRESSION.md), [DIFFERENTIAL.md](DIFFERENTIAL.md), [C3_DIFFERENTIAL_INTERPRETATION.md](C3_DIFFERENTIAL_INTERPRETATION.md) |
 | Interop matrix | Partial | `helix matrix` with operator-supplied runs | Public slots pending without independent JSON in-repo | [INTEROP.md](INTEROP.md) |
 | Security behaviour | Partial | `helix security` with dummy HMAC | Not DRS authorization; not a pentest | [SECURITY_PROFILE.md](SECURITY_PROFILE.md) |
 | HTTP smoke measurement | Available | `helix bench` | Not a verification claim | [BENCHMARKS.md](BENCHMARKS.md) |
@@ -320,10 +327,17 @@ Do not start here if you only need the product picture above.
 | Claims (VERIFIED predicates) | [CLAIMS.md](CLAIMS.md) |
 | Coverage boundary | [COVERAGE.md](COVERAGE.md) |
 | Evidence durability | [B14_EVIDENCE_DURABILITY.md](B14_EVIDENCE_DURABILITY.md) |
+| Current vs historical evidence | [C2_CURRENT_LIVE_EVIDENCE.md](C2_CURRENT_LIVE_EVIDENCE.md) |
 | Operator UX / inspect | [B15_OPERATOR_VERIFICATION_UX.md](B15_OPERATOR_VERIFICATION_UX.md) |
-| Independent implementations | [LIVE_RECONCILIATION.md](LIVE_RECONCILIATION.md), [EXTERNAL_EVIDENCE.md](EXTERNAL_EVIDENCE.md) |
+| Independent implementations | [INDEPENDENT_DRS.md](INDEPENDENT_DRS.md), [LIVE_RECONCILIATION.md](LIVE_RECONCILIATION.md), [EXTERNAL_EVIDENCE.md](EXTERNAL_EVIDENCE.md) |
 | Authorization feasibility | [B13_AUTHORIZATION_FEASIBILITY.md](B13_AUTHORIZATION_FEASIBILITY.md) |
 | Negative controls | [NEGATIVE_CONTROL.md](NEGATIVE_CONTROL.md) |
 | CLI freeze | [CLI_CONTRACT.md](CLI_CONTRACT.md) |
 | Helix vs HELIOS | [HELIX_VS_HELIOS.md](HELIX_VS_HELIOS.md) |
-| Positioning / stages | [HELIX_VISION.md](HELIX_VISION.md), [HELIX_ROADMAP.md](HELIX_ROADMAP.md) (stages, not dates) |
+| Positioning / stages | [HELIX_VISION.md](HELIX_VISION.md), [HELIX_ROADMAP.md](HELIX_ROADMAP.md), [ROADMAP_RESET.md](ROADMAP_RESET.md) |
+| Independent DRS differential | [C3_DIFFERENTIAL_INTERPRETATION.md](C3_DIFFERENTIAL_INTERPRETATION.md) |
+| Phase C close | [PHASE_C_CLOSURE.md](PHASE_C_CLOSURE.md) |
+| Roadmap reset | [ROADMAP_RESET.md](ROADMAP_RESET.md) |
+| Published-baseline readiness | [PUBLISHED_BASELINE_READINESS.md](PUBLISHED_BASELINE_READINESS.md) |
+| Published-baseline release plan | [PUBLISHED_BASELINE_RELEASE_PLAN.md](PUBLISHED_BASELINE_RELEASE_PLAN.md) |
+| Phase C plan | [PHASE_C_PLAN.md](PHASE_C_PLAN.md) |

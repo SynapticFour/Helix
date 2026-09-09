@@ -55,4 +55,6 @@ Do not read every difference as a spec-compliance difference.
 helix differential starter-kit.json bento.json --format json
 ```
 
-Same DRS 1.4.0 pack, checker, and catalog must already be recorded on both input files. Helix does not re-run verify here.
+Same DRS 1.4.0 pack, checker, and catalog must already be recorded on both input files. Helix does not re-run verify here. Files that are invalid, or that do not share a selected standard/version/`execution_id`, are rejected. Historical B12 JSON remains comparable as `historical_observation`. `helix differential` does not rewrite either file.
+
+Operator interpretation (C3): [C3_DIFFERENTIAL_INTERPRETATION.md](C3_DIFFERENTIAL_INTERPRETATION.md). Two-target path: [INDEPENDENT_DRS.md](INDEPENDENT_DRS.md).

@@ -2,6 +2,8 @@
 
 Helix is HelixTest becoming a standalone VERIFY CLI. This document says how to reproduce a **live independent local DRS** run. It does not store live JSON in git. It does not claim the GA4GH Starter Kit is DRS 1.4.0 VERIFIED. HELIOS still owns signed evidence. Trust: [TRUST.md](TRUST.md). Checker identity: [CHECKER_PROVENANCE.md](CHECKER_PROVENANCE.md).
 
+Operator-facing two-target path: [INDEPENDENT_DRS.md](INDEPENDENT_DRS.md). Do not restamp `local/b12/`.
+
 CI does **not** run this. Do **not** `docker pull` from prove. Do **not** auto-start Docker.
 
 ---

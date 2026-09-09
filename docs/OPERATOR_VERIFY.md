@@ -117,7 +117,9 @@ keep the human stdout if you need it in a ticket
 helix inspect verify.json   (now or later)
 ```
 
-The JSON is meaningful because it records the target, selected standard/version, checker, checks, claims, coverage, and Helix/HelixTest provenance. `helix inspect` recomputes claims, coverage, and standing. It does not sign the file. Signing is HELIOS.
+The JSON is meaningful because it records the target, selected standard/version, checker, checks, claims, coverage, and Helix/HelixTest provenance. `helix inspect` recomputes claims, coverage, and standing. It does not rewrite the file. It does not sign the file. Signing is HELIOS.
+
+**Current verifier evidence** is a file this Helix binary just produced and that still matches this binary’s git identity. **Historical observation** is older evidence that remains inspectable. Do not restamp `helix_git_sha` to make history look current. Do not copy `local/b12/` into a “current” directory.
 
 ---
 
@@ -145,3 +147,23 @@ The JSON is meaningful because it records the target, selected standard/version,
 - Result cache, telemetry, remote upload
 - Ranking implementations
 - A published binary or container (source build only)
+
+---
+
+## Two independent DRS implementations
+
+The in-process fixture is not independent evidence. To apply the same DRS 1.4.0 contract to GA4GH Starter Kit DRS and Bento DRS:
+
+[INDEPENDENT_DRS.md](INDEPENDENT_DRS.md)
+
+```text
+start each target
+    ↓
+helix verify URL --standard drs --version 1.4.0 --output FILE
+    ↓
+helix inspect FILE
+    ↓
+helix differential starter-kit.json bento.json
+```
+
+Helix does not rank them. A check difference is an observed behavioural difference, not a quality ranking. VERIFIED and NOT_VERIFIED describe claim state, not implementation quality. Historical `local/b12/` JSON is not current evidence. `make prove` does not start those stacks.

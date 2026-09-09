@@ -4,6 +4,7 @@
 //! Does not expand DRS coverage, authorization, HELIOS, or identities.
 
 use assert_cmd::Command;
+use helix::claim_integrity::finalize_run;
 use helix::claims::{evaluate, ClaimKind, ClaimStatus};
 use helix::compare::parse_verification_run;
 use helix::coverage::CoverageState;
@@ -258,6 +259,7 @@ async fn p2_t10_historical_evidence_identified() {
     let mut run = versioned_mock("p2-t10").await.run;
     run.helix_git_sha = Some("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa".into());
     run.helix_git_dirty = Some(false);
+    finalize_run(&mut run);
     assert_eq!(
         classify_evidence(&run),
         EvidenceStanding::HistoricalObservation

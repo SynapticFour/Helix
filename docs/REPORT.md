@@ -188,7 +188,7 @@ Kinds stay [REGRESSION.md](REGRESSION.md). Identity is [RUN_IDENTITY.md](RUN_IDE
 
 ## `helix differential` (text)
 
-Answers **how two targets behaved** under the same specification identity. Same facts as `helix-differential-v1` JSON. It does not create verification. It does not rank implementations. Header: `HELIX TARGET DIFFERENTIAL`. Details: [DIFFERENTIAL.md](DIFFERENTIAL.md).
+Answers **how two targets behaved** under the same specification identity. Same facts as `helix-differential-v1` JSON. It does not create verification. It does not rank implementations. Header: `HELIX TARGET DIFFERENTIAL`. PASS is not VERIFIED. Details: [DIFFERENTIAL.md](DIFFERENTIAL.md), [C3_DIFFERENTIAL_INTERPRETATION.md](C3_DIFFERENTIAL_INTERPRETATION.md).
 
 ---
 

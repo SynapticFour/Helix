@@ -72,6 +72,7 @@ TES / TRS / htsget checks are not executed by `verify` today. Discovery of those
 | DRS fixture flags | `--drs-object-id`, `--drs-object-sha256` | additive; target-scoped test input, not a GA4GH MUST; sha256 requires object-id; [TARGETS.md](TARGETS.md) §11 |
 | Evidence file | `--output FILE` | additive; writes `helix-verification-v1` without replacing `--format`; [OPERATOR_VERIFY.md](OPERATOR_VERIFY.md) |
 | Inspect | `helix inspect FILE` | additive; classifies persisted verify JSON standing; does not rewrite; not the verify freeze |
+| Independent two-target path | `docs/INDEPENDENT_DRS.md`, `make verify-independent` | additive operator workflow; optional live; not prove; not a new pack |
 | HelixTest binary | `helixtest` | separate product; not this contract |
 | Standards registry | `helix standards` | shipped; provenance only; [STANDARDS_REGISTRY.md](STANDARDS_REGISTRY.md) |
 
@@ -277,7 +278,7 @@ Compares two `helix verify --format json` files at stable Helix `id`. A **regres
 
 ### `helix differential <first.json> <second.json>`
 
-Check-level comparison of two `helix verify --format json` files against the same specification identity ([DIFFERENTIAL.md](DIFFERENTIAL.md), [TARGETS.md](TARGETS.md) §12). JSON is `helix-differential-v1`, not `VerificationRun`. Does **not** create verification, stamp `verified_version`, rank implementations, or compute a compliance percentage. Exit 0 after a successful comparison even when both targets are NOT VERIFIED; exit 1 on unreadable JSON; exit 2 on usage. Not HELIOS. Not certification.
+Check-level comparison of two `helix verify --format json` files against the same specification identity ([DIFFERENTIAL.md](DIFFERENTIAL.md), [TARGETS.md](TARGETS.md) §12). JSON is `helix-differential-v1`, not `VerificationRun`. Does **not** create verification, stamp `verified_version`, rank implementations, or compute a compliance percentage. Invalid evidence, or files that do not share a selected standard/version/`execution_id`, fail closed. Exit 0 after a successful comparison even when both targets are NOT VERIFIED; exit 1 on unreadable JSON, invalid evidence, or incompatible contracts; exit 2 on usage. Not HELIOS. Not certification.
 
 ### `helix matrix`
 

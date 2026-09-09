@@ -117,7 +117,8 @@ Mutations are **without** `finalize_run` restamp unless noted. “Historical” 
 | Mutation | Expected result | Observed |
 |----------|-----------------|----------|
 | formatting only | unchanged identity | unchanged (`execution_id` / `coverage_id` / `target_execution_id`) |
-| Helix provenance (`helix_git_sha`) | stale / not current | `HistoricalObservation`; `validate_claim_integrity` err; not Current |
+| Helix provenance (`helix_git_sha`) without restamp | invalid | Invalid (`claim_join` includes SHA from C2; paste-without-restamp cannot become Current) |
+| Helix provenance (`helix_git_sha`) restamped to another commit | stale / not current | `HistoricalObservation`; `validate_claim_integrity` err; not Current |
 | checker | stale/invalid | Invalid |
 | binding | stale/invalid | Invalid |
 | catalog | stale/invalid | Invalid |
@@ -198,7 +199,7 @@ None that allow forged/stale JSON to become a stronger **current** claim.
 
 1. **Consistent restamp is unsigned.** If an adversary changes observations *and* calls `finalize_run` (or regenerates join/coverage/`verified_version` together), Helix cannot distinguish that from a genuine re-run. That is the HELIOS boundary: Helix does not sign artefacts. B14 tests mutate **without** restamping. Do not add signatures to Helix to close this.
 
-2. **Mismatched `helix_git_sha` is Historical, not a dedicated forgery standing.** Load accepts internally consistent JSON whose SHA is not this binary (historical inspectability). `is_current_verification` is false. The recorded SHA is not authenticated as “that other commit” without HELIOS.
+2. **Pasted `helix_git_sha` without restamping `claim_join` is Invalid (C2).** A restamped file whose SHA is some other commit remains `HistoricalObservation` (historical inspectability). The recorded SHA is not authenticated as “that other commit” without HELIOS. Pasting this binary’s SHA **and** restamping the join can still look Current — same unsigned-restamp bound as finding 1.
 
 3. **Missing compile-time git metadata.** If `HELIX_GIT_SHA` is empty, `cites_this_verifier_build` is always false, so no run is Current. Fail closed for current attribution; historical inspectability remains.
 

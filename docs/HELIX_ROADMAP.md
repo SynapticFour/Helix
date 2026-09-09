@@ -4,11 +4,38 @@ Scope stages, not calendar dates. Capacity is single-steward; a stage is done wh
 
 **Synaptic Four builds the infrastructure. Helix proves it works.** Positioning: [HELIX_VISION.md](HELIX_VISION.md). What the suite actually runs today: [INVENTORY.md](../INVENTORY.md). HELIOS is not on this ladder.
 
-**Current position (2026-09-08):** Stage 0 is **exited**. Stage 1 **CLI** ships DRS and WES execution (`helix verify`); DRS 1.4.0 is SUPPORTED for technical verification within declared coverage. A **first usable operator path** exists ([OPERATOR_VERIFY.md](OPERATOR_VERIFY.md), [P2_FIRST_USABLE_RELEASE.md](P2_FIRST_USABLE_RELEASE.md)): source build, `--output`, `make verify-drs` / versioned `helix verify`, `helix inspect`. There is no published binary. The Stage 1 Ferrum-local recorded artefact is still **not** a public artefact in this repo. Stage 2 remains a **pilot only**: [helix-action](https://github.com/SynapticFour/helix-action). Not on Ferrum `main`. Stage 3 and 4 are **started, not exited**. Authorization verification is **deferred**. HELIOS is not on this ladder. HelixTest stays a **separate git root** ([DECISIONS.md](DECISIONS.md) D1).
+**Current position (2026-09-08):** Stage 0 is **exited**. **Phase B is closed** ([PHASE_B_CLOSURE.md](PHASE_B_CLOSURE.md)): B1–B15 plus P1/P2, **PASS WITH FINDINGS**. **Phase C (C1, C2, and C3 implemented) is closed** ([PHASE_C_CLOSURE.md](PHASE_C_CLOSURE.md)): independent DRS 1.4.0 as a repeatable product path. Authorization verification (**B13**) remains **DEFERRED / CLOSED**; `drs.security.authorization` remains **UNEVALUATED**. There is no published binary. This position is on `wip/drs-140-productization`, not a claim that `origin/main` already contains it. HELIOS is not on this ladder. HelixTest stays a **separate git root** ([DECISIONS.md](DECISIONS.md) D1).
 
-Next capability after this baseline is a **product decision**, not the next internal engineering gate.
+The **roadmap reset is complete** ([ROADMAP_RESET.md](ROADMAP_RESET.md)). Publication of the existing DRS 1.4.0 product is **planned, not executed** ([PUBLISHED_BASELINE_RELEASE_PLAN.md](PUBLISHED_BASELINE_RELEASE_PLAN.md)). No Phase D. This file does not tag or merge.
 
-Stages are sequential. Do not start *n+1* until *n* has exited. Skipping a stage to chase visibility (5) or a dashboard is out of order.
+**Do not treat unexited Stage 2–5 wording below as the next Helix product work.** Skipping a stage to chase a dashboard or public ranking is still out of order.
+
+---
+
+## Current roadmap (post-Phase-C reset)
+
+Canonical analysis: [ROADMAP_RESET.md](ROADMAP_RESET.md). Product picture: [HELIX_PRODUCT.md](HELIX_PRODUCT.md). These stages describe the Helix that exists after Phase B and Phase C. They are not calendar dates and not a commitment to implement the unstarted stages.
+
+| Stage | Status | Purpose |
+|-------|--------|---------|
+| Foundation | **Complete** | Non-Ferrum CLI + fail-closed DRS 1.4.0 verification architecture (Stage 0, Phase B, P1/P2). |
+| Independent DRS path | **Complete** | Operator `verify → inspect → differential` on two independent implementations (Phase C). |
+| External adoption | **Plan written** | Early-stage source baseline. Plan: [PUBLISHED_BASELINE_RELEASE_PLAN.md](PUBLISHED_BASELINE_RELEASE_PLAN.md). Assessment: [PUBLISHED_BASELINE_READINESS.md](PUBLISHED_BASELINE_READINESS.md). **Not published. No tag.** |
+| Verification expansion | **Later** | New coverage/support contract only. Current partial DRS 1.4.0 remains the baseline. |
+| Operational integration | **Optional** | Ferrum/helix-action CI comments. Not Helix product identity. |
+| Broader standards | **Later** | Versioned WES only after local SpecSource; B13 only if a real auth target exists. |
+
+**Phase C (C1, C2, and C3 implemented)** remains the completed independent path: [INDEPENDENT_DRS.md](INDEPENDENT_DRS.md), [C1_CANONICAL_TWO_TARGET_WORKFLOW.md](C1_CANONICAL_TWO_TARGET_WORKFLOW.md), [C2_CURRENT_LIVE_EVIDENCE.md](C2_CURRENT_LIVE_EVIDENCE.md), [C3_DIFFERENTIAL_INTERPRETATION.md](C3_DIFFERENTIAL_INTERPRETATION.md). Plan: [PHASE_C_PLAN.md](PHASE_C_PLAN.md). Same Phase B contract. Not more DRS catalog rows, not WES SUPPORTED, not B13.
+
+**Boundaries that this reset does not reopen:** B13 deferred; no ranking; HELIOS separate; Ferrum is a reference target; no Helix Cloud; no telemetry/cache/upload.
+
+**Next action** (not started here): follow [PUBLISHED_BASELINE_RELEASE_PLAN.md](PUBLISHED_BASELINE_RELEASE_PLAN.md) only after review. That plan is **PLAN APPROVED — READY FOR IMPLEMENTATION**. It does **not** tag, merge, or start Phase D.
+
+---
+
+## Historical roadmap (Stage 0–5, from 2026-09-03)
+
+The Stage 0–5 ladder below is the original Ferrum-centric sequencing (`cb089f9` and later status notes). It is preserved so history is not rewritten. **It is not the current execution order.**
 
 ---
 

@@ -28,6 +28,9 @@ use std::path::PathBuf;
     long_version = helix::model::HELIX_LONG_VERSION,
     about = "Helix — DRS/WES VERIFY CLI wrapping HelixTest. Not HELIOS. Not GA4GH certification."
 )]
+#[command(after_help = "Fixture DRS 1.4.0: make verify-drs\n\
+        Two independent DRS implementations you start: docs/INDEPENDENT_DRS.md\n\
+        PASS is a check outcome. VERIFIED is a derived claim. Helix does not rank implementations.")]
 struct Cli {
     #[command(subcommand)]
     command: Commands,
@@ -49,11 +52,21 @@ enum Commands {
             helix inspect verify.json\n\n\
             Default `helix verify URL` does not select a GA4GH pack.\n\
             --output writes helix-verification-v1 without replacing --format.\n\
-            --drs-object-id is test input, not a GA4GH requirement."
+            --drs-object-id is test input, not a GA4GH requirement.\n\
+            --implementation-version never becomes verified_version.\n\
+            Two independent DRS implementations (you start them):\n  \
+            docs/INDEPENDENT_DRS.md\n  \
+            helix differential starter-kit.json bento.json\n\
+            Helix does not rank implementations."
     )]
     Verify(VerifyArgs),
     /// Reload persisted `helix verify --format json` and classify current vs historical standing.
     /// Does not re-run checks. Does not rewrite the file. Not HELIOS.
+    #[command(
+        after_help = "Standing is computed (current_verifier_evidence vs historical_observation).\n\
+            inspect does not rewrite FILE. Do not restamp local/b12/ to make it current.\n\
+            Two-target path: docs/INDEPENDENT_DRS.md"
+    )]
     Inspect(InspectArgs),
     /// Stage 3: Security Behavior Profile + Crypt4GH protocol layout (dummy fixtures only).
     Security(SecurityArgs),
@@ -62,6 +75,12 @@ enum Commands {
     /// Compare two helix verify JSON runs at stable check id (PASS→FAIL = regression).
     Compare(CompareArgs),
     /// Check-level differential of two verify JSON runs. Descriptive. Does not create verification or rank targets.
+    #[command(
+        after_help = "Both files should already be helix-verification-v1 from the same DRS 1.4.0 contract.\n\
+            Same execution_id; distinct target_execution_id. Check differences are attributed; they are not a score.\n\
+            PASS is not VERIFIED. Helix does not rank implementations and does not declare a winner.\n\
+            Two-target operator path: docs/INDEPENDENT_DRS.md"
+    )]
     Differential(DifferentialArgs),
     /// Target-neutral interop matrix from zero or more verify JSON files. External validation pending without independent runs.
     Matrix(MatrixArgs),

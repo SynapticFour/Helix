@@ -452,9 +452,11 @@ fn format_standing_section(run: &VerificationRun) -> String {
     match standing {
         crate::evidence::EvidenceStanding::CurrentVerifierEvidence => {
             out.push_str("  This artifact cites this verifier build.\n");
+            out.push_str("  current_verifier_evidence is not ga4gh_requirement VERIFIED.\n");
         }
         crate::evidence::EvidenceStanding::HistoricalObservation => {
             out.push_str("  Historical observation: inspectable, not current verifier evidence.\n");
+            out.push_str("  historical_observation is not ga4gh_requirement NOT_VERIFIED.\n");
             out.push_str("  Reload with helix inspect FILE. Do not restamp helix_git_sha.\n");
         }
         crate::evidence::EvidenceStanding::Invalid => {
@@ -504,6 +506,7 @@ pub fn format_inspect_text(run: &VerificationRun) -> String {
         re.coverage.state.as_str()
     ));
     out.push_str("  PASS is not VERIFIED. Partial coverage is not full DRS.\n");
+    out.push_str("  current_verifier_evidence is not VERIFIED. historical_observation is not NOT_VERIFIED.\n");
     out.push('\n');
     out.push_str("Identity:\n");
     if let Some(sel) = &run.standard_selection {

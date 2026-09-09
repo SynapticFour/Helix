@@ -12,6 +12,8 @@ use serde::{Deserialize, Serialize};
 
 use crate::claims::{evaluate, ClaimKind, ClaimStatus};
 use crate::compare::load_verification_run;
+use crate::coverage::CoverageReport;
+use crate::evidence::{classify_evidence, EvidenceStanding};
 use crate::independence::{reviewed_record, run_counts_as_independent};
 use crate::model::{helix_version, VerificationResult, VerificationRun, VerificationStatus};
 use crate::target::{FailureAttribution, TargetKind};
@@ -75,12 +77,18 @@ pub struct DifferentialTarget {
     pub target_id: String,
     pub target_kind: String,
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub implementation_name: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub reviewed_classification: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub reviewed_artifact: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub reviewed_artifact_identity: Option<String>,
     pub independent_evidence: bool,
+    /// Computed standing of this input. Not stored on the verify JSON. Not HELIOS.
+    pub evidence_standing: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub coverage_state: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub execution_id: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -138,6 +146,8 @@ pub struct DifferentialReport {
     pub binding_id: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub catalog_id: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub coverage_id: Option<String>,
     pub same_verifier: bool,
     pub same_specification: bool,
     pub independent_implementation_evidence: bool,
@@ -251,13 +261,17 @@ fn target_view(run: &VerificationRun) -> DifferentialTarget {
     let reviewed = reviewed_record(&target_id);
     let sel = run.standard_selection.as_ref();
     let ga4gh = evaluate(run).get(ClaimKind::Ga4ghRequirement).status;
+    let coverage = CoverageReport::from_run(run);
     DifferentialTarget {
         target_id,
         target_kind: kind.as_str().to_string(),
+        implementation_name: identity.and_then(|i| i.implementation_name.clone()),
         reviewed_classification: reviewed.map(|r| r.classification.as_str().to_string()),
         reviewed_artifact: reviewed.map(|r| r.artifact.clone()),
         reviewed_artifact_identity: reviewed.and_then(|r| r.artifact_identity.clone()),
         independent_evidence: run_counts_as_independent(run),
+        evidence_standing: classify_evidence(run).as_str().to_string(),
+        coverage_state: Some(coverage.state.as_str().to_string()),
         execution_id: sel.and_then(|s| s.execution_id.clone()),
         target_execution_id: sel.and_then(|s| s.target_execution_id.clone()),
         selected_version: sel.and_then(|s| s.selected_version.clone()),
@@ -342,6 +356,7 @@ pub fn differential_from_runs(a: &VerificationRun, b: &VerificationRun) -> Diffe
         checker_id: sa.and_then(|s| s.checker_id.clone()),
         binding_id: sa.and_then(|s| s.binding_id.clone()),
         catalog_id: sa.and_then(|s| s.catalog_id.clone()),
+        coverage_id: CoverageReport::from_run(a).coverage_id,
         same_verifier,
         same_specification,
         independent_implementation_evidence: run_counts_as_independent(a)
@@ -353,9 +368,78 @@ pub fn differential_from_runs(a: &VerificationRun, b: &VerificationRun) -> Diffe
     }
 }
 
+/// Fail closed when two artifacts are not the same verification contract, or
+/// when either side is invalid. Does not restamp either run. Not HELIOS.
+pub fn assert_comparable_runs(a: &VerificationRun, b: &VerificationRun) -> Result<()> {
+    match classify_evidence(a) {
+        EvidenceStanding::Invalid => {
+            bail!(
+                "first artifact is invalid evidence; helix differential will not compare it as trustworthy"
+            );
+        }
+        EvidenceStanding::HistoricalObservation | EvidenceStanding::CurrentVerifierEvidence => {}
+    }
+    match classify_evidence(b) {
+        EvidenceStanding::Invalid => {
+            bail!(
+                "second artifact is invalid evidence; helix differential will not compare it as trustworthy"
+            );
+        }
+        EvidenceStanding::HistoricalObservation | EvidenceStanding::CurrentVerifierEvidence => {}
+    }
+
+    let a_sel = a.standard_selection.as_ref();
+    let b_sel = b.standard_selection.as_ref();
+    let a_std = a_sel.and_then(|s| s.standard.as_deref());
+    let b_std = b_sel.and_then(|s| s.standard.as_deref());
+    match (a_std, b_std) {
+        (Some(x), Some(y)) if x != y => {
+            bail!(
+                "artifacts select different standards ({x} vs {y}); they are not the same verification contract"
+            );
+        }
+        (Some(_), None) | (None, Some(_)) => {
+            bail!(
+                "artifacts do not share a selected standard; they are not the same verification contract"
+            );
+        }
+        _ => {}
+    }
+    let a_ver = a_sel.and_then(|s| s.selected_version.as_deref());
+    let b_ver = b_sel.and_then(|s| s.selected_version.as_deref());
+    match (a_ver, b_ver) {
+        (Some(x), Some(y)) if x != y => {
+            bail!(
+                "artifacts select different versions ({x} vs {y}); they are not the same verification contract"
+            );
+        }
+        (Some(_), None) | (None, Some(_)) => {
+            bail!(
+                "artifacts do not share a selected version; they are not the same verification contract"
+            );
+        }
+        _ => {}
+    }
+    let a_exec = a_sel.and_then(|s| s.execution_id.as_deref());
+    let b_exec = b_sel.and_then(|s| s.execution_id.as_deref());
+    match (a_exec, b_exec) {
+        (Some(x), Some(y)) if x != y => {
+            bail!("execution_id values differ; these are not the same verification contract");
+        }
+        (Some(_), None) | (None, Some(_)) => {
+            bail!(
+                "execution_id is recorded on only one artifact; they are not the same verification contract"
+            );
+        }
+        _ => {}
+    }
+    Ok(())
+}
+
 pub fn differential_files(a: &Path, b: &Path) -> Result<DifferentialReport> {
     let ra = load_verification_run(a)?;
     let rb = load_verification_run(b)?;
+    assert_comparable_runs(&ra, &rb)?;
     let report = differential_from_runs(&ra, &rb);
     if report.contains_ranking_semantics() {
         bail!("differential output must not contain ranking semantics");
@@ -367,40 +451,82 @@ pub fn differential_files(a: &Path, b: &Path) -> Result<DifferentialReport> {
     Ok(report)
 }
 
+fn ga4gh_label(status: &str) -> &'static str {
+    if status == "verified" {
+        "VERIFIED"
+    } else {
+        "NOT_VERIFIED"
+    }
+}
+
+fn status_cell(
+    status: Option<VerificationStatus>,
+    attribution: Option<FailureAttribution>,
+) -> String {
+    match status {
+        None => "ABSENT".into(),
+        Some(s) => match attribution {
+            Some(a) if s != VerificationStatus::Pass => {
+                format!("{} ({})", status_label(s), a.as_str())
+            }
+            _ => status_label(s).to_string(),
+        },
+    }
+}
+
 pub fn format_differential_text(report: &DifferentialReport) -> String {
     let mut out = String::new();
     out.push_str("HELIX TARGET DIFFERENTIAL\n");
     out.push('\n');
-    out.push_str("This compares two helix verify runs against the same specification identity.\n");
+    out.push_str(
+        "This interprets two helix-verification-v1 artifacts under one verification contract.\n",
+    );
     out.push_str("It does not create verification. It does not rank implementations.\n");
+    out.push_str("PASS is not ga4gh_requirement VERIFIED. A check difference is behavioural, not a ranking.\n");
     out.push_str("It is not GA4GH certification.\n");
     out.push('\n');
+
+    out.push_str("Verification contract\n");
     out.push_str(&format!(
-        "standard: {}\n",
+        "  standard: {}\n",
         report.standard.as_deref().unwrap_or("(none)")
     ));
     out.push_str(&format!(
-        "selected_version: {}\n",
+        "  selected_version: {}\n",
         report.selected_version.as_deref().unwrap_or("(none)")
     ));
+    let a_exec = report
+        .targets
+        .first()
+        .and_then(|t| t.execution_id.as_deref());
+    let b_exec = report
+        .targets
+        .get(1)
+        .and_then(|t| t.execution_id.as_deref());
+    let same_exec = a_exec.is_some() && a_exec == b_exec;
+    out.push_str(&format!("  execution_id: {}\n", a_exec.unwrap_or("(none)")));
     out.push_str(&format!(
-        "release_commit: {}\n",
-        report.release_commit.as_deref().unwrap_or("(none)")
+        "  same_execution_id: {}\n",
+        if same_exec { "yes" } else { "no" }
     ));
     out.push_str(&format!(
-        "pack_integrity: {}\n",
+        "  coverage_id: {}\n",
+        report.coverage_id.as_deref().unwrap_or("(none)")
+    ));
+    out.push_str(&format!(
+        "  pack_integrity: {}\n",
         report.pack_integrity_sha256.as_deref().unwrap_or("(none)")
     ));
     out.push_str(&format!(
-        "checker_id: {}\n",
+        "  checker_id: {}\n",
         report.checker_id.as_deref().unwrap_or("(none)")
     ));
     out.push_str(&format!(
-        "same_verifier: {}\n",
+        "  same_verifier: {}\n",
         if report.same_verifier { "yes" } else { "no" }
     ));
     out.push_str(&format!(
-        "same_specification: {}\n",
+        "  same_specification: {}\n",
         if report.same_specification {
             "yes"
         } else {
@@ -408,70 +534,38 @@ pub fn format_differential_text(report: &DifferentialReport) -> String {
         }
     ));
     out.push_str(&format!(
-        "independent_implementation_evidence: {}\n",
+        "  independent_implementation_evidence: {}\n",
         if report.independent_implementation_evidence {
             "yes"
         } else {
             "no"
         }
     ));
-    out.push_str("creates_verification: no\n");
-    out.push_str("ranking_semantics: absent\n");
     out.push('\n');
-    let a_id = report
-        .targets
-        .first()
-        .map(|t| t.target_id.as_str())
-        .unwrap_or("target-0");
-    let b_id = report
-        .targets
-        .get(1)
-        .map(|t| t.target_id.as_str())
-        .unwrap_or("target-1");
-    out.push_str(&format!("{:<18} {:<28} {}\n", "check", a_id, b_id));
-    for d in &report.differences {
-        let as_ = d.a_status.map(status_label).unwrap_or("ABSENT").to_string();
-        let bs = d.b_status.map(status_label).unwrap_or("ABSENT").to_string();
-        out.push_str(&format!("{:<18} {:<28} {}\n", d.code, as_, bs));
-    }
-    out.push('\n');
-    out.push_str("Attribution:\n");
-    for d in report
-        .differences
-        .iter()
-        .filter(|d| d.class != DifferenceClass::SameBehavior)
-    {
-        out.push_str(&format!("  {}: {}\n", d.code, d.class.as_str()));
-        if let Some(msg) = &d.a_diagnostic {
-            out.push_str(&format!("    {a_id}: {msg}\n"));
-        }
-        if let Some(msg) = &d.b_diagnostic {
-            out.push_str(&format!("    {b_id}: {msg}\n"));
-        }
-    }
-    out.push('\n');
+
     for t in &report.targets {
-        out.push_str(&format!("target {}:\n", t.target_id));
-        out.push_str(&format!("  kind: {}\n", t.target_kind));
+        out.push_str(&format!("Target {}\n", t.target_id));
         out.push_str(&format!(
-            "  reviewed_classification: {}\n",
-            t.reviewed_classification.as_deref().unwrap_or("(none)")
+            "  implementation: {}\n",
+            t.implementation_name.as_deref().unwrap_or("(undeclared)")
+        ));
+        out.push_str(&format!("  target_kind: {}\n", t.target_kind));
+        out.push_str(&format!("  evidence_standing: {}\n", t.evidence_standing));
+        out.push_str(&format!(
+            "  ga4gh_requirement: {}\n",
+            ga4gh_label(&t.ga4gh_requirement)
         ));
         out.push_str(&format!(
-            "  artifact_identity: {}\n",
-            t.reviewed_artifact_identity.as_deref().unwrap_or("(none)")
-        ));
-        out.push_str(&format!(
-            "  independent_evidence: {}\n",
-            t.independent_evidence
-        ));
-        out.push_str(&format!(
-            "  execution_id: {}\n",
-            t.execution_id.as_deref().unwrap_or("(none)")
+            "  coverage: {}\n",
+            t.coverage_state.as_deref().unwrap_or("(none)")
         ));
         out.push_str(&format!(
             "  target_execution_id: {}\n",
             t.target_execution_id.as_deref().unwrap_or("(none)")
+        ));
+        out.push_str(&format!(
+            "  verified_version: {}\n",
+            t.verified_version.as_deref().unwrap_or("(none)")
         ));
         out.push_str(&format!(
             "  declared_version: {}\n",
@@ -482,15 +576,100 @@ pub fn format_differential_text(report: &DifferentialReport) -> String {
             t.detected_version.as_deref().unwrap_or("(none)")
         ));
         out.push_str(&format!(
-            "  selected_version: {}\n",
-            t.selected_version.as_deref().unwrap_or("(none)")
+            "  independent_evidence: {}\n",
+            t.independent_evidence
         ));
-        out.push_str(&format!(
-            "  verified_version: {}\n",
-            t.verified_version.as_deref().unwrap_or("(none)")
-        ));
-        out.push_str(&format!("  ga4gh_requirement: {}\n", t.ga4gh_requirement));
+        out.push('\n');
     }
+
+    let a_id = report
+        .targets
+        .first()
+        .map(|t| t.target_id.as_str())
+        .unwrap_or("target-0");
+    let b_id = report
+        .targets
+        .get(1)
+        .map(|t| t.target_id.as_str())
+        .unwrap_or("target-1");
+    let a_te = report
+        .targets
+        .first()
+        .and_then(|t| t.target_execution_id.as_deref());
+    let b_te = report
+        .targets
+        .get(1)
+        .and_then(|t| t.target_execution_id.as_deref());
+    let distinct_te = a_te.is_some() && b_te.is_some() && a_te != b_te;
+
+    out.push_str("Check comparison (joined by check_id; missing is ABSENT, not SKIP)\n");
+    out.push_str(&format!("  left:  {a_id}\n"));
+    out.push_str(&format!("  right: {b_id}\n"));
+    for d in &report.differences {
+        let as_ = status_cell(d.a_status, d.a_attribution);
+        let bs = status_cell(d.b_status, d.b_attribution);
+        out.push_str(&format!("  {}  {}  {as_} | {bs}\n", d.check_id, d.code));
+    }
+    out.push('\n');
+
+    out.push_str("Attribution (existing model; not every non-PASS is target_failure)\n");
+    for d in report
+        .differences
+        .iter()
+        .filter(|d| d.class != DifferenceClass::SameBehavior)
+    {
+        out.push_str(&format!("  {}: {}\n", d.check_id, d.class.as_str()));
+        if let Some(attr) = d.a_attribution {
+            out.push_str(&format!("    {a_id} attribution: {}\n", attr.as_str()));
+        }
+        if let Some(attr) = d.b_attribution {
+            out.push_str(&format!("    {b_id} attribution: {}\n", attr.as_str()));
+        }
+        if let Some(msg) = &d.a_diagnostic {
+            out.push_str(&format!("    {a_id}: {msg}\n"));
+        }
+        if let Some(msg) = &d.b_diagnostic {
+            out.push_str(&format!("    {b_id}: {msg}\n"));
+        }
+    }
+    out.push('\n');
+
+    let mut same = 0usize;
+    let mut behavior = 0usize;
+    let mut fixture = 0usize;
+    let mut config = 0usize;
+    let mut env = 0usize;
+    let mut exec = 0usize;
+    let mut absent = 0usize;
+    for d in &report.differences {
+        match d.class {
+            DifferenceClass::SameBehavior => same += 1,
+            DifferenceClass::TargetBehaviorDifference => behavior += 1,
+            DifferenceClass::FixtureCapabilityDifference => fixture += 1,
+            DifferenceClass::TargetConfigurationDifference => config += 1,
+            DifferenceClass::EnvironmentDifference => env += 1,
+            DifferenceClass::VerificationExecutionDifference => exec += 1,
+            DifferenceClass::InsufficientEvidence => absent += 1,
+        }
+    }
+    out.push_str("Interpretation\n");
+    out.push_str(&format!("  same_behavior: {same}\n"));
+    out.push_str(&format!("  target_behavior_difference: {behavior}\n"));
+    out.push_str(&format!("  fixture_capability_difference: {fixture}\n"));
+    out.push_str(&format!("  target_configuration_difference: {config}\n"));
+    out.push_str(&format!("  environment_difference: {env}\n"));
+    out.push_str(&format!("  verification_execution_difference: {exec}\n"));
+    out.push_str(&format!(
+        "  insufficient_evidence (ABSENT on one side): {absent}\n"
+    ));
+    out.push_str(&format!(
+        "  distinct_target_execution_id: {}\n",
+        if distinct_te { "yes" } else { "no" }
+    ));
+    out.push_str("  VERIFIED / NOT_VERIFIED is the derived claim, not a count of PASS rows.\n");
+    out.push_str("  Observed differences are behavioural. Helix does not rank implementations.\n");
+    out.push_str("  creates_verification: no\n");
+    out.push_str("  ranking_semantics: absent\n");
     out
 }
 

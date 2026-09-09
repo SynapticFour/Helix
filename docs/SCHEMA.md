@@ -96,7 +96,7 @@ This v1 schema sets `additionalProperties: false` so CI rejects accidental HELIO
 
 **Exception (DRS test fixture):** run-level `drs_fixture` (`object_id`, `unknown_object_id`, `source`, optional `expected_sha256`) is optional on this same v1 file. `schema_version` stays `helix-verification-v1`. Producers always emit it. Missing on old files deserializes as empty. The object id is test input, not a GA4GH MUST. Not HELIOS. [TARGETS.md](TARGETS.md) §11.
 
-**Exception (claim join):** run-level `claim_join` is optional on this same v1 file. `schema_version` stays `helix-verification-v1`. Producers always emit it after `finalize_run`. IDs and check statuses only. Missing on old files is not a silent VERIFIED. Not HELIOS. [CLAIMS.md](CLAIMS.md).
+**Exception (claim join):** run-level `claim_join` is optional on this same v1 file. `schema_version` stays `helix-verification-v1`. Producers always emit it after `finalize_run`. IDs, statuses, and (from C2) optional `helix_git_sha` / `helix_git_dirty` bound into the join. Missing on old files is not a silent VERIFIED. Not HELIOS. [CLAIMS.md](CLAIMS.md).
 
 **Exception (coverage):** run-level `coverage` is optional on this same v1 file. `schema_version` stays `helix-verification-v1`. Producers always emit it after `finalize_run`. `required_complete` and `coverage_id` are derived; they are not declarations. Not a score, rank, or percentage. Not full DRS compliance. Missing on old files is not silent completeness. Not HELIOS. [COVERAGE.md](COVERAGE.md).
 
@@ -125,6 +125,6 @@ Identical inputs (same binary, target, HelixTest pin, fixture catalog) produce i
 - Certification, scoring, ISO 15189 / AI Act
 - `helix security` JSON (still HelixTest `OverallReport`)
 - `helix bench` / `helix compare` JSON (separate documents)
-- `helix differential` JSON (`schemas/helix-differential-v1.json`; descriptive; does not create verification)
+- `helix differential` JSON (`schemas/helix-differential-v1.json`; descriptive; does not create verification). Optional `coverage_id` and per-target `evidence_standing` / `coverage_state` / `implementation_name` are C3 interpretation fields, not a schema bump.
 
 CI: `tests/schema_verify.rs` validates generated `helix verify` JSON against this file. Integrity constraints that schema cannot express (`verified_version` requires `selected_version` and join hashes; VERIFIED predicates) are enforced by `src/guardrails.rs` ([ARCHITECTURE_GUARDRAILS.md](ARCHITECTURE_GUARDRAILS.md)).

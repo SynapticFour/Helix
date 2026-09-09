@@ -303,12 +303,9 @@ async fn b14_t6_stale_helix_provenance_cannot_become_current() {
     let _g = B14_LOCK.lock().await;
     let mut run = versioned_mock("b14-t6").await.run;
     run.helix_git_sha = Some("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa".into());
-    assert_eq!(
-        classify_evidence(&run),
-        EvidenceStanding::HistoricalObservation
-    );
-    assert!(validate_artifact_consistency(&run).is_ok());
-    assert!(validate_claim_integrity(&run).is_err());
+    // C2: helix_git_sha is bound into claim_join. Changing SHA without restamping
+    // the join is Invalid, not a silent Current upgrade.
+    assert_invalid(&run);
     assert_not_current(&run);
 }
 

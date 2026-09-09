@@ -50,6 +50,13 @@ pub struct ClaimJoin {
     pub fixture_expected_sha256: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub coverage_id: Option<String>,
+    /// Helix git commit recorded on the run. Bound into the join so pasting
+    /// `helix_git_sha` onto a historical file without restamping the join is Invalid.
+    /// Does not enter `execution_id` or `coverage_id`. Not HELIOS.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub helix_git_sha: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub helix_git_dirty: Option<bool>,
     pub checks: Vec<ClaimJoinCheck>,
     pub claims: Vec<ClaimJoinState>,
 }
@@ -120,6 +127,8 @@ impl ClaimJoin {
                 .as_ref()
                 .and_then(|f| f.expected_sha256.clone()),
             coverage_id: crate::coverage::CoverageReport::from_run(run).coverage_id,
+            helix_git_sha: run.helix_git_sha.clone(),
+            helix_git_dirty: run.helix_git_dirty,
             checks,
             claims: claims
                 .items

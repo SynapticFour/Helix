@@ -31,7 +31,7 @@ Related public repositories (each has its own version and licence): [SUITE-OVERV
 - **Not HELIOS.** No signed audit trails, RO-Crate, PDF export, or scientific-reproducibility envelope. Binary name is `helix`, never `helios`. Clone-and-run fixture procedure: [docs/INDEPENDENT_VERIFICATION.md](docs/INDEPENDENT_VERIFICATION.md).
 - **Not GA4GH certification.** Green CI and a green `helix verify` are a technical signal. Inspect pins and JSON: [docs/TRUST.md](docs/TRUST.md).
 - **Not a Ferrum production claim.** Ferrum is on-prem, Rust, tested; demos and CI ≠ pilot ≠ production.
-- **Not completed multi-implementation validation.** Target identity is first-class ([docs/TARGETS.md](docs/TARGETS.md)). The interop matrix (`helix matrix`) is the harness. External independent evidence is **pending** ([docs/INTEROP.md](docs/INTEROP.md)). In-process mocks are not a second implementation.
+- **Not completed multi-implementation validation.** Target identity is first-class ([docs/TARGETS.md](docs/TARGETS.md)). Two local independent DRS observations exist as gitignored B12 JSON ([docs/LIVE_RECONCILIATION.md](docs/LIVE_RECONCILIATION.md)); they are not CI and not a ranking. The `helix matrix` slots remain pending ([docs/INTEROP.md](docs/INTEROP.md)). In-process mocks are not a second implementation.
 - **Not a paid SKU.** Apache-2.0, same licence as HelixTest.
 
 ## Helix vs HELIOS
@@ -54,7 +54,7 @@ make verify-drs
 
 `make fetch` is crates.io at [Cargo.lock](Cargo.lock) checksums (explicit network, not a GA4GH download). `make prove` is docs + `cargo test --locked --offline --all-targets` against in-process fixtures ([docs/FIXTURES.md](docs/FIXTURES.md)). It does not need Ferrum, Docker, or credentials.
 
-`make verify-drs` is the canonical DRS 1.4.0 path against the in-process fixture: human report, `verify.json`, and `helix inspect`. It is not independent-implementation evidence. Unversioned `make verify-fixture` still exists. Against a DRS you started: [docs/OPERATOR_VERIFY.md](docs/OPERATOR_VERIFY.md).
+`make verify-drs` is the canonical DRS 1.4.0 path against the in-process fixture: human report, `verify.json`, and `helix inspect`. It is not independent-implementation evidence. Unversioned `make verify-fixture` still exists. Against a DRS you started: [docs/OPERATOR_VERIFY.md](docs/OPERATOR_VERIFY.md). Two independent DRS implementations (Starter Kit and Bento): [docs/INDEPENDENT_DRS.md](docs/INDEPENDENT_DRS.md). `helix inspect` classifies current vs historical evidence and does not rewrite the file. `helix differential` compares two artifacts under the same contract and does not rank implementations.
 
 ### Optional: install the `helix` binary
 

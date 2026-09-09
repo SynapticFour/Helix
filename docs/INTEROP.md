@@ -1,6 +1,6 @@
 # Helix multi-implementation contract
 
-**Status:** Architecture and harness shipped. **External validation: pending.** Target identity: [TARGETS.md](TARGETS.md).
+**Status:** Architecture and harness shipped. **External validation: pending** for `helix matrix` slots (no committed independent JSON). B9/B12 recorded two **gitignored** local observations (Starter Kit, Bento); those are not matrix cells and not CI. Target identity: [TARGETS.md](TARGETS.md). Phase B close: [PHASE_B_CLOSURE.md](PHASE_B_CLOSURE.md).
 
 Helix is HelixTest becoming a standalone VERIFY CLI. The same generic `helix verify <url>` suite is the interoperability contract. Ferrum is a **reference** live target, not a dependency, and has no clinical pilot.
 
@@ -15,7 +15,7 @@ This is **not** GA4GH certification. HELIOS still owns signed evidence / RO-Crat
 | `helix verify` has **no** implementation-name branches | Ferrum, mocks, and any other origin take the same code path (`Mode::Generic`) |
 | In-process DRS/WES mocks exist | They prove the harness. They are **not** a second implementation and **not independent evidence** |
 | Ferrum may be started with `make test-live` | Opt-in. Not run by `make prove`. Not recorded here as a matrix cell |
-| No independent implementation JSON is in this repo | Slots `ferrum` and `independent` stay **pending** until an operator supplies runs |
+| No independent implementation JSON is **committed** | `helix matrix` slots `ferrum` and `independent` stay **pending**. B12 live JSON is gitignored operator evidence ([LIVE_RECONCILIATION.md](LIVE_RECONCILIATION.md)), not a matrix cell |
 
 Do **not** quote this repository as having completed multi-implementation validation.
 

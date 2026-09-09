@@ -37,6 +37,7 @@ make verify-drs
 | `make independent-verify` | Vendor SHA-256 + two-run fixture equality ([INDEPENDENT_VERIFICATION.md](INDEPENDENT_VERIFICATION.md)). Offline. |
 | `make verify-fixture` | Starts the DRS fixture ([FIXTURES.md](FIXTURES.md) §1) and runs unversioned **`helix verify`**. Prints `HELIX VERIFICATION`. Claims remain NOT_VERIFIED. |
 | `make verify-drs` | Same fixture, **DRS 1.4.0** pack, writes `verify.json`, prints inspect. Not independent evidence. |
+| `make verify-independent` | **OPTIONAL LIVE.** Two independent DRS origins you started. Not prove. Does not pull Docker. [INDEPENDENT_DRS.md](INDEPENDENT_DRS.md). |
 | `make install` | `cargo install --path . --locked` (still needs the sibling at build time). |
 
 If `require-helixtest.sh` warns that HelixTest HEAD ≠ `VERSIONS.lock`, checkout the pin. Cargo may still compile; CI will not match.

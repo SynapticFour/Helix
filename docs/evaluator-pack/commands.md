@@ -52,6 +52,20 @@ helix inspect verify.json
 
 Operator path: [../OPERATOR_VERIFY.md](../OPERATOR_VERIFY.md). PASS is not VERIFIED. Exit 0 is not VERIFIED. `inspect` does not rewrite the file.
 
+## 3c. Two independent DRS implementations (optional live)
+
+In-process fixtures are not independent evidence. If you start GA4GH Starter Kit DRS and Bento DRS yourself:
+
+[INDEPENDENT_DRS.md](../INDEPENDENT_DRS.md)
+
+```bash
+helix verify URL --standard drs --version 1.4.0 --output FILE
+helix inspect FILE
+helix differential starter-kit.json bento.json
+```
+
+`make verify-independent` is OPTIONAL LIVE VERIFICATION. It is not `make prove`. Helix does not rank the two implementations.
+
 ## 4. Interop matrix (external validation pending)
 
 ```bash

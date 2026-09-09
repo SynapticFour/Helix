@@ -1,6 +1,6 @@
 # Helix public-repository audit
 
-**Date:** 2026-09-05
+**Date:** 2026-09-05 (stranger-facing snapshot). **Phase B close (2026-09-08):** [PHASE_B_CLOSURE.md](PHASE_B_CLOSURE.md) — DRS 1.4.0 SUPPORTED path exists; § Remaining blockers “No SUPPORTED pack” and “HelixTest still not loading standards/vendor” are **superseded**. Independent live JSON remains gitignored, not committed. Do not quote the 2026-09-05 blocker table as current product status.
 **Audience assumed:** a technically competent stranger who has not heard of Synaptic Four, Ferrum, HELIOS, or HelixTest.
 **Method:** Start at README and the public tree. Read architecture, registry, versioning, CLI help, schemas, examples, fixtures, tests, CI, CONTRIBUTING, SECURITY, LICENSE, CHANGELOG. Look for overclaims. This file is a report, not a tag, not a GitHub Release, not GA4GH certification.
 
@@ -27,7 +27,7 @@ They can **run a representative fixture test** and **see what Helix refuses to c
 | Can they run it? | Yes, with friction: sibling HelixTest at `VERSIONS.lock` SHA, rustup **1.91.1**, `make fetch` then `make prove`. Homebrew `cargo` on PATH will ignore the toolchain file. | [INSTALL.md](INSTALL.md), [EVALUATOR_JOURNEY.md](EVALUATOR_JOURNEY.md) |
 | Representative test? | `make verify-fixture` runs `helix verify` against an in-process DRS mock. Expected: five DRS PASS, WES SKIP (not mounted), exit 0. Claims remain NOT_VERIFIED. | [FIXTURES.md](FIXTURES.md), [evaluator-pack/commands.md](evaluator-pack/commands.md), `examples/verify_fixture.rs` |
 | Supported standards? | DRS 1.4.0 only (`helix standards list --supported-only`). YAML is not sufficient. | [STANDARDS_REGISTRY.md](STANDARDS_REGISTRY.md), `src/standards/support.rs` |
-| AVAILABLE vs SUPPORTED? | AVAILABLE = pinned official bytes (DRS 1.4.0, DRS 1.5.0, WES 1.1.0). SUPPORTED = mapping + engine loads those bytes + fixture prove. Only AVAILABLE exists. | Registry §3.3, [STANDARD_VERSIONING.md](STANDARD_VERSIONING.md) §8 |
+| AVAILABLE vs SUPPORTED? | AVAILABLE = pinned official bytes (DRS 1.4.0, DRS 1.5.0, WES 1.1.0). SUPPORTED = mapping + engine loads those bytes + fixture prove. **After Phase B:** only DRS 1.4.0 is SUPPORTED. DRS 1.5.0 and WES remain AVAILABLE, not SUPPORTED. | Registry §3.3, [STANDARD_VERSIONING.md](STANDARD_VERSIONING.md) §8, [HELIX_PRODUCT.md](HELIX_PRODUCT.md) |
 | Exact specification provenance? | Registry `commit` + `vendor_path` + SHA-256. `helix standards show` / `validate`. Default `helix verify` does **not** load those bytes (HelixTest-vendored OpenAPI). | `standards/vendor/`, [TRACEABILITY.md](TRACEABILITY.md) §3 |
 | Normative vs fixture? | Exactly one shipped check is `normative` (`drs.object.schema.openapi`). JSON `traceability.check_kind` / `claim_scope`. Domain `executed[].category` is a different field. | [TAXONOMY.md](TAXONOMY.md), `src/traceability.rs` |
 | Why a result passed? | Check `message`, `status=pass`, taxonomy `kind` (fixture today). PASS is not a GA4GH MUST. | [REPORT.md](REPORT.md), [CLAIMS.md](CLAIMS.md) |
@@ -113,14 +113,14 @@ Frozen: `helix-verification-v1`, `helix-standard-version-v1`, `helix-interop-mat
 
 Before a **tagged** `v0.1.0` or an external announcement that this is a GA4GH verification product:
 
-| Blocker | Why it matters to a stranger |
-|---------|------------------------------|
-| No git tag; CHANGELOG is Unreleased | Clone of `main` is the product. There is no frozen release. |
-| No SUPPORTED pack | Cannot claim a named GA4GH version. |
-| No independent implementation JSON | Cannot claim multi-implementation validation. |
-| HelixTest still not loading `standards/vendor` | Provenance pins are inspectable, not executed. |
-| Community files missing (CoC, issue forms) | Fine for source inspection; weak for “open to contributors” messaging. |
-| Working tree vs published `main` | Announcing features that are only local is a credibility failure. Commit and wait for CI on `main` before any announcement. |
+| Item | Status after Phase B (2026-09-08) |
+|------|-------------------------------------|
+| No git tag; CHANGELOG is Unreleased | **Still a tagged-release blocker.** Clone of `main` is not automatically this close (`wip/drs-140-productization`). |
+| No SUPPORTED pack | **Superseded.** DRS 1.4.0 is SUPPORTED within declared coverage. Not certification. |
+| No independent implementation JSON | **Still true for committed files.** B12 JSON is gitignored operator evidence, not a matrix cell. |
+| HelixTest still not loading `standards/vendor` | **Superseded.** Versioned DRS 1.4.0 loads the vendor pack / SpecSource. Unversioned `helix verify` still does not select that pack. |
+| Community files missing (CoC, issue forms) | Unchanged. |
+| Working tree vs published `main` | Unchanged: do not announce until this close is on the published default branch and CI is green. |
 
 Not blockers for **reading the source**: LICENSE, SECURITY, CONTRIBUTING, schemas, fixtures, CI prove.
 
@@ -131,7 +131,7 @@ Not blockers for **reading the source**: LICENSE, SECURITY, CONTRIBUTING, schema
 | Risk | Status after this audit |
 |------|-------------------------|
 | “Tests behavior against the GA4GH spec” | Removed from README, FOR-EVALUATORS, architecture invariant 14, discovery/security/bench footers. Prove greps the replacement. |
-| AVAILABLE described as SUPPORTED | CLI still fail-closes. Docs repeat empty OfficialSupported. |
+| AVAILABLE described as SUPPORTED | CLI still fail-closes on AVAILABLE-only rows. DRS 1.4.0 is SUPPORTED; DRS 1.5.0 and WES are not. |
 | Planned Mode 2 described as shipped | Standard-versioning §4 and registry Mode B labelled **Not shipped**. |
 | CHANGELOG older bullets contradict current DRS+WES | Current-facts banner at top of Unreleased. |
 | Vision table “API behaves against published contract = Yes” | Replaced with documented-suite / no named-release rows. |

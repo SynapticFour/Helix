@@ -1,6 +1,6 @@
 # Helix — VERIFY CLI (HelixTest wrap). Not HELIOS. Not certification.
 
-.PHONY: help prove test test-live verify-fixture verify-drs install fetch independent-verify
+.PHONY: help prove test test-live verify-fixture verify-drs verify-independent install fetch independent-verify
 
 # HelixTest HttpClient defaults to debug traces. Evaluators need the report, not GET dumps.
 RUST_LOG ?= error
@@ -14,12 +14,14 @@ help:
 	@echo "  make independent-verify    Registry hashes + reproducibility tests (offline)"
 	@echo "  make verify-fixture        unversioned helix verify vs in-process DRS fixture (no Ferrum)"
 	@echo "  make verify-drs           DRS 1.4.0 technical verification vs that fixture; writes verify.json"
+	@echo "  make verify-independent  OPTIONAL LIVE: two independent DRS origins you started"
 	@echo "  make test                  cargo test --locked --offline --all-targets"
 	@echo "  make install               cargo install --path . --locked (needs sibling HelixTest)"
 	@echo "  make test-live             helix verify against HELIX_LIVE_URL (you started the stack)"
 	@echo "  helix matrix               interop matrix (pending without independent runs; see docs/INTEROP.md)"
 	@echo ""
 	@echo "First usable DRS 1.4.0 path: docs/OPERATOR_VERIFY.md"
+	@echo "Two independent DRS implementations: docs/INDEPENDENT_DRS.md"
 	@echo "Product: docs/HELIX_PRODUCT.md. Install: docs/INSTALL.md"
 
 # crates.io at Cargo.lock checksums. Explicit network. Not a GA4GH download.
@@ -61,6 +63,12 @@ verify-drs:
 	chmod +x scripts/require-helixtest.sh
 	./scripts/require-helixtest.sh
 	cargo run --locked --offline --example verify-drs-140
+
+# OPTIONAL LIVE VERIFICATION. Not prove. Does not pull Docker images. Does not restamp local/b12/.
+# Requires origins you started (docs/INDEPENDENT_DRS.md). Fails clearly if they are down.
+verify-independent:
+	chmod +x scripts/verify-independent-drs.sh scripts/require-helixtest.sh
+	./scripts/verify-independent-drs.sh
 
 install:
 	chmod +x scripts/require-helixtest.sh

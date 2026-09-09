@@ -5,7 +5,7 @@
 //! authorization, HELIOS, or verification identities. Not certification.
 
 use assert_cmd::Command;
-use helix::claim_integrity::{tamper_selection, validate_artifact_consistency};
+use helix::claim_integrity::{finalize_run, tamper_selection, validate_artifact_consistency};
 use helix::claims::{evaluate, ClaimKind, ClaimStatus};
 use helix::compare::parse_verification_run;
 use helix::coverage::CoverageState;
@@ -388,6 +388,8 @@ async fn b15_t21_historical_not_current() {
     let _g = B15_LOCK.lock().await;
     let mut run = versioned_mock("b15-t21").await.run;
     run.helix_git_sha = Some("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa".into());
+    run.helix_git_dirty = Some(false);
+    finalize_run(&mut run);
     assert_eq!(
         classify_evidence(&run),
         EvidenceStanding::HistoricalObservation

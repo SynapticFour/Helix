@@ -1012,6 +1012,15 @@
           "minLength": 1,
           "description": "Derived coverage-contract identity. Must match coverage.coverage_id. Optional on files produced before B11."
         },
+        "helix_git_sha": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$",
+          "description": "Helix git commit bound into the join. Must match run-level helix_git_sha when present. Optional on files produced before C2. Does not enter execution_id. Not HELIOS."
+        },
+        "helix_git_dirty": {
+          "type": "boolean",
+          "description": "Helix dirty flag bound into the join. Must match run-level helix_git_dirty when present. Optional on files produced before C2. Not HELIOS."
+        },
         "checks": {
           "type": "array",
           "items": { "$ref": "#/$defs/claimJoinCheck" }
