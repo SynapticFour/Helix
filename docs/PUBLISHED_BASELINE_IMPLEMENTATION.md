@@ -201,9 +201,12 @@ Do **not** tick these until they have been observed on the merged default branch
 
 | Operation | Observed |
 |----------|----------|
-| Pushed | *pending this file’s commit* |
-| PR URL | *not created at the time this paragraph was written* |
+| Pushed | **yes** — `wip/drs-140-productization` to `origin` (`319c4fb..e99b5b6`, then this record update) |
+| PR URL | https://github.com/SynapticFour/Helix/pull/1 |
 | Merged to `main` | **no** |
 | Tag | **none** |
+| `helix --version` at PR-open SHA | `helix 0.1.0` / `Helix git: e99b5b640091a6904e0835ab92cb6285f8d50492` |
+
+GitHub CI was **not** observed green in this session. Do not treat the PR as merged or the baseline as published.
 
 **Vertraue mir nicht. Vertraue dem Code.**
