@@ -1,8 +1,8 @@
 # Helix inventory — HelixTest as it actually exists
 
-**Date:** 2026-09-03  
-**HelixTest checkout:** `1832c043e1679ec283cb2113510ee33684317cce` (git tag **v0.1.3**, `main` matches origin).  
-**Also opened:** Ferrum (`VERSIONS.lock`, `.github/workflows/*`, `docs/HELIXTEST-INTEGRATION.md`), Ferrum-Lab-Kit, ga4gh-infra (`VERSIONS.lock`), HELIOS (scope boundary only), technical-reports (SF-TR-2026-001 / SF-TR-2026-002), Ferrum-GA4GH-Demo.  
+**Date:** 2026-09-03
+**HelixTest checkout:** `1832c043e1679ec283cb2113510ee33684317cce` (git tag **v0.1.3**, `main` matches origin).
+**Also opened:** Ferrum (`VERSIONS.lock`, `.github/workflows/*`, `docs/HELIXTEST-INTEGRATION.md`), Ferrum-Lab-Kit, ga4gh-infra (`VERSIONS.lock`), HELIOS (scope boundary only), technical-reports (SF-TR-2026-001 / SF-TR-2026-002), Ferrum-GA4GH-Demo.
 **Not present as a submodule of HelixTest.** No `.gitmodules` in HelixTest.
 
 This file records what the code does. It is not a product claim. HelixTest results are not GA4GH certification. HELIOS (reproducibility / signed evidence / RO-Crate / PDF) is out of Helix scope and was not duplicated here.
@@ -188,7 +188,7 @@ helixtest --all
   [--verbose]
 ```
 
-`--start-ferrum` runs `docker compose up -d` on `--compose-file` or `helixtest/docker/docker-compose.yml`, then waits 60s for WES `/service-info`. That compose file defines **mock-*** services (`ghcr.io/example/mock-wes:latest` etc.), not a Ferrum image. **UNKLAR — bitte prüfen:** whether those `ghcr.io/example/mock-*` images exist or are placeholders.
+`--start-ferrum` runs `docker compose up -d` on `--compose-file` or `helixtest/docker/docker-compose.yml`, then waits 60s for WES `/service-info`. That compose file defines **mock-*** services (`ghcr.io/example/mock-wes:latest` etc.), not a Ferrum image. **Do not use:** those `ghcr.io/example/mock-*` tags are placeholders (`manifest unknown` as of 2026-09-04). Stage 0 non-Ferrum proof is the in-process DRS fixture, not that compose path.
 
 Config load (`common/src/config.rs`): `--profile` / `HELIXTEST_PROFILE` → `profiles/<name>.toml`; else `HELIXTEST_CONFIG`; else `./helixtest-config.toml`; else env `WES_URL`… with split-port defaults (`8080`–`8085`). Env overrides file URLs.
 
