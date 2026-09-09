@@ -1,25 +1,85 @@
-# Helix — docs and VERIFY CLI (no local stack)
+# Helix — VERIFY CLI (HelixTest wrap). Not HELIOS. Not certification.
 
-.PHONY: help prove test
+.PHONY: help prove test test-live verify-fixture verify-drs verify-independent install fetch independent-verify
+
+# HelixTest HttpClient defaults to debug traces. Evaluators need the report, not GET dumps.
+RUST_LOG ?= error
+export RUST_LOG
 
 help:
-	@echo "Helix — independence of HelixTest (Synaptic Four GA4GH stack)"
+	@echo "Helix — DRS/WES VERIFY CLI wrapping HelixTest. Not HELIOS. Not GA4GH certification."
 	@echo ""
-	@echo "  make prove     Zero-risk proof: docs + cargo test (DRS + security + bench mocks; no Ferrum)"
-	@echo "  make test      cargo test"
-	@echo "  pre-commit     CI parity (fmt + clippy -D warnings + prove); see .pre-commit-config.yaml"
+	@echo "  make fetch                 cargo fetch --locked (network; crate checksums, not latest GA4GH)"
+	@echo "  make prove                 Docs + cargo test --locked --offline (in-process fixtures; no Ferrum)"
+	@echo "  make independent-verify    Registry hashes + reproducibility tests (offline)"
+	@echo "  make verify-fixture        unversioned helix verify vs in-process DRS fixture (no Ferrum)"
+	@echo "  make verify-drs           DRS 1.4.0 technical verification vs that fixture; writes verify.json"
+	@echo "  make verify-independent  OPTIONAL LIVE: two independent DRS origins you started"
+	@echo "  make test                  cargo test --locked --offline --all-targets"
+	@echo "  make install               cargo install --path . --locked (needs sibling HelixTest)"
+	@echo "  make test-live             helix verify against HELIX_LIVE_URL (you started the stack)"
+	@echo "  helix matrix               interop matrix (pending without independent runs; see docs/INTEROP.md)"
 	@echo ""
-	@echo "Live target you started:"
-	@echo "  cargo run --bin helix -- verify http://127.0.0.1:8080"
-	@echo "  cargo run --bin helix -- security http://127.0.0.1:8080"
-	@echo "  cargo run --bin helix -- bench --baseline http://127.0.0.1:8080 --candidate http://127.0.0.1:8080"
+	@echo "First usable DRS 1.4.0 path: docs/OPERATOR_VERIFY.md"
+	@echo "Two independent DRS implementations: docs/INDEPENDENT_DRS.md"
+	@echo "Product: docs/HELIX_PRODUCT.md. Install: docs/INSTALL.md"
 
-# Zero-risk customer path. Live Ferrum proof: docs/PROVE.md
+# crates.io at Cargo.lock checksums. Explicit network. Not a GA4GH download.
+fetch:
+	cargo fetch --locked
+
+# Zero-risk Helix core: honesty docs + all crate tests on deterministic fixtures.
+# Does not start Ferrum/Docker. Does not skip, ignore, or exclude tests.
+# Live HTTP against a stack you control is make test-live, not this target.
+# Does not fetch crates; run make fetch first if --offline fails.
 prove:
-	chmod +x scripts/prove.sh
+	chmod +x scripts/prove.sh scripts/require-helixtest.sh scripts/independent-verify.sh
+	./scripts/require-helixtest.sh
 	./scripts/prove.sh
 	$(MAKE) test
-	@echo "Helix prove OK."
+	@echo "Helix prove OK (in-process fixtures; not Ferrum, not certification)."
 
 test:
-	cargo test
+	chmod +x scripts/require-helixtest.sh
+	./scripts/require-helixtest.sh
+	@if ! cargo test --locked --offline --all-targets; then \
+		echo "cargo test --locked --offline failed. If crates are missing: make fetch (Cargo.lock, network)." >&2; \
+		exit 1; \
+	fi
+
+independent-verify:
+	chmod +x scripts/independent-verify.sh scripts/require-helixtest.sh
+	./scripts/independent-verify.sh
+
+# helix verify against docs/FIXTURES.md §1. Unversioned. Not Ferrum. Not certification.
+verify-fixture:
+	chmod +x scripts/require-helixtest.sh
+	./scripts/require-helixtest.sh
+	cargo run --locked --offline --example verify-fixture
+
+# Canonical first-usable DRS 1.4.0 workflow against the same fixture.
+# Writes verify.json (override with HELIX_VERIFY_JSON). Not independent evidence.
+verify-drs:
+	chmod +x scripts/require-helixtest.sh
+	./scripts/require-helixtest.sh
+	cargo run --locked --offline --example verify-drs-140
+
+# OPTIONAL LIVE VERIFICATION. Not prove. Does not pull Docker images. Does not restamp local/b12/.
+# Requires origins you started (docs/INDEPENDENT_DRS.md). Fails clearly if they are down.
+verify-independent:
+	chmod +x scripts/verify-independent-drs.sh scripts/require-helixtest.sh
+	./scripts/verify-independent-drs.sh
+
+install:
+	chmod +x scripts/require-helixtest.sh
+	./scripts/require-helixtest.sh
+	cargo install --path . --locked --force
+
+# Opt-in. Never invoked by prove or GitHub CI. Requires a running origin you started.
+test-live:
+	@if [ -z "$(HELIX_LIVE_URL)" ]; then \
+		echo "test-live: set HELIX_LIVE_URL to a running GA4GH origin (e.g. cd ../Ferrum && make up)." >&2; \
+		echo "This target is not part of make prove. First path: make verify-fixture." >&2; \
+		exit 2; \
+	fi
+	cargo run --quiet --locked --bin helix -- verify "$(HELIX_LIVE_URL)" --format json

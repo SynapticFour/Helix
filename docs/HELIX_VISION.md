@@ -4,6 +4,8 @@
 
 Helix is the VERIFY pillar next to BUILD (Ferrum) and PROTECT (Solum). It is not a new invention: it is the product-shaped name for work that already runs as [HelixTest](https://github.com/SynapticFour/HelixTest). [HELIOS](https://github.com/SynapticFour/HELIOS) stays a separate brand for reproducibility and audit evidence. It is not merged into Helix.
 
+Current product status (what exists today, not this vision note): [HELIX_PRODUCT.md](HELIX_PRODUCT.md).
+
 This document is a positioning note, not a capability claim. HelixTest results are a technical signal, not GA4GH certification. Ferrum has no real clinical pilot (DIZ / genomDE). Do not read “proves it works” as production-proven.
 
 Sources: [INVENTORY.md](../INVENTORY.md), [IDENTITY.md](IDENTITY.md), [HELIX_ROADMAP.md](HELIX_ROADMAP.md), SF-TR-2026-001 / SF-TR-2026-002 (cite HelixTest, not this repo name).
@@ -30,9 +32,10 @@ Canonical split for **new features:** [HELIX_VS_HELIOS.md](HELIX_VS_HELIOS.md). 
 
 | Question | Helix | HELIOS |
 |----------|--------|--------|
-| Does the API behave correctly against the published GA4GH contract? | Yes (HelixTest heritage) | No |
-| Does auth fail closed (401/403, Passport-on-DRS when co-deployed)? | Yes (security-behaviour checks) | No |
-| Did this version regress against a known fixture / fail-level? | Yes (benchmark / regression) | No |
+| Does Helix run documented DRS/WES checks on a live HTTP origin? | Yes (HelixTest wrap; DRS 1.4.0 SUPPORTED within declared coverage, not VERIFIED) | No |
+| Does Helix verify a named GA4GH release? | **Bounded yes:** DRS 1.4.0 technical verification within declared coverage. Not certification. Default `helix verify` stays unversioned. | No |
+| Does auth fail closed on dummy HMAC fixtures (401/403 class)? | Selected `helix security` cases; not a pentest | No |
+| Did this version regress against a known fixture? | `helix compare` at stable id (not a score). `helix bench` is warn-only smoke | No |
 | Is this pipeline run attestably reproducible? | No | Yes |
 | Is there a signed audit trail / RO-Crate / PDF export of the run? | No | Yes |
 | Does it orchestrate Ferrum or Solum? | No | No (file ingest / WES artefact ids only) |

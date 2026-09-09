@@ -1,0 +1,409 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/SynapticFour/Helix/blob/main/schemas/helix-standard-version-v1.json",
+  "title": "Helix standard version record v1",
+  "description": "One pinned GA4GH specification version Helix may eventually test against. Design-only until standards/registry.yaml exists. Authoritative source is GA4GH, not Ferrum, not HelixTest README URLs, not Git HEAD. support_status is available|supported only; tested and verified are run/claim states, not this document. Not HELIOS: no signature, ro_crate, audit_trail, evidence, or PDF. Not GA4GH certification. Spec: docs/STANDARDS_REGISTRY.md.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "pack_id",
+    "standard",
+    "product",
+    "version",
+    "release_class",
+    "support_status",
+    "repository",
+    "release_ref",
+    "commit",
+    "retrieved_at",
+    "normative_sources"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "helix-standard-version-v1",
+      "description": "Frozen document id for a single version record. Must match this schema file."
+    },
+    "pack_id": {
+      "type": "string",
+      "pattern": "^ga4gh\\.[a-z][a-z0-9]*\\.[0-9A-Za-z._-]+$",
+      "description": "Stable Helix pack id. Official line: ga4gh.{standard}.{version} (e.g. ga4gh.drs.1.4.0). Disambiguate if the same numeric version exists in another release_class (e.g. ga4gh.drs.1.5.0-ballot). Do not recycle."
+    },
+    "standard": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9]*$",
+      "description": "Machine id aligned with Helix discovery/service (drs, wes, tes, trs, htsget, beacon). Not a target implementation."
+    },
+    "product": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Official GA4GH product title (e.g. Data Repository Service). Not Ferrum, not Helix, not HelixTest."
+    },
+    "version": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Version string as published by GA4GH for this release. Not inferred from /ga4gh/*/v1. Not the Helix crate version."
+    },
+    "release_class": {
+      "$ref": "#/$defs/releaseClass",
+      "description": "How GA4GH published this artifact. Default automated verification uses official only. Ballot and snapshot are never in all-supported-versions. Development cannot be supported."
+    },
+    "support_status": {
+      "$ref": "#/$defs/supportStatus",
+      "description": "Helix pack lifecycle. available = pinned (steps 1–3). supported = mapped, implemented, fixture-proven (steps 1–7). A git tag alone is not supported. tested and verified must not appear here."
+    },
+    "repository": {
+      "type": "string",
+      "pattern": "^https://github\\.com/[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$",
+      "description": "Canonical HTTPS URL of the specification git repository, no .git suffix. GA4GH org or the spec home GA4GH publishes (e.g. samtools/hts-specs for htsget). Not SynapticFour/Helix, HelixTest, or Ferrum."
+    },
+    "release_ref": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Published git tag or GitHub Release name for this version. For official, ballot, and snapshot must not be HEAD, main, master, or develop."
+    },
+    "commit": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$",
+      "description": "Exact git commit of repository at the pin. Never a moving branch tip. Helix must not silently replace this with HEAD."
+    },
+    "retrieved_at": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$",
+      "description": "UTC calendar date the normative bytes were retrieved. Update on every pin refresh."
+    },
+    "normative_sources": {
+      "type": "array",
+      "minItems": 1,
+      "description": "Specification files at commit that Helix treats as normative for this pack. Each file is hashed. Runtime must not fetch replacements.",
+      "items": {
+        "$ref": "#/$defs/normativeSource"
+      }
+    },
+    "test_bindings": {
+      "type": "array",
+      "description": "Required and non-empty when support_status is supported. Maps Helix check ids to this pack. kind normative requires a locator inside a pinned file.",
+      "items": {
+        "$ref": "#/$defs/testBinding"
+      }
+    },
+    "fixture_catalog": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Helix fixture catalog id used to prove this pack (e.g. helix-fixtures-v1). Required when support_status is supported. Not a GA4GH version. Not HELIOS."
+    },
+    "notes": {
+      "type": "string",
+      "description": "Human caveats. Not a substitute for bindings or hashes."
+    },
+    "pack_integrity": {
+      "$ref": "#/$defs/packIntegrity"
+    },
+    "schema_entry": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Path inside the vendored pack of the schema document the checker compiles (e.g. openapi/components/schemas/DrsObject.yaml). Not a GitHub Pages bundle."
+    },
+    "schema_component": {
+      "type": "string",
+      "minLength": 1,
+      "description": "OpenAPI/JSON Schema component name compiled from schema_entry (e.g. DrsObject)."
+    },
+    "catalog_id": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$",
+      "description": "sha256 of the compiled support catalog + coverage levels. Must match the executable contract. YAML cannot invent this."
+    },
+    "binding_id": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$",
+      "description": "sha256 of catalog_id + pack + schema hashes + checker_id. A catalog change must not keep the old binding_id."
+    },
+    "coverage": {
+      "$ref": "#/$defs/packCoverage"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "support_status": {
+            "const": "supported"
+          }
+        },
+        "required": ["support_status"]
+      },
+      "then": {
+        "required": ["test_bindings", "fixture_catalog", "catalog_id", "binding_id", "coverage"],
+        "properties": {
+          "release_class": {
+            "not": {
+              "const": "development"
+            }
+          },
+          "test_bindings": {
+            "minItems": 1
+          },
+          "normative_sources": {
+            "minItems": 1,
+            "items": {
+              "required": ["vendor_path"]
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "release_class": {
+            "enum": ["official", "ballot", "snapshot"]
+          }
+        },
+        "required": ["release_class"]
+      },
+      "then": {
+        "properties": {
+          "release_ref": {
+            "not": {
+              "enum": [
+                "HEAD",
+                "head",
+                "main",
+                "master",
+                "develop",
+                "origin/main",
+                "origin/master",
+                "origin/develop"
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "release_class": {
+            "const": "development"
+          }
+        },
+        "required": ["release_class"]
+      },
+      "then": {
+        "properties": {
+          "support_status": {
+            "const": "available"
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "releaseClass": {
+      "type": "string",
+      "enum": ["official", "ballot", "snapshot", "development"],
+      "description": "OFFICIAL | BALLOT | SNAPSHOT | DEVELOPMENT. Default automation: official only. all-supported-versions: supported official only. Ballot/snapshot: explicit selection only. Development: never supported."
+    },
+    "supportStatus": {
+      "type": "string",
+      "enum": ["available", "supported"],
+      "description": "AVAILABLE = pinned metadata. SUPPORTED = steps 1–7 complete. Do not encode TESTED or VERIFIED here."
+    },
+    "integrity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["algorithm", "hex"],
+      "description": "Hash of the exact file bytes Helix loads. SHA-256 only in v1. Not a HELIOS signature.",
+      "properties": {
+        "algorithm": {
+          "const": "sha256"
+        },
+        "hex": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$",
+          "description": "Lowercase hex SHA-256."
+        }
+      }
+    },
+    "packIntegrity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["algorithm", "hex"],
+      "description": "sha256-manifest-v1 of every vendored file in this pack. Not a single-file hash. Not HELIOS.",
+      "properties": {
+        "algorithm": {
+          "const": "sha256-manifest-v1"
+        },
+        "hex": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      }
+    },
+    "normativeSource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "source_url",
+        "role",
+        "integrity"
+      ],
+      "description": "One specification file at the pinned commit.",
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Path inside the GA4GH repository at commit (e.g. openapi/openapi.yaml)."
+        },
+        "source_url": {
+          "type": "string",
+          "pattern": "^https://",
+          "description": "Exact URL from which these bytes were retrieved. Must not be an unpinned site root."
+        },
+        "role": {
+          "type": "string",
+          "enum": ["openapi", "json_schema", "specification", "other"],
+          "description": "What kind of normative artifact this file is."
+        },
+        "media_type": {
+          "type": "string",
+          "description": "Optional IANA media type (e.g. application/yaml)."
+        },
+        "retrieved_at": {
+          "type": "string",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$",
+          "description": "Per-file retrieval date if it differs from the pack retrieved_at."
+        },
+        "vendor_path": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Path in this Helix repo of the committed copy (e.g. standards/vendor/ga4gh.drs.1.4.0/openapi.yaml). Bytes must match integrity.hex. Required when support_status is supported. Optional on available pins that are not yet loaded at runtime."
+        },
+        "integrity": {
+          "$ref": "#/$defs/integrity"
+        }
+      }
+    },
+    "testBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "code", "kind"],
+      "description": "One Helix check in this pack. Changing id/code is a Helix compatibility change, not a registry-only edit.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Helix check id (e.g. drs.object.schema)."
+        },
+        "code": {
+          "type": "string",
+          "pattern": "^HLX-[A-Z]+-[0-9]{3}$",
+          "description": "Helix catalog code (e.g. HLX-DRS-002)."
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "normative",
+            "guidance",
+            "fixture",
+            "interoperability",
+            "security",
+            "benchmark"
+          ],
+          "description": "Claim taxonomy. normative = locator exists in a pinned source Helix loads. guidance = official GA4GH implementation guidance (not HelixTest policy). fixture / interoperability / security / benchmark are Helix or HelixTest behaviour. Only normative may back a Verified-against-{standard}-{version} sentence. Do not label fixture extras as normative."
+        },
+        "citation": {
+          "$ref": "#/$defs/citation",
+          "description": "Required when kind is normative. Must be traceable in the pinned file. If it cannot be established, kind must not be normative."
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "normative"
+              }
+            },
+            "required": ["kind"]
+          },
+          "then": {
+            "required": ["citation"]
+          }
+        }
+      ]
+    },
+    "citation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_path", "locator_type", "locator"],
+      "description": "Machine-readable pointer into a pinned normative file. Do not invent MUSTs from memory.",
+      "properties": {
+        "source_path": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Must match a normative_sources[].path in this record."
+        },
+        "locator_type": {
+          "type": "string",
+          "enum": [
+            "operation_id",
+            "schema_name",
+            "json_pointer",
+            "http_path",
+            "status_code",
+            "quote"
+          ]
+        },
+        "locator": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Value of that locator type (e.g. GetObject, DrsObject, /components/schemas/DrsObject)."
+        },
+        "excerpt": {
+          "type": "string",
+          "description": "Optional short excerpt copied from the pinned file, not from memory."
+        }
+      }
+    },
+    "packCoverage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema", "behavior", "security", "interoperability"],
+      "description": "Declared coverage of the supported pack. Not a score or percentage. complete|partial|none only.",
+      "properties": {
+        "schema": { "$ref": "#/$defs/coverageLevel" },
+        "behavior": { "$ref": "#/$defs/coverageLevel" },
+        "security": { "$ref": "#/$defs/coverageLevel" },
+        "interoperability": { "$ref": "#/$defs/coverageLevel" },
+        "notes": {
+          "type": "string",
+          "description": "Covered / partially covered / not covered in prose. Not a compliance percentage."
+        }
+      }
+    },
+    "coverageLevel": {
+      "type": "string",
+      "enum": ["complete", "partial", "none"]
+    },
+    "registryDocument": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Proposed shape of standards/registry.yaml after YAML-to-JSON. Not a second on-disk schema file. This file’s root is still a single version record.",
+      "required": ["schema_version", "versions"],
+      "properties": {
+        "schema_version": {
+          "const": "helix-standards-registry-v1"
+        },
+        "versions": {
+          "type": "array",
+          "items": {
+            "$ref": "#"
+          }
+        }
+      }
+    }
+  }
+}

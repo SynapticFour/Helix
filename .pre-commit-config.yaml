@@ -13,7 +13,9 @@ repos:
     rev: v5.0.0
     hooks:
       - id: trailing-whitespace
+        exclude: ^standards/vendor/
       - id: end-of-file-fixer
+        exclude: ^standards/vendor/
       - id: check-added-large-files
         args: [--maxkb=500]
       - id: detect-private-key

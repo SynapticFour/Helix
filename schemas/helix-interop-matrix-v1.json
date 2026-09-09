@@ -1,0 +1,122 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/SynapticFour/Helix/blob/main/schemas/helix-interop-matrix-v1.json",
+  "title": "Helix interoperability matrix v1",
+  "description": "Comparison of the same generic helix verify suite across operator-labeled implementations. In-process fixtures are not independent evidence. independent_evidence is false until an independent_implementation run and another non-fixture run are both recorded. Not HELIOS. Not GA4GH certification. Not a claim of completed multi-implementation validation.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "helix_version",
+    "independent_evidence",
+    "external_validation",
+    "note",
+    "implementations",
+    "rows",
+    "discrepancies"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "helix-interop-matrix-v1"
+    },
+    "helix_version": { "type": "string", "minLength": 1 },
+    "independent_evidence": {
+      "type": "boolean",
+      "description": "True only when operator labeled one run independent_implementation and recorded another reference_target or independent_implementation run. Never inferred from a mock."
+    },
+    "external_validation": {
+      "type": "string",
+      "enum": ["pending", "recorded_without_independent", "recorded_with_independent"]
+    },
+    "note": { "type": "string", "minLength": 1 },
+    "implementations": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/slot" }
+    },
+    "rows": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/row" }
+    },
+    "discrepancies": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/discrepancy" }
+    }
+  },
+  "$defs": {
+    "slot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "kind", "status"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "helix_fixture",
+            "reference_target",
+            "independent_implementation",
+            "unspecified"
+          ]
+        },
+        "status": { "type": "string", "enum": ["recorded", "pending"] }
+      }
+    },
+    "row": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["standard", "check", "implementation", "expected", "result"],
+      "description": "One cell: standard, version, check, implementation, expected, observed, result.",
+      "properties": {
+        "standard": { "type": "string", "minLength": 1 },
+        "version": { "type": ["string", "null"] },
+        "check": { "type": "string", "minLength": 1 },
+        "implementation": { "type": "string", "minLength": 1 },
+        "expected": { "type": "string", "minLength": 1 },
+        "observed": { "type": ["string", "null"] },
+        "result": {
+          "type": "string",
+          "enum": [
+            "pending",
+            "meets_contract",
+            "contract_violation",
+            "fixture_unsatisfied",
+            "runner_stricter",
+            "not_executed"
+          ]
+        }
+      }
+    },
+    "discrepancy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["check", "standard", "cross_impl", "classification", "observed_by_implementation", "note"],
+      "properties": {
+        "check": { "type": "string", "minLength": 1 },
+        "standard": { "type": "string", "minLength": 1 },
+        "cross_impl": { "type": "string", "enum": ["must_agree", "may_differ"] },
+        "classification": {
+          "type": "string",
+          "enum": [
+            "agree",
+            "implementation_specific",
+            "unresolved_discrepancy",
+            "pending",
+            "not_comparable"
+          ]
+        },
+        "observed_by_implementation": {
+          "type": "object",
+          "additionalProperties": { "type": "string" }
+        },
+        "hypotheses": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["helix_bug", "implementation_bug", "ambiguous_spec"]
+          }
+        },
+        "note": { "type": "string" }
+      }
+    }
+  }
+}

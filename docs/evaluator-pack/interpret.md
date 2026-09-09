@@ -1,0 +1,50 @@
+# Interpretation
+
+Same facts as JSON `VerificationRun`. Human text starts at `HELIX VERIFICATION` on **stdout**. Not HELIOS. Not GA4GH certification.
+
+## Discovery vs checks
+
+| Word | Means | Does not mean |
+|------|--------|----------------|
+| NOT_DETECTED | No probe returned 2xx/401/403 | The service is “failed” |
+| DETECTED | A probe got 2xx/401/403 | The checks passed |
+| TESTABLE | Helix will execute DRS/WES checks | Those checks passed |
+| NOT_TESTABLE | Helix does not execute that suite yet (TES/TRS/htsget) | A fail |
+
+JSON: `discovery[].present` = DETECTED, `discovery[].testable` = TESTABLE. There is no `services` array and no `passed` boolean (`helix verify` is not HelixTest `OverallReport`).
+
+## Check status
+
+| Text | JSON | Meaning |
+|------|------|---------|
+| PASS | `pass` | Assertion held |
+| FAIL | `fail` | Target behaved wrongly |
+| SKIP | `skip` | Not executed. **Never** a pass |
+| ERROR | `error` | Helix could not run the check (e.g. unreachable) |
+
+Skip-only (no DRS, no WES) → exit **1**. DRS-only with five PASS and WES SKIP → exit **0** is allowed.
+
+## Fixture run (`make verify-fixture`)
+
+Example: [example-verify.json](example-verify.json).
+
+- DRS DETECTED + TESTABLE; five `HLX-DRS-001`–`005` **pass**.
+- WES NOT_DETECTED; eight WES rows **skip** (`WES not detected; … (not a pass)`).
+- TES/TRS/htsget NOT_DETECTED, not executed.
+- `summary` counts are not a score.
+- `Changes` / compare is **Not compared** on a single run (`helix compare` is a different command).
+- `fixture_version` is `helix-fixtures-v1` (catalog identity so two JSON files can be paired). Not a signature. Not HELIOS.
+
+## Fail/error rows
+
+May include `failure.code` (catalog code, e.g. `HLX-DRS-005`) and `diagnostic` (`expected`, `observed`, `possible_causes`). That is not a root-cause claim and not an AI diagnosis.
+
+Producers also emit `traceability` (`category`, `check_kind`, `claim_scope`, `authority`, `untraceable_reason`). `category` is not `normative` in the shipped catalog. `claim_scope` is never `ga4gh_requirement`. A fixture PASS is not a GA4GH requirement. `related_source` is an AVAILABLE pin a reviewer can open, not a verified-against claim. Taxonomy: [TAXONOMY.md](../TAXONOMY.md). Walkthrough: [TRACEABILITY.md](../TRACEABILITY.md).
+
+The report also prints **Claims**. Default and fixture runs are six times **NOT_VERIFIED** ([CLAIMS.md](../CLAIMS.md)). A green DRS PASS is not “verified against GA4GH DRS.” `helix standards list --supported-only` lists DRS 1.4.0: that is technical support, not VERIFIED. Versioned operator workflow: [../OPERATOR_VERIFY.md](../OPERATOR_VERIFY.md).
+
+`helix inspect FILE` classifies a retained JSON file as current verifier evidence, historical observation, or invalid. Standing is computed for **this** binary. It is not stored in `helix-verification-v1`.
+
+## What success is not
+
+Not GA4GH certification. Not a Ferrum or clinical-pilot claim. Not HELIOS evidence (no signature, RO-Crate, PDF).

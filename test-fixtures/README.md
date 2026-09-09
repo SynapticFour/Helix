@@ -1,8 +1,10 @@
 # NICHT FÜR PRODUKTION
 
-**NOT FOR PRODUCTION.** These files are Helix Stage 3 **test fixtures** only.
+**NOT FOR PRODUCTION.** Dummy files for Helix Stage 3 only. Catalog of **all** Helix fixtures (HTTP mocks + these files): [docs/FIXTURES.md](../docs/FIXTURES.md).
 
-Helix security tests are black-box HTTP behaviour checks (valid / expired / wrong-scope / garbage / wrong-audience token) plus Crypt4GH **header structure** checks. They do not implement ga4gh-infra or Ferrum. They do not produce HELIOS evidence (no RO-Crate, PDF, or signatures).
+Helix security tests are the **Security Behavior Profile** (black-box HTTP JWT behaviour) then Crypt4GH **protocol layout** ([docs/CRYPT4GH.md](../docs/CRYPT4GH.md)). They do not implement ga4gh-infra or Ferrum. They do not decrypt Crypt4GH. They do not produce HELIOS evidence. They are **not** a security audit. A Crypt4GH pass is not “secure”. **No real secrets.**
+
+Do **not** use these values as Ferrum, ga4gh-infra, or hospital secrets. Do **not** copy them into `.env` for a real deployment. Ferrum has no real clinical pilot; a green Helix run against a dummy HMAC is not production hardening and not GA4GH certification.
 
 Do **not** use these values as Ferrum, ga4gh-infra, or hospital secrets. Do **not** copy them into `.env` for a real deployment. Ferrum has no real clinical pilot; a green Helix run against a dummy HMAC is not production hardening and not GA4GH certification.
 

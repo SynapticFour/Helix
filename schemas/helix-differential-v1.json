@@ -1,0 +1,125 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/SynapticFour/Helix/blob/main/schemas/helix-differential-v1.json",
+  "title": "Helix target differential v1",
+  "description": "Check-level comparison of two helix verify runs against the same specification identity. Descriptive only. Does not create verification. Does not rank implementations. Not HELIOS. Not GA4GH certification.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "helix_version",
+    "same_verifier",
+    "same_specification",
+    "independent_implementation_evidence",
+    "creates_verification",
+    "ranking_semantics",
+    "targets",
+    "differences"
+  ],
+  "properties": {
+    "schema_version": { "const": "helix-differential-v1" },
+    "helix_version": { "type": "string", "minLength": 1 },
+    "standard": { "type": ["string", "null"] },
+    "selected_version": { "type": ["string", "null"] },
+    "release_commit": { "type": ["string", "null"] },
+    "pack_integrity_sha256": { "type": ["string", "null"] },
+    "schema_document_sha256": { "type": ["string", "null"] },
+    "schema_component_sha256": { "type": ["string", "null"] },
+    "checker_id": { "type": ["string", "null"] },
+    "binding_id": { "type": ["string", "null"] },
+    "catalog_id": { "type": ["string", "null"] },
+    "coverage_id": { "type": ["string", "null"] },
+    "same_verifier": { "type": "boolean" },
+    "same_specification": { "type": "boolean" },
+    "independent_implementation_evidence": { "type": "boolean" },
+    "creates_verification": { "const": false },
+    "ranking_semantics": { "const": "absent" },
+    "targets": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 2,
+      "items": { "$ref": "#/$defs/target" }
+    },
+    "differences": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/difference" }
+    }
+  },
+  "$defs": {
+    "target": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "target_id",
+        "target_kind",
+        "independent_evidence",
+        "ga4gh_requirement",
+        "checks"
+      ],
+      "properties": {
+        "target_id": { "type": "string", "minLength": 1 },
+        "target_kind": { "type": "string", "minLength": 1 },
+        "implementation_name": { "type": ["string", "null"] },
+        "reviewed_classification": { "type": ["string", "null"] },
+        "reviewed_artifact": { "type": ["string", "null"] },
+        "reviewed_artifact_identity": { "type": ["string", "null"] },
+        "independent_evidence": { "type": "boolean" },
+        "evidence_standing": { "type": "string", "minLength": 1 },
+        "coverage_state": { "type": ["string", "null"] },
+        "execution_id": { "type": ["string", "null"] },
+        "target_execution_id": { "type": ["string", "null"] },
+        "selected_version": { "type": ["string", "null"] },
+        "declared_version": { "type": ["string", "null"] },
+        "detected_version": { "type": ["string", "null"] },
+        "verified_version": { "type": ["string", "null"] },
+        "ga4gh_requirement": {
+          "type": "string",
+          "enum": ["verified", "not_verified"]
+        },
+        "checks": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/check" }
+        }
+      }
+    },
+    "check": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["check_id", "code", "status"],
+      "properties": {
+        "check_id": { "type": "string", "minLength": 1 },
+        "code": { "type": "string", "minLength": 1 },
+        "status": { "type": "string", "enum": ["pass", "fail", "skip", "error"] },
+        "attribution": { "type": ["string", "null"] },
+        "diagnostic": { "type": ["string", "null"] }
+      }
+    },
+    "difference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["check_id", "code", "class"],
+      "properties": {
+        "check_id": { "type": "string", "minLength": 1 },
+        "code": { "type": "string", "minLength": 1 },
+        "a_status": { "type": ["string", "null"] },
+        "b_status": { "type": ["string", "null"] },
+        "a_attribution": { "type": ["string", "null"] },
+        "b_attribution": { "type": ["string", "null"] },
+        "a_diagnostic": { "type": ["string", "null"] },
+        "b_diagnostic": { "type": ["string", "null"] },
+        "class": {
+          "type": "string",
+          "enum": [
+            "same_behavior",
+            "target_behavior_difference",
+            "fixture_capability_difference",
+            "target_configuration_difference",
+            "environment_difference",
+            "verification_execution_difference",
+            "insufficient_evidence"
+          ]
+        }
+      }
+    }
+  }
+}

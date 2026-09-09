@@ -1,14 +1,22 @@
 # Helix — pins (not a SKU join)
 
 # WHO UPDATES THIS FILE
-#   When HelixTest cuts a tag that Ferrum/Lab Kit/ga4gh-infra also take.
-#   Helix CI clones this SHA as a sibling (D1). helix-action default helixtest-ref
-#   is the same tag. Ferrum main still reads Ferrum/VERSIONS.lock HELIXTEST_*.
+#   When HelixTest checker sources change, recompute HELIXTEST_CHECKER_SOURCE_SHA256
+#   from helix-drs-checker-v2 (crates/framework/checker_source_v2.txt).
+#   HELIXTEST_SHA is the git commit CI should check out. It is not the executed
+#   checker identity.
+#   Helix CI clones HELIXTEST_SHA as a sibling (D1).
 #
 # WHO READS THIS FILE
-#   Helix CI, helix-action docs, humans. Not a SKU join.
+#   Helix CI, helix-action docs, humans, Helix build.rs (source digest + git pin).
+#   Not a SKU join. Not HELIOS.
 
-# Runnable suite. Tag v0.1.3; crate Cargo.toml version may stay 0.1.0.
+# Runnable suite tag (release lineage). Not the git commit Helix compiles.
+# HELIXTEST_SHA is 7 commits after tag v0.1.3. Do not retarget the SHA to the
+# tag commit: SpecSource / checker_source_v2 are absent there.
 HELIXTEST_REF=v0.1.3
 HELIXTEST_TAG=v0.1.3
-HELIXTEST_SHA=1832c043e1679ec283cb2113510ee33684317cce
+# Exact HelixTest git commit (clean tree). Not proof of compiled bytes.
+HELIXTEST_SHA=1baddfd3d75f01dc7c149074a785616fa014c725
+# SHA-256 of helix-drs-checker-v2 manifest of sources Cargo compiles.
+HELIXTEST_CHECKER_SOURCE_SHA256=18bf4a445ac5cf7ae9a45a331834dc13da3a21528f5b29eb1a72bddfbc42a05a

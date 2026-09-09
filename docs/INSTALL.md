@@ -1,27 +1,55 @@
 # Install
 
-Helix productizes **HelixTest** (separate git root, [DECISIONS.md](DECISIONS.md) D1). Clone them as siblings so the path dependency `../HelixTest` resolves:
+Helix productizes **HelixTest** (separate git root, [DECISIONS.md](DECISIONS.md) D1). Five-minute briefing: [FOR-EVALUATORS.md](FOR-EVALUATORS.md).
+
+## Requirements
+
+- **Rust 1.91.1** via [rustup](https://rustup.rs/) (`rust-toolchain.toml`). CI uses that channel.
+  - Put `$HOME/.cargo/bin` **before** Homebrew `/opt/homebrew/bin` on `PATH`. Otherwise `which rustc` may be Homebrew 1.97+ and ignore `rust-toolchain.toml`.
+  - `rustup toolchain install 1.91.1` if needed. `rustc --version` should report 1.91.1 when you are in this directory and using rustup’s cargo.
+- A **sibling** HelixTest git clone, checked out at `HELIXTEST_SHA` in [VERSIONS.lock](../VERSIONS.lock). Tag **v0.1.3** is HelixTest release lineage, not that commit. Cargo.toml path-depends on `../HelixTest/helixtest/crates/{common,framework}`.
+- First build: **`make fetch`** (`cargo fetch --locked`). That is crates.io at lockfile checksums, not a GA4GH download. After that, `make prove` is **offline**.
+
+There is no Homebrew formula, GitHub release binary, or container image. **Installation is a source build.** `make install` is `cargo install --path . --locked`. `publish = false` on crates.io.
+
+After `make install` (or `cargo run --locked --bin helix`):
+
+```bash
+helix --version
+helix standards list --supported-only
+```
+
+`--version` is the Helix package version, compile-time Helix git SHA, HelixTest tag lineage, exact HelixTest source SHA, and checker id. It is not a GA4GH DRS version. Canonical DRS 1.4.0 path: [OPERATOR_VERIFY.md](OPERATOR_VERIFY.md) (`make verify-drs` without a live target).
+
+## Commands
 
 ```bash
 git clone https://github.com/SynapticFour/Helix.git
 git clone https://github.com/SynapticFour/HelixTest.git
+git -C HelixTest checkout "$(grep '^HELIXTEST_SHA=' Helix/VERSIONS.lock | cut -d= -f2)"
 cd Helix
-make prove
-cargo run --bin helix -- verify http://127.0.0.1:8080 --format json
-# Stage 3 (dummy HMAC only — test-fixtures/, NICHT FÜR PRODUKTION)
-cargo run --bin helix -- security http://127.0.0.1:8080 --hmac-secret-file test-fixtures/hmac/shared-secret.txt
-# Stage 4 scaffold (3 GETs; warnings do not fail the process)
-cargo run --bin helix -- bench --baseline http://127.0.0.1:8080 --candidate http://127.0.0.1:8080 --format json
+make fetch              # network, Cargo.lock; not GA4GH
+make prove              # docs + cargo test --locked --offline
+make independent-verify # vendor sha256 + two-run fixture equality
+make verify-fixture     # unversioned helix verify vs mock DRS (prints HELIX VERIFICATION)
+make verify-drs         # DRS 1.4.0 vs that mock; writes verify.json and inspects it
+make install            # optional: helix on PATH (~/.cargo/bin)
 ```
 
-`helix verify` discovers GA4GH HTTP APIs under the URL and runs **HelixTest DRS checks** when DRS answers. That is not GA4GH certification. WES checks are not wired yet (Stage 1 exit still needs DRS and WES against Ferrum local).
+If HelixTest is missing, Make prints the clone/pin commands (exit 2) instead of Cargo’s path-not-found error.
+
+`make prove` does not need a running target ([FIXTURES.md](FIXTURES.md)). `make verify-fixture` starts the mock for you. `helix verify http://127.0.0.1:8080` needs a stack **you** started.
+
+Skeptical reviewer path (pins, hashes, two-run equality, what is **not** bit-for-bit): [INDEPENDENT_VERIFICATION.md](INDEPENDENT_VERIFICATION.md).
+
+`helix verify` discovers GA4GH HTTP APIs under the URL and runs HelixTest DRS and WES checks when those APIs answer. TES/TRS/htsget are discovered but not executed. That is not GA4GH certification.
 
 HelixTest remains usable on its own:
 
 ```bash
-cd HelixTest
+cd ../HelixTest
 make prove
 helixtest --all --mode generic --only drs --profile ga4gh-drs --report json
 ```
 
-See [HelixTest docs/INSTALL.md](https://github.com/SynapticFour/HelixTest/blob/main/docs/INSTALL.md). Ferrum as a reference target: start it with `make up`, then `helix verify http://127.0.0.1:8080`.
+See [HelixTest docs/INSTALL.md](https://github.com/SynapticFour/HelixTest/blob/main/docs/INSTALL.md). Ferrum as an optional reference target: `cd ../Ferrum && make up`, then `make test-live HELIX_LIVE_URL=http://127.0.0.1:8080` from Helix.
