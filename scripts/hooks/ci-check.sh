@@ -2,6 +2,10 @@
 # Mirror .github/workflows/ci.yml cargo gates for Helix.
 # Helix path-depends on a sibling HelixTest checkout (D1), same as CI.
 set -euo pipefail
+# macOS 27: ld-1267 cannot read arm64e.x1 in the CLT SDK. See macos-sdk.sh.
+# shellcheck disable=SC1091
+source "$(git rev-parse --show-toplevel)/scripts/hooks/macos-sdk.sh"
+use_linkable_macos_sdk
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$ROOT"
 
