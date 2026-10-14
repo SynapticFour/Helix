@@ -2,13 +2,13 @@
 
 Survivability notes. **True on `origin/main` today.** Not legal advice. Not GA4GH certification. Not HELIOS.
 
-**Audited revision:** `origin/main` @ `9a21d3908a0e17f733894529f6b8840f14037cbb`. No release tags on origin at audit time. Package version on main (`helix` in `Cargo.toml`): `0.1.0`.
+Checked on 2026-10-14. Release tags: `git tag` (do not copy a tag or commit SHA into this file). The HelixTest revision this build compiles is `HELIXTEST_SHA` in `VERSIONS.lock`, and that tree must be a git checkout.
 
 ## What this project is
 
 Standalone **`helix`** VERIFY CLI around the existing [HelixTest](https://github.com/SynapticFour/HelixTest) engine. Points at a GA4GH HTTP origin you already run; records what was tested. License: **Apache-2.0**. Check bodies come from HelixTest; Helix is not a new test platform. Evidence JSON is **not** HELIOS (no signatures, RO-Crate, PDF).
 
-Exact HelixTest pin: [`VERSIONS.lock`](VERSIONS.lock) (`HELIXTEST_SHA`, `HELIXTEST_REF` / tag lineage). On audited main: `HELIXTEST_SHA=1baddfd3d75f01dc7c149074a785616fa014c725` with `HELIXTEST_REF=v0.1.3` (SHA is **not** the tag commit).
+Exact HelixTest pin: [`VERSIONS.lock`](VERSIONS.lock) (`HELIXTEST_SHA`, `HELIXTEST_REF`). Read the file. Do not treat a SHA pasted into this note as current. `HELIXTEST_REF` is release lineage and is not necessarily the commit `HELIXTEST_SHA` names.
 
 ## Build from a clean machine (from a given tag)
 
@@ -27,7 +27,7 @@ Exact HelixTest pin: [`VERSIONS.lock`](VERSIONS.lock) (`HELIXTEST_SHA`, `HELIXTE
 git clone https://github.com/SynapticFour/Helix.git
 git clone https://github.com/SynapticFour/HelixTest.git
 cd Helix
-git checkout main    # no release tags on origin at audit time; use a tag if one exists later
+git tag -l            # if a tag exists, check it out; otherwise use the default branch
 # Pin HelixTest to the SHA Helix compiles (from this Helix tree):
 git -C ../HelixTest checkout "$(grep '^HELIXTEST_SHA=' VERSIONS.lock | cut -d= -f2)"
 make fetch             # network: cargo fetch --locked
