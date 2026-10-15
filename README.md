@@ -23,7 +23,7 @@ Start here: [docs/HELIX_PRODUCT.md](docs/HELIX_PRODUCT.md) (what Helix can do to
 | Name | What it is here |
 |------|-----------------|
 | **GA4GH** | Global Alliance for Genomics and Health. Publishes HTTP API specifications (DRS, WES, …). Helix is not GA4GH and is not certified by GA4GH. |
-| **HelixTest** | Existing test engine. Helix wraps it. Required as a sibling checkout at the SHA in [VERSIONS.lock](VERSIONS.lock). |
+| **HelixTest** | Existing test engine. Helix wraps it. Required as a sibling **git checkout** at `HELIXTEST_SHA` in [VERSIONS.lock](VERSIONS.lock). A tarball without git metadata is not enough. |
 | **Ferrum** | Optional live reference implementation (BUSL-1.1). Not a Helix dependency. Not required for `make prove`. |
 | **HELIOS** | Different product (`helios-audit`): signed evidence, RO-Crate, PDF. Not this binary. |
 
@@ -43,7 +43,7 @@ Helix answers *whether* a running system behaves on a documented check suite. HE
 
 ## Quick start
 
-Needs a sibling [HelixTest](https://github.com/SynapticFour/HelixTest) checkout at the SHA in [VERSIONS.lock](VERSIONS.lock) (path `../HelixTest`). Rust **1.91.1** via rustup ([docs/INSTALL.md](docs/INSTALL.md)). Helix does not start Ferrum.
+Needs a sibling [HelixTest](https://github.com/SynapticFour/HelixTest) **git checkout** at the SHA in [VERSIONS.lock](VERSIONS.lock) (`HELIXTEST_SHA`, path `../HelixTest`). A source archive or any tree without `.git` fails the pin check (`git rev-parse`). Tag lineage in `HELIXTEST_REF` is not a substitute for that SHA. Rust **1.91.1** via rustup ([docs/INSTALL.md](docs/INSTALL.md)). Helix does not start Ferrum.
 
 ```bash
 git clone https://github.com/SynapticFour/Helix.git
