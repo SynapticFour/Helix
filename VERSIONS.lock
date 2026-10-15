@@ -12,11 +12,14 @@
 #   Not a SKU join. Not HELIOS.
 
 # Runnable suite tag (release lineage). Not the git commit Helix compiles.
-# HELIXTEST_SHA is 7 commits after tag v0.1.3. Do not retarget the SHA to the
-# tag commit: SpecSource / checker_source_v2 are absent there.
+# HELIXTEST_SHA below is the HelixTest main commit this build compiles.
+# Do not retarget that SHA to tag v0.1.3: SpecSource / checker_source_v2
+# are absent on the tag commit.
 HELIXTEST_REF=v0.1.3
 HELIXTEST_TAG=v0.1.3
 # Exact HelixTest git commit (clean tree). Not proof of compiled bytes.
-HELIXTEST_SHA=1baddfd3d75f01dc7c149074a785616fa014c725
+HELIXTEST_SHA=1c043963b69354ea87c330f9d1057869aed96321
 # SHA-256 of helix-drs-checker-v2 manifest of sources Cargo compiles.
+# Same digest as HelixTest 1baddfd3d75f01dc7c149074a785616fa014c725: the
+# checker closure files are the same bytes at HELIXTEST_SHA.
 HELIXTEST_CHECKER_SOURCE_SHA256=18bf4a445ac5cf7ae9a45a331834dc13da3a21528f5b29eb1a72bddfbc42a05a

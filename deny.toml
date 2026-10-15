@@ -16,13 +16,6 @@ ignore       = [
     { id = "RUSTSEC-2022-0011", reason = "rust-crypto 0.2.36 via crates.io crypt4gh 0.4.1 from the pinned HelixTest path. prove.sh rejects a crypt4gh dependency line in this repo." },
     { id = "RUSTSEC-2022-0004", reason = "rustc-serialize 0.3.25 via rust-crypto 0.2.36 via crates.io crypt4gh 0.4.1 from the pinned HelixTest path. prove.sh rejects a crypt4gh dependency line in this repo." },
     { id = "RUSTSEC-2020-0071", reason = "time 0.1.45 via rust-crypto 0.2.36 via crates.io crypt4gh 0.4.1 from the pinned HelixTest path. Patched in time >=0.2.23, which this dependency line does not use." },
-    # Helix's own client is reqwest 0.12. These remain because the path dependency
-    # on the pinned HelixTest sibling still resolves reqwest 0.11 (hyper 0.14, rustls 0.21).
-    # VERSIONS.lock pins that sibling. This change does not retarget that pin.
-    { id = "RUSTSEC-2026-0258", reason = "h2 0.3.27 via hyper 0.14 and reqwest 0.11.27 from the pinned HelixTest path crates. Helix's own reqwest is 0.12. Patched in h2 >=0.4.16." },
-    { id = "RUSTSEC-2026-0098", reason = "rustls-webpki 0.101.7 via rustls 0.21.12 and reqwest 0.11.27 from the pinned HelixTest path crates. Helix's own reqwest is 0.12. Patched in >=0.103.12; rustls 0.21 cannot take that series." },
-    { id = "RUSTSEC-2026-0099", reason = "rustls-webpki 0.101.7 via rustls 0.21.12 and reqwest 0.11.27 from the pinned HelixTest path crates. Helix's own reqwest is 0.12. Patched in >=0.103.12; rustls 0.21 cannot take that series." },
-    { id = "RUSTSEC-2026-0104", reason = "rustls-webpki 0.101.7 via rustls 0.21.12 and reqwest 0.11.27 from the pinned HelixTest path crates. Helix's own reqwest is 0.12. Patched in >=0.103.13; rustls 0.21 cannot take that series." },
 ]
 
 [licenses]
@@ -36,8 +29,6 @@ allow = [
     "BSD-3-Clause",
     "ISC",
     "Unicode-3.0",
-    # webpki-roots 0.25.4 remains via reqwest 0.11 from the pinned HelixTest path crates.
-    "MPL-2.0",
     # webpki-roots 1.0.9 via Helix's own reqwest 0.12.
     "CDLA-Permissive-2.0",
 ]

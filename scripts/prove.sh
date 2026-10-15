@@ -120,7 +120,7 @@ grep -q "compatibility change" docs/TEST_IDENTITY.md
 grep -q "HLX-DRS-005" docs/TEST_IDENTITY.md
 grep -q "DRS invalid object id returns 404" docs/TEST_IDENTITY.md
 grep -q "pub const SPECS" src/identity.rs
-grep -q "HELIXTEST_SHA=1baddfd3d75f01dc7c149074a785616fa014c725" VERSIONS.lock
+grep -q "HELIXTEST_SHA=1c043963b69354ea87c330f9d1057869aed96321" VERSIONS.lock
 grep -q "HELIXTEST_CHECKER_SOURCE_SHA256=18bf4a445ac5cf7ae9a45a331834dc13da3a21528f5b29eb1a72bddfbc42a05a" VERSIONS.lock
 grep -q "helix-drs-checker-v2" docs/CHECKER_PROVENANCE.md
 grep -q "pub fn executed_checker_id" src/checker.rs

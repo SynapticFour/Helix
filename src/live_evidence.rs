@@ -13,7 +13,7 @@ use crate::target::TargetKind;
 
 /// B11/B12 pinned DRS 1.4.0 identities. If any computed value differs, B12 is
 /// blocked: do not silently regenerate.
-pub const PINNED_HELIXTEST_SHA: &str = "1baddfd3d75f01dc7c149074a785616fa014c725";
+pub const PINNED_HELIXTEST_SHA: &str = "1c043963b69354ea87c330f9d1057869aed96321";
 pub const PINNED_CHECKER_SOURCE_SHA256: &str =
     "18bf4a445ac5cf7ae9a45a331834dc13da3a21528f5b29eb1a72bddfbc42a05a";
 pub const PINNED_CHECKER_ID: &str =

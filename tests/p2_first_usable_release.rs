@@ -106,7 +106,7 @@ fn p2_t1_fresh_operator_discovers_supported_workflow() {
     assert!(ver.contains(env!("CARGO_PKG_VERSION")), "{ver}");
     assert!(ver.contains("HelixTest lineage: v0.1.3"), "{ver}");
     assert!(
-        ver.contains("HelixTest source: 1baddfd3d75f01dc7c149074a785616fa014c725"),
+        ver.contains("HelixTest source: 1c043963b69354ea87c330f9d1057869aed96321"),
         "{ver}"
     );
     assert!(
