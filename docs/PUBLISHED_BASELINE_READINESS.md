@@ -145,7 +145,7 @@ WES unversioned checks exist (`tests/verify_wes.rs`). They are **not** proposed 
 | CI | Sufficient **once on `main`**. This branch is not in that workflow. | **Not for this ref** | `.github/workflows/ci.yml` | PR/merge so CI proves the published snapshot. |
 | Live verification | Fixture: yes. Independent live: optional, not exercised in C sessions. | **N/A as source gate** | [PHASE_C_CLOSURE.md](PHASE_C_CLOSURE.md) | Do not manufacture live JSON. |
 | Security boundaries | B13 closed; verify sends no credentials; dummy HMAC is not DRS auth | **Yes** | [AUTHORIZATION.md](AUTHORIZATION.md), [B13_AUTHORIZATION_FEASIBILITY.md](B13_AUTHORIZATION_FEASIBILITY.md) | Keep excluded from the baseline claim. |
-| Licensing | Helix `LICENSE` Apache-2.0; `Cargo.toml` Apache-2.0; README says same licence as HelixTest | **Sufficient to state, not a legal opinion** | `LICENSE`, [CONTRIBUTING.md](CONTRIBUTING.md) | Path-dep HelixTest is a **separate** Apache-2.0 repo; this assessment did not re-audit HelixTest `LICENSE` bytes. crates.io remains inappropriate while the path dep exists. |
+| Licensing | Helix `LICENSE` Apache-2.0; `Cargo.toml` Apache-2.0; README says same licence as HelixTest | **Sufficient to state, not a legal opinion** | `LICENSE`, [CONTRIBUTING.md](../CONTRIBUTING.md) | Path-dep HelixTest is a **separate** Apache-2.0 repo; this assessment did not re-audit HelixTest `LICENSE` bytes. crates.io remains inappropriate while the path dep exists. |
 
 ---
 
